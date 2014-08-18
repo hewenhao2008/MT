@@ -1,0 +1,31 @@
+#!/bin/sh
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+export LD_LIBRARY_PATH=/usr/lib:/lib
+
+#fstab mount
+mount -a
+
+mkdir /var/cache
+mkdir /var/empty
+mkdir /var/lib
+mkdir /var/lib/arpd
+mkdir /var/lib/misc
+mkdir /var/lib/pcmcia
+mkdir /var/lock
+mkdir /var/log
+mkdir /var/pcmcia
+mkdir /var/run
+mkdir /var/spool
+mkdir /var/tmp
+mkdir /var/www
+
+#Banner
+cat /etc_ro/motd
+
+#start daemons
+ugw.sh &
+
+#for telnet debugging
+telnetd
+
