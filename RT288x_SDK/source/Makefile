@@ -287,8 +287,15 @@ oldconfig_linux:
 # normal make targets
 #
 
+.PHONY: buildroot
+buildroot:
+	mkdir -p $(ROOTDIR)/romfs
+	-cd $(ROOTDIR)/romfs && \
+	tar xvf $(ROOTDIR)/../rootfs/images/rootfs.tar
+	cd $(ROOTDIR)/romfs && ln -sf bin/busybox init 
+
 .PHONY: romfs
-romfs: romfs.subdirs modules_install romfs.post
+romfs: buildroot romfs.subdirs modules_install romfs.post
 
 .PHONY: romfs.subdirs
 romfs.subdirs:

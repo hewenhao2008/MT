@@ -1,31 +1,75 @@
 #!/bin/sh
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
-export LD_LIBRARY_PATH=/usr/lib:/lib
+LOG()
+{
+	echo $1 >> /var/tmp/startup.log
+}
 
-#fstab mount
-mount -a
+ERR()
+{
+	LOG $1
+	return 1
+}
 
-mkdir /var/cache
-mkdir /var/empty
-mkdir /var/lib
-mkdir /var/lib/arpd
-mkdir /var/lib/misc
-mkdir /var/lib/pcmcia
-mkdir /var/lock
-mkdir /var/log
-mkdir /var/pcmcia
-mkdir /var/run
-mkdir /var/spool
-mkdir /var/tmp
-mkdir /var/www
+init_sysfs()
+{
+	#fstab mount
+	mount -a
+	
+	#auto mount failed
+	mkdir -p /dev/pts
+	mount -t devpts none /dev/pts
+	
+	mkdir /var/cache
+	mkdir /var/empty
+	mkdir /var/lib
+	mkdir /var/lib/arpd
+	mkdir /var/lib/misc
+	mkdir /var/lib/pcmcia
+	mkdir /var/lock
+	mkdir /var/log
+	mkdir /var/pcmcia
+	mkdir /var/run
+	mkdir /var/spool
+	mkdir /var/tmp
+	mkdir /var/www
+}
 
-#Banner
-cat /etc_ro/motd
+init_jffs2()
+{
+	EBLOCK=`mtdinfo /dev/mtd5 | grep Amount | awk '{print $4}'`
+
+	flash_erase -j /dev/mtd5 0 ${EBLOCK} || return ERR "flash_erase failed.";
+
+	mount -t jffs2 /dev/mtdblock5 /jffs2 || return ERR "mount block5 failed.";
+
+	cp -a /etc /jffs2 || return ERR "cp etc";
+	cp -a /ugw /jffs2 || return ERR "cp ugw";
+
+	return LOG "init_jffs2 finished";
+}
+
+#start base system
+export PATH=/ugw/bin:/ugw/scripts:/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+export LD_LIBRARY_PATH=/ugw/so:/usr/lib:/lib
+
+#init sysfs
+init_sysfs
+
+#mount jffs2
+mkdir -p /jffs2
+if ! mount -t jffs2 /dev/mtdblock5 /jffs2  || ! [ -e /jffs2/ugw ]; then
+	init_jffs2
+fi
+mount -o,rbind /jffs2/ugw	/ugw
+mount -o,rbind /jffs2/etc	/etc
 
 #start daemons
 ugw.sh &
 
 #for telnet debugging
 telnetd
+
+#Banner
+cat /etc/motd
 

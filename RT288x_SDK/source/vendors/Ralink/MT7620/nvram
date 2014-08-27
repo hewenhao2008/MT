@@ -1,0 +1,47 @@
+#!/bin/sh
+## nvram wrapper
+
+useage()
+{
+	echo "nvram show"
+	echo "nvram commit"
+	echo "nvram get key"
+	echo "nvram set key='val'"
+	echo "nvram unset key"
+}
+
+echo "cmd: $*, parnum: $#" >&2
+
+case $# in
+	0)	useage
+		exit 0;
+	;;
+	1)
+		case $1 in
+			"show")
+				ralink_init show 2860
+			;;
+			"commit")
+				#nothing to do, auto commit when set
+			;;
+			*) useage;;
+		esac
+	;;
+	2)
+		case $1 in
+			"get")
+				nvram_get 2860 $2
+			;;
+			"set")
+				nvram_set 2860 $2
+			;;
+			"unset")
+				nvram_set 2860 "" #set empty
+			;;
+		esac
+	;;
+	*) 
+		useage
+		exit 0;
+	;;
+esac

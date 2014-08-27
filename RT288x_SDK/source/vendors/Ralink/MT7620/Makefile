@@ -19,6 +19,7 @@ ROMFS_DIRS = \
 	etc_ro/linuxigd etc_ro/Wireless/RT2860AP etc_ro/Wireless/RT61AP etc_ro/Wireless/iNIC \
 	lib lib/modules lib/ipsec \
 	mnt \
+	ugw ugw/scripts ugw/bin ugw/so \
 	proc \
 	sbin \
 	sys \
@@ -34,25 +35,34 @@ romfs:
 	for i in $(ROMFS_DIRS); do \
 		[ -d $(ROMFSDIR)/$$i ] || mkdir -p $(ROMFSDIR)/$$i; \
 	done
+
 	#generate device node
-ifneq	($(LINUXDIR),linux-2.4.x)
 	@if [ \! -d $(ROMFSDIR)/dev ];then mkdir -p $(ROMFSDIR)/dev;fi;
 	./makedevlinks $(ROMFSDIR)
-endif
+
+	#ugw system conf & scripts.
+	$(ROMFSINST) /ugw/scripts/ugw.sh
+	$(ROMFSINST) /ugw/scripts/networks.sh
+	$(ROMFSINST) /sbin/nvram
+
+	#dropbear
+	$(ROMFSINST) /etc/dropbear/dropbear_rsa_host_key
+
 	$(ROMFSINST) /etc/init.d/rcS
+	$(ROMFSINST) /etc/profile
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/motd
 	$(ROMFSINST) /etc/fstab
 
-	$(ROMFSINST) /etc_ro/wlan/MT7620_AP_2T2R-4L_V13.BIN
+	$(ROMFSINST) /etc_ro/wlan/MT7620_AP_2T2R-4L_V15.BIN
 
 	$(ROMFSINST) /etc_ro/Wireless/RT2860AP/RT2860_default_novlan
-	$(ROMFSINST) /etc_ro/Wireless/RT2860AP/RT2860_default_vlan
+	#$(ROMFSINST) /etc_ro/Wireless/RT2860AP/RT2860_default_vlan
 	$(ROMFSINST) /etc_ro/Wireless/iNIC/RT2860AP.dat
 	$(ROMFSINST) -e CONFIG_RT2860V2_AP_RBUS_PCI_COEX_SUPPORT /etc_ro/Wireless/RT2860APCard.dat
 
-	$(ROMFSINST) -e CONFIG_RT5592_AP /etc_ro/Wireless/iNIC/RT5592_PCIe_2T2R_V1_7.bin
-	$(ROMFSINST) -e CONFIG_RT5592_AP_INCLUDE /etc_ro/Wireless/iNIC/RT5592_PCIe_2T2R_V1_7.bin
+	#$(ROMFSINST) -e CONFIG_RT5592_AP /etc_ro/Wireless/iNIC/RT5592_PCIe_2T2R_V1_7.bin
+	#$(ROMFSINST) -e CONFIG_RT5592_AP_INCLUDE /etc_ro/Wireless/iNIC/RT5592_PCIe_2T2R_V1_7.bin
 
 romfs.post:: 
 	[ -d $(IMAGEDIR) ] || mkdir -p $(IMAGEDIR)
