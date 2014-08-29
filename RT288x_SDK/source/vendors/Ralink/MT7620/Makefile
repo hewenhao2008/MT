@@ -42,7 +42,7 @@ romfs:
 
 	#ugw system conf & scripts.
 	$(ROMFSINST) /ugw/scripts/ugw.sh
-	$(ROMFSINST) /ugw/scripts/networks.sh
+	$(ROMFSINST) /ugw/scripts/ugw_networks.sh
 	$(ROMFSINST) /sbin/nvram
 
 	#dropbear

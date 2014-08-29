@@ -272,7 +272,8 @@ ioctl_err:
 
 static void dhcpcHandler(int signum)
 {
-	firewall_init();
+	//ROY, no firewall
+	//firewall_init();
 	ripdRestart();
 	doSystem("/sbin/config-igmpproxy.sh");
 #ifdef CONFIG_RALINKAPP_SWQOS

@@ -1,11 +1,12 @@
 #!/bin/sh
 
 #init system
-networks.sh
+
+#startup networks
+ugw_networks.sh
 
 #start daemon
-UGW_DAEMONS="nvram_daemon goahead dropbear"
-
+UGW_DAEMONS="syslogd klogd nvram_daemon goahead dropbear"
 while true;
 do
 	# 遛狗

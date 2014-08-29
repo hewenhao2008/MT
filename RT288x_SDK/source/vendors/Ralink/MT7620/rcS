@@ -7,7 +7,7 @@ LOG()
 
 ERR()
 {
-	LOG $1
+	LOG "error:"$*
 	return 1
 }
 
@@ -39,14 +39,16 @@ init_jffs2()
 {
 	EBLOCK=`mtdinfo /dev/mtd5 | grep Amount | awk '{print $4}'`
 
-	flash_erase -j /dev/mtd5 0 ${EBLOCK} || return ERR "flash_erase failed.";
+	umount /jffs2 || ERR "unmount jffs2.";
 
-	mount -t jffs2 /dev/mtdblock5 /jffs2 || return ERR "mount block5 failed.";
+	flash_erase -j /dev/mtd5 0 ${EBLOCK} || ERR "flash_erase failed.";
 
-	cp -a /etc /jffs2 || return ERR "cp etc";
-	cp -a /ugw /jffs2 || return ERR "cp ugw";
+	mount -t jffs2 /dev/mtdblock5 /jffs2 || ERR "mount block5 failed.";
 
-	return LOG "init_jffs2 finished";
+	cp -a /etc /jffs2 || ERR "cp etc";
+	cp -a /ugw /jffs2 || ERR "cp ugw";
+
+	LOG "init_jffs2 finished";
 }
 
 #start base system

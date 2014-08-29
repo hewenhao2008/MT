@@ -10,7 +10,7 @@ useage()
 	echo "nvram unset key"
 }
 
-echo "cmd: $*, parnum: $#" >&2
+echo "nvram: $*, parnum: $#" >&2
 
 case $# in
 	0)	useage
@@ -33,7 +33,10 @@ case $# in
 				nvram_get 2860 $2
 			;;
 			"set")
-				nvram_set 2860 $2
+				KEY=`echo $2| awk -F= '{print $1}'`
+				VAL=`echo $2| awk -F= '{print $2}' | sed s/\"//g`
+				echo "nvram set $KEY $VAL" >&2
+				nvram_set 2860 $KEY $VAL
 			;;
 			"unset")
 				nvram_set 2860 "" #set empty

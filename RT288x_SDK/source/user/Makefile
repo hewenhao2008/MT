@@ -32,10 +32,10 @@ dir_n =
 dir_  =
 
 
-dir_y	+= 802.1x
+dir_y	+= apclid
 dir_y	+= goahead
 dir_y	+= rt2880_app
-#dir_y 	+= busybox
+dir_y 	+= wireless_tools
 
 # dir_$(CONFIG_USER_802_1X)		    += 802.1x
 # dir_$(CONFIG_USER_ACCEL_PPTP)		    += accel-pptp

@@ -1657,7 +1657,8 @@ int initInternet(void)
 	const char *opmode;
 #endif
 
-	doSystem("internet.sh");
+	//ROY: disable auto start hear.
+	//doSystem("internet.sh");
 
 	//automatically connect to AP according to the active profile
 #if defined CONFIG_RT2860V2_STA || defined CONFIG_RT2860V2_STA_MODULE
@@ -1680,7 +1681,7 @@ int initInternet(void)
 	restartWAPIDaemon();	// in wireless.c
 #endif
 #if ! defined (CONFIG_FIRST_IF_NONE) 
-	restart8021XDaemon(RT2860_NVRAM);	// in wireless.c
+	//restart8021XDaemon(RT2860_NVRAM);	// in wireless.c
 #endif
 #if ! defined (CONFIG_SECOND_IF_NONE)
 	restart8021XDaemon(RTDEV_NVRAM);	// in wireless.c
@@ -1690,9 +1691,10 @@ int initInternet(void)
 	AntennaDiversityInit();
 #endif
 
-	firewall_init();
-	management_init();
-	RoutingInit();
+	//ROY, no firewall hear
+	//firewall_init();
+	//management_init();
+	//RoutingInit();
 #ifdef CONFIG_RALINKAPP_SWQOS
 	QoSInit();
 #endif
