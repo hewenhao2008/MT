@@ -346,16 +346,7 @@ int gen_config(int mode)
 	if (mode == RT2860_NVRAM) {
 		fp = fopen("/etc/Wireless/RT2860/RT2860.dat", "w+");
 	} else if (mode == RTDEV_NVRAM) {
-#if defined (CONFIG_RTDEV)
-		system("mkdir -p /etc/Wireless/iNIC");
-		fp = fopen("/etc/Wireless/iNIC/iNIC_ap.dat", "w+");
-#elif defined (CONFIG_RT2561_AP) || defined (CONFIG_RT2561_AP_MODULE)
-		system("mkdir -p /etc/Wireless/RT2561");
-		fp = fopen("/etc/Wireless/RT2561/RT2561.dat", "w+");
-#elif defined (CONFIG_RTDEV_PLC)
-		system("mkdir -p /etc/PLC");
-		fp = fopen("/etc/PLC/plc.dat", "w+");
-#endif
+		//xxxxxxxxxxx
 	} else
 		return 0;
 
@@ -365,11 +356,7 @@ int gen_config(int mode)
 #define FPRINT_NUM(x) fprintf(fp, #x"=%d\n", atoi(nvram_bufget(mode, #x)));
 #define FPRINT_STR(x) fprintf(fp, #x"=%s\n", nvram_bufget(mode, #x));
 
-	if ((RT2860_NVRAM == mode) 
-#if defined (CONFIG_RTDEV)
-		|| (RTDEV_NVRAM == mode)
-#endif
-		) {
+	if ((RT2860_NVRAM == mode)) {
 		FPRINT_NUM(CountryRegion);
 		FPRINT_NUM(CountryRegionABand);
 		FPRINT_STR(CountryCode);
@@ -384,16 +371,6 @@ int gen_config(int mode)
 		FPRINT_STR(SSID6);
 		FPRINT_STR(SSID7);
 		FPRINT_STR(SSID8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(SSID9);
-		FPRINT_STR(SSID10);
-		FPRINT_STR(SSID11);
-		FPRINT_STR(SSID12);
-		FPRINT_STR(SSID13);
-		FPRINT_STR(SSID14);
-		FPRINT_STR(SSID15);
-		FPRINT_STR(SSID16);
-#endif
 
 		FPRINT_NUM(WirelessMode);
 		FPRINT_STR(FixedTxMode);
@@ -489,9 +466,9 @@ int gen_config(int mode)
 		FPRINT_NUM(DfsUpperLimit);
 		FPRINT_NUM(DfsOutdoor);
 		FPRINT_NUM(SymRoundFromCfg);
-                FPRINT_NUM(BusyIdleFromCfg);
-                FPRINT_NUM(DfsRssiHighFromCfg);
-                FPRINT_NUM(DfsRssiLowFromCfg);
+        FPRINT_NUM(BusyIdleFromCfg);
+        FPRINT_NUM(DfsRssiHighFromCfg);
+        FPRINT_NUM(DfsRssiLowFromCfg);
 		FPRINT_NUM(DFSParamFromConfig);
 		FPRINT_STR(FCCParamCh0);
 		FPRINT_STR(FCCParamCh1);
@@ -528,16 +505,6 @@ int gen_config(int mode)
 		FPRINT_STR(WapiPsk6);
 		FPRINT_STR(WapiPsk7);
 		FPRINT_STR(WapiPsk8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(WapiPsk9);
-		FPRINT_STR(WapiPsk10);
-		FPRINT_STR(WapiPsk11);
-		FPRINT_STR(WapiPsk12);
-		FPRINT_STR(WapiPsk13);
-		FPRINT_STR(WapiPsk14);
-		FPRINT_STR(WapiPsk15);
-		FPRINT_STR(WapiPsk16);
-#endif
 
 		FPRINT_STR(WapiPskType);
 		FPRINT_STR(Wapiifname);
@@ -546,7 +513,7 @@ int gen_config(int mode)
 		FPRINT_STR(WapiAsIpAddr);
 		FPRINT_STR(WapiAsPort);
  
-		FPRINT_NUM(BssidNum);
+		//FPRINT_NUM(BssidNum);
 
 		FPRINT_STR(RekeyMethod);
 		FPRINT_NUM(RekeyInterval);
@@ -569,16 +536,6 @@ int gen_config(int mode)
 		FPRINT_STR(WPAPSK6);
 		FPRINT_STR(WPAPSK7);
 		FPRINT_STR(WPAPSK8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(WPAPSK9);
-		FPRINT_STR(WPAPSK10);
-		FPRINT_STR(WPAPSK11);
-		FPRINT_STR(WPAPSK12);
-		FPRINT_STR(WPAPSK13);
-		FPRINT_STR(WPAPSK14);
-		FPRINT_STR(WPAPSK15);
-		FPRINT_STR(WPAPSK16);
-#endif
 
 		FPRINT_STR(DefaultKeyID);
 		FPRINT_STR(Key1Type);
@@ -590,16 +547,6 @@ int gen_config(int mode)
 		FPRINT_STR(Key1Str6);
 		FPRINT_STR(Key1Str7);
 		FPRINT_STR(Key1Str8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(Key1Str9);
-		FPRINT_STR(Key1Str10);
-		FPRINT_STR(Key1Str11);
-		FPRINT_STR(Key1Str12);
-		FPRINT_STR(Key1Str13);
-		FPRINT_STR(Key1Str14);
-		FPRINT_STR(Key1Str15);
-		FPRINT_STR(Key1Str16);
-#endif
 
 		FPRINT_STR(Key2Type);
 		FPRINT_STR(Key2Str1);
@@ -610,16 +557,7 @@ int gen_config(int mode)
 		FPRINT_STR(Key2Str6);
 		FPRINT_STR(Key2Str7);
 		FPRINT_STR(Key2Str8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(Key2Str9);
-		FPRINT_STR(Key2Str10);
-		FPRINT_STR(Key2Str11);
-		FPRINT_STR(Key2Str12);
-		FPRINT_STR(Key2Str13);
-		FPRINT_STR(Key2Str14);
-		FPRINT_STR(Key2Str15);
-		FPRINT_STR(Key2Str16);
-#endif
+
 		FPRINT_STR(Key3Type);
 		FPRINT_STR(Key3Str1);
 		FPRINT_STR(Key3Str2);
@@ -629,16 +567,7 @@ int gen_config(int mode)
 		FPRINT_STR(Key3Str6);
 		FPRINT_STR(Key3Str7);
 		FPRINT_STR(Key3Str8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(Key3Str9);
-		FPRINT_STR(Key3Str10);
-		FPRINT_STR(Key3Str11);
-		FPRINT_STR(Key3Str12);
-		FPRINT_STR(Key3Str13);
-		FPRINT_STR(Key3Str14);
-		FPRINT_STR(Key3Str15);
-		FPRINT_STR(Key3Str16);
-#endif
+
 		FPRINT_STR(Key4Type);
 		FPRINT_STR(Key4Str1);
 		FPRINT_STR(Key4Str2);
@@ -648,16 +577,7 @@ int gen_config(int mode)
 		FPRINT_STR(Key4Str6);
 		FPRINT_STR(Key4Str7);
 		FPRINT_STR(Key4Str8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(Key4Str9);
-		FPRINT_STR(Key4Str10);
-		FPRINT_STR(Key4Str11);
-		FPRINT_STR(Key4Str12);
-		FPRINT_STR(Key4Str13);
-		FPRINT_STR(Key4Str14);
-		FPRINT_STR(Key4Str15);
-		FPRINT_STR(Key4Str16);
-#endif
+
 		FPRINT_NUM(HSCounter);
 
 		FPRINT_NUM(HT_HTC);
@@ -680,7 +600,7 @@ int gen_config(int mode)
 		FPRINT_NUM(HT_PROTECT);
 		FPRINT_NUM(HT_DisallowTKIP);
 		FPRINT_NUM(HT_BSSCoexistence);
-		FPRINT_NUM(GreenAP);
+		//FPRINT_NUM(GreenAP);
 
 		FPRINT_NUM(WscConfMode);
 
@@ -713,24 +633,6 @@ int gen_config(int mode)
 		FPRINT_STR(AccessControlList6);
 		FPRINT_NUM(AccessPolicy7);
 		FPRINT_STR(AccessControlList7);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_NUM(AccessPolicy8);
-		FPRINT_STR(AccessControlList8);
-		FPRINT_NUM(AccessPolicy9);
-		FPRINT_STR(AccessControlList9);
-		FPRINT_NUM(AccessPolicy10);
-		FPRINT_STR(AccessControlList10);
-		FPRINT_NUM(AccessPolicy11);
-		FPRINT_STR(AccessControlList11);
-		FPRINT_NUM(AccessPolicy12);
-		FPRINT_STR(AccessControlList12);
-		FPRINT_NUM(AccessPolicy13);
-		FPRINT_STR(AccessControlList13);
-		FPRINT_NUM(AccessPolicy14);
-		FPRINT_STR(AccessControlList14);
-		FPRINT_NUM(AccessPolicy15);
-		FPRINT_STR(AccessControlList15);
-#endif
 
 		FPRINT_NUM(WdsEnable);
 		FPRINT_STR(WdsPhyMode);
@@ -750,16 +652,7 @@ int gen_config(int mode)
 		FPRINT_STR(RADIUS_Key6);
 		FPRINT_STR(RADIUS_Key7);
 		FPRINT_STR(RADIUS_Key8);
-#if defined (CONFIG_16MBSSID_MODE)
-		FPRINT_STR(RADIUS_Key9);
-		FPRINT_STR(RADIUS_Key10);
-		FPRINT_STR(RADIUS_Key11);
-		FPRINT_STR(RADIUS_Key12);
-		FPRINT_STR(RADIUS_Key13);
-		FPRINT_STR(RADIUS_Key14);
-		FPRINT_STR(RADIUS_Key15);
-		FPRINT_STR(RADIUS_Key16);
-#endif
+
 		FPRINT_STR(RADIUS_Acct_Server);
 		FPRINT_NUM(RADIUS_Acct_Port);
 		FPRINT_STR(RADIUS_Acct_Key);
@@ -805,155 +698,6 @@ int gen_config(int mode)
 		 */
 		fprintf(fp, "SSID=\nWPAPSK=\nKey1Str=\nKey2Str=\nKey3Str=\nKey4Str=\n");
 	}
-#if defined (CONFIG_RT2561_AP) || defined (CONFIG_RT2561_AP_MODULE)
-	if (RTDEV_NVRAM == mode) {
-		FPRINT_NUM(CountryRegion);
-		FPRINT_NUM(CountryRegionABand);
-		FPRINT_STR(CountryCode);
-		FPRINT_NUM(BssidNum);
-		ssid_num = atoi(nvram_get(mode, "BssidNum"));
-		FPRINT_STR(SSID);
-		FPRINT_NUM(WirelessMode);
-		//TxRate(FixedRate)
-		bzero(tx_rate, sizeof(char)*12);
-		for (i = 0; i < ssid_num; i++)
-		{
-			sprintf(tx_rate+strlen(tx_rate), "%d",
-			atoi(nvram_bufget(mode, "TxRate")));
-			sprintf(tx_rate+strlen(tx_rate), "%c", ';');
-		}
-		tx_rate[strlen(tx_rate) - 1] = '\0';
-		fprintf(fp, "TxRate=%s\n", tx_rate);
-
-		FPRINT_NUM(Channel);
-		FPRINT_NUM(BasicRate);
-		FPRINT_NUM(BeaconPeriod);
-		FPRINT_NUM(DtimPeriod);
-		FPRINT_NUM(TxPower);
-		FPRINT_NUM(DisableOLBC);
-		FPRINT_NUM(BGProtection);
-		fprintf(fp, "TxAntenna=\n");
-		fprintf(fp, "RxAntenna=\n");
-		FPRINT_NUM(TxPreamble);
-		FPRINT_NUM(RTSThreshold  );
-		FPRINT_NUM(FragThreshold  );
-		FPRINT_NUM(TxBurst);
-		FPRINT_NUM(PktAggregate);
-		fprintf(fp, "TurboRate=0\n");
-
-		//WmmCapable
-		bzero(wmm_enable, sizeof(char)*8);
-		for (i = 0; i < ssid_num; i++)
-		{
-			sprintf(wmm_enable+strlen(wmm_enable), "%d",
-			atoi(nvram_bufget(mode, "WmmCapable")));
-			sprintf(wmm_enable+strlen(wmm_enable), "%c", ';');
-		}
-		wmm_enable[strlen(wmm_enable) - 1] = '\0';
-		fprintf(fp, "WmmCapable=%s\n", wmm_enable);
-
-		FPRINT_STR(APAifsn);
-		FPRINT_STR(APCwmin);
-		FPRINT_STR(APCwmax);
-		FPRINT_STR(APTxop);
-		FPRINT_STR(APACM);
-		FPRINT_STR(BSSAifsn);
-		FPRINT_STR(BSSCwmin);
-		FPRINT_STR(BSSCwmax);
-		FPRINT_STR(BSSTxop);
-		FPRINT_STR(BSSACM);
-		FPRINT_STR(AckPolicy);
-		FPRINT_STR(APSDCapable);
-		FPRINT_STR(DLSCapable);
-		FPRINT_STR(NoForwarding);
-		FPRINT_NUM(NoForwardingBTNBSSID);
-		FPRINT_STR(HideSSID);
-		FPRINT_NUM(ShortSlot);
-		FPRINT_NUM(AutoChannelSelect);
-		FPRINT_NUM(MaxTxPowerLevel);
-		FPRINT_STR(IEEE8021X);
-		FPRINT_NUM(IEEE80211H);
-		FPRINT_NUM(CSPeriod);
-		FPRINT_STR(RDRegion);
-		FPRINT_STR(PreAuth);
-		FPRINT_STR(AuthMode);
-		FPRINT_STR(EncrypType);
-	    /*kurtis: WAPI*/
-		FPRINT_STR(WapiPsk1);
-		FPRINT_STR(WapiPskType);
-		FPRINT_STR(Wapiifname);
-		FPRINT_STR(WapiAsCertPath);
-		FPRINT_STR(WapiUserCertPath);
-		FPRINT_STR(WapiAsIpAddr);
-		FPRINT_STR(WapiAsPort);
- 	
-		FPRINT_NUM(RekeyInterval);
-		FPRINT_STR(RekeyMethod);
-		FPRINT_STR(PMKCachePeriod);
-		FPRINT_STR(WPAPSK);
-		FPRINT_STR(DefaultKeyID);
-		FPRINT_STR(Key1Type);
-		FPRINT_STR(Key1Str);
-		FPRINT_STR(Key2Type);
-		FPRINT_STR(Key2Str);
-		FPRINT_STR(Key3Type);
-		FPRINT_STR(Key3Str);
-		FPRINT_STR(Key4Type);
-		FPRINT_STR(Key4Str);
-		FPRINT_NUM(HSCounter);
-		FPRINT_NUM(AccessPolicy0);
-		FPRINT_STR(AccessControlList0);
-		FPRINT_NUM(AccessPolicy1);
-		FPRINT_STR(AccessControlList1);
-		FPRINT_NUM(AccessPolicy2);
-		FPRINT_STR(AccessControlList2);
-		FPRINT_NUM(AccessPolicy3);
-		FPRINT_STR(AccessControlList3);
-		FPRINT_NUM(WdsEnable);
-		FPRINT_STR(WdsPhyMode);
-		FPRINT_STR(WdsEncrypType);
-		FPRINT_STR(WdsList);
-		FPRINT_STR(WdsKey);
-		FPRINT_STR(RADIUS_Server);
-		FPRINT_STR(RADIUS_Port);
-		FPRINT_STR(RADIUS_Key);
-		FPRINT_STR(own_ip_addr);
-		FPRINT_STR(Ethifname);
-		//AP Client parameters
-		FPRINT_NUM(ApCliEnable);
-		FPRINT_STR(ApCliSsid);
-		FPRINT_STR(ApCliBssid);
-		FPRINT_STR(ApCliAuthMode);
-		FPRINT_STR(ApCliEncrypType);
-		FPRINT_STR(ApCliWPAPSK);
-		FPRINT_NUM(ApCliDefaultKeyID);
-		FPRINT_NUM(ApCliKey1Type);
-		FPRINT_STR(ApCliKey1Str);
-		FPRINT_NUM(ApCliKey2Type);
-		FPRINT_STR(ApCliKey2Str);
-		FPRINT_NUM(ApCliKey3Type);
-		FPRINT_STR(ApCliKey3Str);
-		FPRINT_NUM(ApCliKey4Type);
-		FPRINT_STR(ApCliKey4Str);
-		FPRINT_NUM(WscConfMode);
-		//WscConfStatus
-		if (atoi(nvram_bufget(mode, "WscConfigured")) == 0)
-			fprintf(fp, "WscConfStatus=%d\n", 1);
-		else
-			fprintf(fp, "WscConfStatus=%d\n", 2);
-	}
-#elif defined (CONFIG_RTDEV_PLC)
-	if (RTDEV_NVRAM == mode) {
-		FPRINT_STR(MacAddress);
-		FPRINT_STR(NPW);
-		FPRINT_STR(DPW);
-		FPRINT_NUM(BackupCCo);
-		FPRINT_NUM(CCo);
-		FPRINT_NUM(UnAssoCCo);
-		FPRINT_NUM(STA);
-		FPRINT_NUM(UnAssoSTA);
-	}
-#endif
 
 	nvram_close(mode);
 	fclose(fp);

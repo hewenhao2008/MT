@@ -62,7 +62,7 @@ static inline int nvram_ra_match(char* key, char* mval)
 	return 0;
 }	
 
-extern int ac_notfound;
+extern int ac_addr_invalid;
 
 
 #endif //__APCLID_H__

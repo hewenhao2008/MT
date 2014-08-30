@@ -215,20 +215,7 @@ int ralink_nvram_ioctl(struct inode *inode, struct file *file, unsigned int req,
 		nvram_set(nvr->index, nvr->name, value);
 		kfree(value);
 		break;
-	case RALINK_NVRAM_IOCTL_COMMIT_KERNEL:
-		value = (char *)kmalloc(MAX_VALUE_LEN, GFP_KERNEL);
-		if (!value)
-			return -ENOMEM;
-		
-		if (copy_from_user(value, (void*)arg, MAX_VALUE_LEN)) {
-			kfree(value);
-			return -EFAULT;
-		}
 
-		//value raw data of fb
-
-		nvram_commit(nvr->index);
-		break;
 	case RALINK_NVRAM_IOCTL_COMMIT:
 		nvr = (nvram_ioctl_t __user *)arg;
 		nvram_commit(nvr->index);

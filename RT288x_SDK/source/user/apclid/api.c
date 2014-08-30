@@ -140,7 +140,7 @@ char *api_set_exec_cmds(char *par)
 {
 	if (strcmp(par, "services") == 0 || strstr(par, "rc restart")!=NULL)
 	{
-		system("ugw_networks.sh restart");
+		system("ugw_networks.sh restart &");
 	}else if(strcmp(par, "reboot") == 0) {
 		system("reboot");
 	}else{

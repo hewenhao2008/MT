@@ -43,6 +43,7 @@ romfs:
 	#ugw system conf & scripts.
 	$(ROMFSINST) /ugw/scripts/ugw.sh
 	$(ROMFSINST) /ugw/scripts/ugw_networks.sh
+	#$(ROMFSINST) /usr/share/udhcpc/default.script
 	$(ROMFSINST) /sbin/nvram
 
 	#dropbear

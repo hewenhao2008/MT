@@ -2,7 +2,7 @@
 #include "api.h"
 
 //全局变量
-int ac_notfound = 0;
+int ac_addr_invalid = 0;
 
 static void signal_handler(int sig)
 {
@@ -29,23 +29,28 @@ int main(char argc, char *argv[])
 
 	logdbg("apclid starting...\n");
 
+	ac_addr_invalid = 0;
 	time_t start_ts = time(NULL);
 	while(1) {
 		//cleanup alert message
 		nvram_ra_unset("ap_alert");
 		nvram_ra_unset("ac_connected");
 
-		ac_notfound = 0;
 
 		//第一次, 等5min才转DHCP.
+		int esp;
 		do {
-			start_ap_client(); //优先从配置读取ac地址.
-		} while ((time(NULL) - start_ts) < 300);
+			//优先从配置读取ac地址.
+			start_ap_client();
+
+			esp = (time(NULL)-start_ts);
+			logerr("connect failed, try %d secs\n", esp);
+		} while (esp < 60);
 
 		//超时, 连不上, 切换dhcp, 并且从广播获取AC地址.
 		if (!nvram_ra_match("ap_standalone", "1")) {
 			//5min, & not found ac. 
-			ac_notfound = 1; //广播获取AC地址
+			ac_addr_invalid = 1; //广播获取AC地址
 
 			//udhcpc -i br0 -p /var/run/udhcpc-br0.pid -s /tmp/ldhclnt
 			syslog(LOG_INFO, "auto changed to DHCP...\n");

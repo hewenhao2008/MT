@@ -12,7 +12,7 @@
 
 #include <linux/autoconf.h>
 
-char libnvram_debug = 1;
+char libnvram_debug = 0;
 #define LIBNV_PRINT(x, ...) do { if (libnvram_debug) printf("%s %d: " x, __FILE__, __LINE__, ## __VA_ARGS__); } while(0)
 #define LIBNV_ERROR(x, ...) do { printf("%s %d: ERROR! " x, __FILE__, __LINE__, ## __VA_ARGS__); } while(0)
 
@@ -88,6 +88,9 @@ void nvram_init(int index)
 	LIBNV_PRINT("--> nvram_init %d\n", index);
 	LIBNV_CHECK_INDEX();
 
+	if (fb[index].valid)
+		return;
+
 #ifdef CONFIG_KERNEL_NVRAM
 	/*
 	 * read data from flash
@@ -132,8 +135,6 @@ void nvram_init(int index)
 		return;
 	}
 #endif
-	if (fb[index].valid)
-		return;
 
 	//parse env to cache
 	p = fb[index].env.data;
@@ -177,10 +178,8 @@ void nvram_close(int index)
 	LIBNV_PRINT("--> nvram_close %d\n", index);
 	LIBNV_CHECK_INDEX();
 
-	if (!fb[index].valid) {
-		LIBNV_PRINT("--> not invalid\n");
+	if (!fb[index].valid)
 		return;
-	}
 	if (fb[index].dirty)
 		nvram_commit(index);
 
@@ -220,10 +219,9 @@ const char *nvram_get(int index, char *name)
 #ifdef CONFIG_KERNEL_NVRAM
 	/* Get the fresh value from Kernel NVRAM moduel,
 	 * so there is no need to do nvram_close() and nvram_init() again
-	 * ROY: 这里还是使用应用层缓存, 内核nvram作为永存. 所以不能关闭这两行.
 	 */
-	nvram_close(index);
-	nvram_init(index);
+	//nvram_close(index);
+	//nvram_init(index);
 #else
 	nvram_close(index);
 	nvram_init(index);
@@ -237,8 +235,8 @@ int nvram_set(int index, char *name, char *value)
 	//LIBNV_PRINT("--> nvram_set\n");
 
 	if (-1 == nvram_bufset(index, name, value))
-		return -1;
 
+		return -1;
 	return nvram_commit(index);
 }
 
@@ -246,46 +244,45 @@ char const *nvram_bufget(int index, char *name)
 {
 	int idx;
 	static char const *ret;
-// #ifdef CONFIG_KERNEL_NVRAM
-// 	int fd;
-// 	nvram_ioctl_t nvr;
-// #endif
+#ifdef CONFIG_KERNEL_NVRAM
+	int fd;
+	nvram_ioctl_t nvr;
+#endif
 
 	//LIBNV_PRINT("--> nvram_bufget %d\n", index);
 	LIBNV_CHECK_INDEX("");
 	LIBNV_CHECK_VALID();
 
-// ROY: 启用缓存模式.
-// #ifdef CONFIG_KERNEL_NVRAM
-// 	nvr.index = index;
-// 	nvr.name = name;
-// 	nvr.value = malloc(MAX_VALUE_LEN);
-// 	fd = open(NV_DEV, O_RDONLY);
-// 	if (fd < 0) {
-// 		perror(NV_DEV);
-// 		FREE(nvr.value);
-// 		return "";
-// 	}
-// 	if (ioctl(fd, RALINK_NVRAM_IOCTL_GET, &nvr) < 0) {
-// 		perror("ioctl");
-// 		close(fd);
-// 		FREE(nvr.value);
-// 		return "";
-// 	}
-// 	close(fd);
-// #endif
+#ifdef CONFIG_KERNEL_NVRAM
+	nvr.index = index;
+	nvr.name = name;
+	nvr.value = malloc(MAX_VALUE_LEN);
+	fd = open(NV_DEV, O_RDONLY);
+	if (fd < 0) {
+		perror(NV_DEV);
+		FREE(nvr.value);
+		return "";
+	}
+	if (ioctl(fd, RALINK_NVRAM_IOCTL_GET, &nvr) < 0) {
+		perror("ioctl");
+		close(fd);
+		FREE(nvr.value);
+		return "";
+	}
+	close(fd);
+#endif
 
 	idx = cache_idx(index, name);
 
 	if (-1 != idx) {
 		if (fb[index].cache[idx].value) {
 			//duplicate the value in case caller modify it
-			//ret = strdup(fb[index].cache[idx].value); ROY: 不要吧, 要不然人家还要负责释放它...
-// #ifdef CONFIG_KERNEL_NVRAM
-// 			FREE(fb[index].cache[idx].value);
-// 			fb[index].cache[idx].value = strdup(nvr.value);
-// 			FREE(nvr.value);
-// #endif
+			//ret = strdup(fb[index].cache[idx].value);
+#ifdef CONFIG_KERNEL_NVRAM
+			FREE(fb[index].cache[idx].value);
+			fb[index].cache[idx].value = strdup(nvr.value);
+			FREE(nvr.value);
+#endif
 			ret = fb[index].cache[idx].value;
 			LIBNV_PRINT("bufget %d '%s'->'%s'\n", index, name, ret);
 			return ret;
@@ -296,9 +293,9 @@ char const *nvram_bufget(int index, char *name)
 	//btw, we don't return NULL anymore!
 	LIBNV_PRINT("bufget %d '%s'->''(empty) Warning!\n", index, name);
 
-// #ifdef CONFIG_KERNEL_NVRAM
-// 	FREE(nvr.value);
-// #endif
+#ifdef CONFIG_KERNEL_NVRAM
+	FREE(nvr.value);
+#endif
 
 	return "";
 }
@@ -306,33 +303,32 @@ char const *nvram_bufget(int index, char *name)
 int nvram_bufset(int index, char *name, char *value)
 {
 	int idx;
-// #ifdef CONFIG_KERNEL_NVRAM
-// 	int fd;
-// 	nvram_ioctl_t nvr;
-// #endif
+#ifdef CONFIG_KERNEL_NVRAM
+	int fd;
+	nvram_ioctl_t nvr;
+#endif
 
 	//LIBNV_PRINT("--> nvram_bufset\n");
 
 	LIBNV_CHECK_INDEX(-1);
 	LIBNV_CHECK_VALID();
 
-//ROY: 使用应用层缓存机制.
-// #ifdef CONFIG_KERNEL_NVRAM
-// 	nvr.index = index;
-// 	nvr.name = name;
-// 	nvr.value = value;
-// 	fd = open(NV_DEV, O_RDONLY);
-// 	if (fd < 0) {
-// 		perror(NV_DEV);
-// 		return -1;
-// 	}
-// 	if (ioctl(fd, RALINK_NVRAM_IOCTL_SET, &nvr) < 0) {
-// 		perror("ioctl");
-// 		close(fd);
-// 		return -1;
-// 	}
-// 	close(fd);
-// #endif
+#ifdef CONFIG_KERNEL_NVRAM
+	nvr.index = index;
+	nvr.name = name;
+	nvr.value = value;
+	fd = open(NV_DEV, O_RDONLY);
+	if (fd < 0) {
+		perror(NV_DEV);
+		return -1;
+	}
+	if (ioctl(fd, RALINK_NVRAM_IOCTL_SET, &nvr) < 0) {
+		perror("ioctl");
+		close(fd);
+		return -1;
+	}
+	close(fd);
+#endif
 
 	idx = cache_idx(index, name);
 
@@ -347,23 +343,20 @@ int nvram_bufset(int index, char *name, char *value)
 			LIBNV_ERROR("run out of env cache, please increase MAX_CACHE_ENTRY\n");
 			return -1;
 		}
-		fb[index].dirty = 1;
 		fb[index].cache[idx].name = strdup(name);
 		fb[index].cache[idx].value = strdup(value);
 	}
 	else {
 		//abandon the previous value
-		if(strcmp(fb[index].cache[idx].value, value)!=0) {
-			fb[index].dirty = 1;
-			FREE(fb[index].cache[idx].value);
-			fb[index].cache[idx].value = strdup(value);
-		}
+		FREE(fb[index].cache[idx].value);
+		fb[index].cache[idx].value = strdup(value);
 	}
 	LIBNV_PRINT("bufset %d '%s'->'%s'\n", index, name, value);
+	fb[index].dirty = 1;
 	return 0;
 }
 
-static int nvram_buftrav(int index, char *buff, int size)
+int nvram_buftrav(int index, char *buff, int size)
 {
 	int i;
 	int cur = 0, n;
@@ -380,7 +373,7 @@ static int nvram_buftrav(int index, char *buff, int size)
 		}else{
 			n = snprintf(buff+cur, size - cur, "%s=%s\n", fb[index].cache[i].name, fb[index].cache[i].value);
 			if(n<=0){
-				LIBNV_ERROR("%s, buff to small?%d:%d:%d\n", __FUNCTION__, n, cur, size);
+				printf(stderr, "%s, buff to small?%d:%d:%d\n", __FUNCTION__, n, cur, size);
 				return -ENOMEM;
 			}
 			cur += n;
@@ -414,11 +407,24 @@ int nvram_commit(int index)
 	char *p;
 #endif
 
-	LIBNV_PRINT("--> nvram_commit %d\n", index);
+	//LIBNV_PRINT("--> nvram_commit %d\n", index);
 	LIBNV_CHECK_INDEX(-1);
 	LIBNV_CHECK_VALID();
 
-	//ROY: 不脏, 不提交. 浪费CPU, 写坏flash.
+#ifdef CONFIG_KERNEL_NVRAM
+	nvr.index = index;
+	fd = open(NV_DEV, O_RDONLY);
+	if (fd < 0) {
+		perror(NV_DEV);
+		return -1;
+	}
+	if (ioctl(fd, RALINK_NVRAM_IOCTL_COMMIT, &nvr) < 0) {
+		perror("ioctl");
+		close(fd);
+		return -1;
+	}
+	close(fd);
+#else
 	if (!fb[index].dirty) {
 		LIBNV_PRINT("nothing to be committed\n");
 		return 0;
@@ -448,21 +454,6 @@ int nvram_commit(int index)
 	fb[index].env.crc = (unsigned long)crc32(0, (unsigned char *)fb[index].env.data, len);
 	printf("Commit crc = %x\n", (unsigned int)fb[index].env.crc);
 
-#ifdef CONFIG_KERNEL_NVRAM
-	nvr.index = index;
-	nvr.value = fb[index].env.data;
-	fd = open(NV_DEV, O_RDONLY);
-	if (fd < 0) {
-		perror(NV_DEV);
-		return -1;
-	}
-	if (ioctl(fd, RALINK_NVRAM_IOCTL_COMMIT, &nvr) < 0) {
-		perror("ioctl");
-		close(fd);
-		return -1;
-	}
-	close(fd);
-#else
 	//write crc to flash
 	to = fb[index].flash_offset;
 	len = sizeof(fb[index].env.crc);

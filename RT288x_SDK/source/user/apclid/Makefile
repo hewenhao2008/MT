@@ -29,6 +29,7 @@ clean:
 
 # add by YYHuang@Ralink
 romfs:
+	install -d $(ROMFSDIR)/ugw/bin
 	$(ROMFSINST) apclid /ugw/bin/apclid
 	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid gpio
 

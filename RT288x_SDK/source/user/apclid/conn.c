@@ -409,7 +409,7 @@ static int recv_message(int sock, uint32_t *msg_type, char **data)
 
 	if (hdr.msg_type != MSG_KEEPALIVE) {
 		fprintf(stderr, "message: %x [%.*s]\n",
-			(int)hdr.msg_type, (ret < 16 ? ret : 16), nbuf);
+			(int)hdr.msg_type, (nsize < 32 ? nsize : 32), nbuf);
 	}
 
 	//返回值
@@ -522,7 +522,7 @@ static int connect_ac()
 	}
 	//FIXME: use nvram conf ac_ipaddr.
 	const char *ac_addr = nvram_ra_get("ac_ipaddr");
-	if (strlen(ac_addr) >= 4 && !ac_notfound) {
+	if (strlen(ac_addr) >= 4 && ac_addr_invalid == 0) {
 		//配置有效, 且没有超时.
 		sstr_free(str_ac_addr);
 		str_ac_addr = sstr_copy_cstr(ac_addr);

@@ -51,6 +51,10 @@ start()
 	ifconfig br0 192.168.1.110
 }
 
+#只允许同时执行一个.
+F_PID="/tmp/ugw_networks.pid"
+echo $$ $F_PID
+[ -f $F_PID ] && exit 0
 
 #main
 case $# in
@@ -76,3 +80,4 @@ case $# in
 	;;
 esac
 
+rm -fr $F_PID

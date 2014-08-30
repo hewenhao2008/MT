@@ -79,6 +79,5 @@ typedef struct nvram_ioctl_s {
 #define RALINK_NVRAM_IOCTL_SET		0x03
 #define RALINK_NVRAM_IOCTL_COMMIT	0x04
 #define RALINK_NVRAM_IOCTL_CLEAR	0x05
-#define RALINK_NVRAM_IOCTL_COMMIT_KERNEL	0x06
 
 #endif

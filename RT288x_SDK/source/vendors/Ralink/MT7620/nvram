@@ -39,7 +39,7 @@ case $# in
 				nvram_set 2860 $KEY $VAL
 			;;
 			"unset")
-				nvram_set 2860 "" #set empty
+				nvram_set 2860 $KEY "" #set empty
 			;;
 		esac
 	;;
