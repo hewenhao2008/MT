@@ -6,6 +6,7 @@
 #include "ap_user.h"
 #include "ap_3rd.h"
 #include "auth_log.h"
+#include "auth_cfg.h"
 
 #define AP_3RD_HASH_MASK		((1 << 12) - 1)
 enum {

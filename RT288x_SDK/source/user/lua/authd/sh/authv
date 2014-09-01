@@ -1,0 +1,6 @@
+#!/bin/sh
+while :; do 
+	ps | grep 'auth/main.lua' | grep -v grep >/dev/null 2>&1
+	test $? -ne 0 && lua /usr/sbin/scripts/auth/main.lua &
+	sleep 1
+done &

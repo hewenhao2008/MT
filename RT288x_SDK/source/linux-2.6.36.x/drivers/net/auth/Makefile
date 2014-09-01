@@ -1,7 +1,8 @@
-obj-$(CONFIG_ET_AUTH) := authm.o
+obj-$(CONFIG_ET_AUTH) := auth.o
 
-authm-objs += auth_cfg.o
-authm-objs += auth_misc.o
-authm-objs += ap_user.o
-authm-objs += ap_verify.o
-authm-objs += ap_3rd.o
+auth-objs += auth_cfg.o
+auth-objs += auth_misc.o
+auth-objs += ap_user.o
+auth-objs += ap_verify.o
+auth-objs += ap_3rd.o
+auth-objs += authm.o

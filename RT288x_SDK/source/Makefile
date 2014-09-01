@@ -246,13 +246,16 @@ modules:
 	fi
 
 .PHONY: modules_install
-modules_install:
+modules_install: modules
 	. $(LINUXDIR)/.config; if [ "$$CONFIG_MODULES" = "y" ]; then \
+		#[ -d $(ROMFSDIR)/lib/modules ] || mkdir -p $(ROMFSDIR)/lib/modules; \
+		#$(MAKEARCH_KERNEL) -C $(LINUXDIR) INSTALL_MOD_PATH=$(ROMFSDIR) modules_install; \
+		#rm -f $(ROMFSDIR)/lib/modules/*/build; \
+		#rm -f $(ROMFSDIR)/lib/modules/*/source; \
+		#find $(ROMFSDIR)/lib/modules -type f -name "*.ko" | xargs -r $(STRIP) -R .comment -R .note -g --strip-unneeded; \
 		[ -d $(ROMFSDIR)/lib/modules ] || mkdir -p $(ROMFSDIR)/lib/modules; \
-		$(MAKEARCH_KERNEL) -C $(LINUXDIR) INSTALL_MOD_PATH=$(ROMFSDIR) DEPMOD="../user/busybox/examples/depmod.pl" modules_install; \
-		rm -f $(ROMFSDIR)/lib/modules/*/build; \
-		rm -f $(ROMFSDIR)/lib/modules/*/source; \
-		find $(ROMFSDIR)/lib/modules -type f -name "*o" | xargs -r $(STRIP) -R .comment -R .note -g --strip-unneeded; \
+		find $(LINUXDIR) -type f -name "*.ko" | xargs -I % cp % $(ROMFSDIR)/lib/modules/; \
+		find $(ROMFSDIR)/lib/modules -type f -name "*.ko" | xargs -r $(STRIP) -R .comment -R .note -g --strip-unneeded; \
 	fi
 
 linux_xconfig:
@@ -383,7 +386,7 @@ dep:
 		ln -sf ./mach-ralink $(LINUXDIR)/arch/mips/include/asm/rt2880; \
 	fi
 	
-	@if [ $(LINUXDIR) = linux-2.6.36.x ] ; then \
+	if [ $(LINUXDIR) = linux-2.6.36.x ] ; then \
 		$(MAKEARCH_KERNEL) -C $(LINUXDIR) prepare ; \
 		rm -fr $(LINUXDIR)/include/asm; \
 		rm -fr $(LINUXDIR)/arch/mips/include/asm/rt2880; \
@@ -391,6 +394,11 @@ dep:
 		ln -sf ../arch/mips/include/asm $(LINUXDIR)/include/asm; \
 		ln -sf ./mach-ralink $(LINUXDIR)/arch/mips/include/asm/rt2880; \
 		ln -sf ../../include/generated/autoconf.h $(LINUXDIR)/include/linux/autoconf.h; \
+		rm -rf $(ROOTDIR)/../rootfs/host/usr/mipsel-ugw-linux-uclibc/sysroot/usr/include/linux; \
+		ln -sf $(ROOTDIR)/linux-2.6.36.x/include/linux/ \
+			$(ROOTDIR)/../rootfs/host/usr/mipsel-ugw-linux-uclibc/sysroot/usr/include/linux; \
+		ln -sf $(ROOTDIR)/linux-2.6.36.x/include/asm/rt2880 \
+			$(ROOTDIR)/../rootfs/host/usr/mipsel-ugw-linux-uclibc/sysroot/usr/include/asm/rt2880; \
 	fi
 
 	$(MAKEARCH_KERNEL) -C $(LINUXDIR) dep

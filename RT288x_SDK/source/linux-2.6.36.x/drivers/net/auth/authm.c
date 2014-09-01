@@ -1,9 +1,4 @@
-#include <typedefs.h>
-
 #include <linux/module.h>
-#include <linuxver.h>
-#include <bcmdefs.h>
-#include <osl.h>
 
 #include <linux/types.h>
 #include <linux/errno.h>
@@ -15,6 +10,7 @@
 #include <linux/skbuff.h>
 #include <linux/delay.h>
 #include <linux/string.h>
+#include <linux/sysfs.h>
 
 #include <linux/netfilter.h>
 #include <linux/netfilter_bridge.h>
@@ -238,10 +234,10 @@ static int auth_redirect(const char *url, int urllen, struct sk_buff *skb,
 	return 0;
 }
 
-static inline bool ipv4_is_lbcast(__be32 addr) {return addr == htonl(INADDR_BROADCAST);}
-static inline bool ipv4_is_zeronet(__be32 addr) {return (addr & htonl(0xff000000)) == htonl(0x00000000);}
-static inline bool ipv4_is_multicast(__be32 addr) {return (addr & htonl(0xf0000000)) == htonl(0xe0000000);}
-static inline bool ipv4_is_loopback(__be32 addr) {return (addr & htonl(0xff000000)) == htonl(0x7f000000);}
+// static inline bool ipv4_is_lbcast(__be32 addr) {return addr == htonl(INADDR_BROADCAST);}
+// static inline bool ipv4_is_zeronet(__be32 addr) {return (addr & htonl(0xff000000)) == htonl(0x00000000);}
+// static inline bool ipv4_is_multicast(__be32 addr) {return (addr & htonl(0xf0000000)) == htonl(0xe0000000);}
+// static inline bool ipv4_is_loopback(__be32 addr) {return (addr & htonl(0xff000000)) == htonl(0x7f000000);}
 
 static int br_fwd_hookfn(struct sk_buff *skb,
 				    const struct net_device *in,

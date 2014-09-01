@@ -1,10 +1,4 @@
-#include <typedefs.h>
-
 #include <linux/module.h>
-#include <linuxver.h>
-#include <bcmdefs.h>
-#include <osl.h>
-
 #include <linux/types.h>
 #include <linux/errno.h>
 #include <linux/init.h>
@@ -474,12 +468,12 @@ void auth_cfg_unlock(struct auth_cfg_st *acfg) {
 	spin_unlock_bh(&acfg->lock);
 }
 
-void auth_cfg_weixin_readable() {
+void auth_cfg_weixin_readable(void) {
 	s_weixin_readable = 1;
 	//logdbg("auth_cfg_weixin_readable-----------------\n");
 }
 
-void auth_cfg_verify_readable() {
+void auth_cfg_verify_readable(void) {
 	s_verify_readable = 1;
 	//logdbg("auth_cfg_verify_readable-----------------\n");
 }

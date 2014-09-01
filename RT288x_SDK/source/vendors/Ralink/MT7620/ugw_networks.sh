@@ -5,18 +5,29 @@
 #3. 配置IP地址
 #4. 启动DHCP/路由....
 
+MODPATH=/lib/modules
+
 stop()
 {
 	ifconfig ra0 down
-	ifconfig eth2 down
+	#ifconfig eth2 down
+	#ifconfig br0 down
+	#brctl delbr br0
 
-	ifconfig br0 down
-	brctl delbr br0
+	rmmod rt2860v2_ap
+	#rmmod raeth
+	#rmmod rt_rdm
 }
 
 start()
 {
-	ifconfig lo 127.0.0.1
+	#在rcS里面开启lo
+	#ifconfig lo 127.0.0.1
+
+	#叉叉模块.
+	#insmod ${MODPATH}/rt_rdm.ko
+	#insmod ${MODPATH}/raeth.ko
+	insmod ${MODPATH}/rt2860v2_ap.ko
 
 	#交换机
 	config-vlan.sh 3 0
@@ -28,7 +39,7 @@ start()
 	
 	#ifconfig ra0 0.0.0.0 1>/dev/null 2>&1
 	ifconfig ra0 0.0.0.0
-	ifconfig eth2 up
+	ifconfig eth2 0.0.0.0
 	
 	#开启射频
 	iwpriv ra0 set RadioOn=1
@@ -47,7 +58,7 @@ start()
 		num=`expr $num + 1`
 	done
 
-	#判断DHCP是否开启
+	#判断DHCP是否开启(apcli 在连不上AC的时候, 能开启DHCP)
 	ifconfig br0 192.168.1.110
 }
 

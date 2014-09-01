@@ -58,6 +58,19 @@ export LD_LIBRARY_PATH=/ugw/so:/usr/lib:/lib
 #init sysfs
 init_sysfs
 
+#开启网口,供调试
+insmod /lib/modules/rt_rdm.ko
+insmod /lib/modules/raeth.ko
+ifconfig lo 127.0.0.1
+
+#配置好交换机
+config-vlan.sh 3 0
+ifconfig eth2 up
+ifconfig eth2 192.168.1.110
+
+#for telnet debugging
+telnetd
+
 #mount jffs2
 mkdir -p /jffs2
 if ! mount -t jffs2 /dev/mtdblock5 /jffs2  || ! [ -e /jffs2/ugw ]; then
@@ -68,9 +81,6 @@ mount -o,rbind /jffs2/etc	/etc
 
 #start daemons
 ugw.sh &
-
-#for telnet debugging
-telnetd
 
 #Banner
 cat /etc/motd
