@@ -38,16 +38,17 @@ local cfg = {
 
 local cmd_map = {}
 
-local alias = {
-	["eth1"] = "eth2", 
-	["eth2"] = "eth1",
-	["wl0.1"] = "wl1.1",
-	["wl1.1"] = "wl0.1",
-	["wl0.2"] = "wl1.2",
-	["wl1.2"] = "wl0.2",
-	["wl0.3"] = "wl1.3",
-	["wl1.3"] = "wl0.3"
-}
+-- ra0,ra1,ra2,ra3
+-- local alias = {
+-- 	["eth1"] = "eth2", 
+-- 	["eth2"] = "eth1",
+-- 	["wl0.1"] = "wl1.1",
+-- 	["wl1.1"] = "wl0.1",
+-- 	["wl0.2"] = "wl1.2",
+-- 	["wl1.2"] = "wl0.2",
+-- 	["wl0.3"] = "wl1.3",
+-- 	["wl1.3"] = "wl0.3"
+-- }
 
 local function false_restart(loop, condition, func, msg)
 	if condition then return end 
@@ -56,7 +57,8 @@ local function false_restart(loop, condition, func, msg)
 end 
 
 local function get_alias(lssid)
-	return alias[lssid]
+	-- return alias[lssid]
+	return lssid
 end 
 
 local function get_cloud_url()
@@ -167,15 +169,15 @@ local function reset_account_info()
 	local _ =  cfg.account ~= account and misc.write_config("/sys/module/auth/account", account)  
 	local _ =  cfg.apgroup ~= apgroup and misc.write_config("/sys/module/auth/apgroup", apgroup)  
 	cfg.account, cfg.password, cfg.ugwid, cfg.apgroup = account, password, ugwid, apgroup or ""
-	local ssid = nvram_get("wl0_ssid")
-	change_exit(cfg.ssid_cloud["eth1"], ssid, "wl0_ssid changed")
-	if ssid then cfg.ssid_cloud["eth1"], cfg.ssid_cloud[get_alias("eth1")] = ssid, ssid end 
-	ssid = nvram_get("wl0.1_ssid") 	change_exit(cfg.ssid_cloud["wl0.1"], ssid, "wl0.1_ssid changed")
-	if ssid then cfg.ssid_cloud["wl0.1"], cfg.ssid_cloud[get_alias("wl0.1")] = ssid, ssid end 
-	ssid = nvram_get("wl0.2_ssid") 	change_exit(cfg.ssid_cloud["wl0.2"], ssid, "wl0.2_ssid changed")
-	if ssid then cfg.ssid_cloud["wl0.2"], cfg.ssid_cloud[get_alias("wl0.2")] = ssid, ssid end 
-	ssid = nvram_get("wl0.3_ssid") 	change_exit(cfg.ssid_cloud["wl0.3"], ssid, "wl0.3_ssid changed")
-	if ssid then cfg.ssid_cloud["wl0.3"], cfg.ssid_cloud[get_alias("wl0.3")] = ssid, ssid end 
+	local ssid = nvram_get("SSID1")
+	change_exit(cfg.ssid_cloud["ra0"], ssid, "SSID1 changed")
+	if ssid then cfg.ssid_cloud["ra0"], cfg.ssid_cloud[get_alias("ra0")] = ssid, ssid end 
+	ssid = nvram_get("SSID2") 	change_exit(cfg.ssid_cloud["ra1"], ssid, "ra1_ssid changed")
+	if ssid then cfg.ssid_cloud["ra1"], cfg.ssid_cloud[get_alias("ra1")] = ssid, ssid end 
+	ssid = nvram_get("SSID3") 	change_exit(cfg.ssid_cloud["ra2"], ssid, "ra2_ssid changed")
+	if ssid then cfg.ssid_cloud["ra2"], cfg.ssid_cloud[get_alias("ra2")] = ssid, ssid end 
+	ssid = nvram_get("SSID4") 	change_exit(cfg.ssid_cloud["ra3"], ssid, "ra3_ssid changed")
+	if ssid then cfg.ssid_cloud["ra3"], cfg.ssid_cloud[get_alias("ra3")] = ssid, ssid end 
 	return true 
 end
 
@@ -476,10 +478,10 @@ local function init()
 	if not reset_account_info() or not reset_subnet() then 
 		os.exit(0)
 	end 
-	cfg.ssid_idx["eth1"], 	cfg.ssid_idx["eth2"] = 	0, 0
-	cfg.ssid_idx["wl0.1"], 	cfg.ssid_idx["wl1.1"] = 1, 1
-	cfg.ssid_idx["wl0.2"], 	cfg.ssid_idx["wl1.2"] = 2, 2
-	cfg.ssid_idx["wl0.3"], 	cfg.ssid_idx["wl1.3"] = 3, 3
+	cfg.ssid_idx["ra0"], 	cfg.ssid_idx["ra5"] = 0, 0
+	cfg.ssid_idx["ra1"], 	cfg.ssid_idx["ra6"] = 1, 1
+	cfg.ssid_idx["ra2"], 	cfg.ssid_idx["ra7"] = 2, 2
+	cfg.ssid_idx["ra3"], 	cfg.ssid_idx["ra8"] = 3, 3
 end
 
 local function reset_local_ip()
@@ -512,11 +514,7 @@ local function reset_redirect(loop)
 	local escape_group = lurl.escape(cfg.apgroup):gsub("%%", "%%%%") 
 	for i = 0, 3 do
 		local ssid, url
-		if i == 0 then 
-			ssid = cfg.ssid_cloud["eth1"] 
-		else 
-			ssid = cfg.ssid_cloud[string.format("wl0.%d", i)]
-		end
+			ssid = cfg.ssid_cloud[string.format("ra%d", i)]
 		local escape_ssid = lurl.escape(ssid):gsub("%%", "%%%%")
 		--if cfg.account == "fx" then 
 		--	local urlfmt = "HTTP/1.1 302 Moved Temporarily\r\nLocation: http://www.adfx.cn/wifi/serv/ads.action?apmac=%s&apgroup=%s&ssid=%s&usermac=%%s&userip=%%s\r\nContent-Type: text/html;\r\nCache-Control: no-cache\r\nContent-Length: 0\r\n\r\n"

@@ -51,6 +51,16 @@ init_jffs2()
 	LOG "init_jffs2 finished";
 }
 
+mount_jffs2()
+{
+	mkdir -p /jffs2
+	if ! mount -t jffs2 /dev/mtdblock5 /jffs2  || ! [ -e /jffs2/ugw ] || ! [ -e /jffs2/etc ]; then
+		init_jffs2
+	fi
+	mount -o,rbind /jffs2/ugw	/ugw
+	mount -o,rbind /jffs2/etc	/etc
+}
+
 #start base system
 export PATH=/ugw/bin:/ugw/scripts:/bin:/sbin:/usr/bin:/usr/sbin:$PATH
 export LD_LIBRARY_PATH=/ugw/so:/usr/lib:/lib
@@ -58,12 +68,12 @@ export LD_LIBRARY_PATH=/ugw/so:/usr/lib:/lib
 #init sysfs
 init_sysfs
 
-#¿ªÆôÍø¿Ú,¹©µ÷ÊÔ
+#å¼€å¯ç½‘å£,ä¾›è°ƒè¯•
 insmod /lib/modules/rt_rdm.ko
 insmod /lib/modules/raeth.ko
 ifconfig lo 127.0.0.1
 
-#ÅäÖÃºÃ½»»»»ú
+#é…ç½®å¥½äº¤æ¢æœº
 config-vlan.sh 3 0
 ifconfig eth2 up
 ifconfig eth2 192.168.1.110
@@ -71,17 +81,11 @@ ifconfig eth2 192.168.1.110
 #for telnet debugging
 telnetd
 
-#mount jffs2
-mkdir -p /jffs2
-if ! mount -t jffs2 /dev/mtdblock5 /jffs2  || ! [ -e /jffs2/ugw ]; then
-	init_jffs2
-fi
-mount -o,rbind /jffs2/ugw	/ugw
-mount -o,rbind /jffs2/etc	/etc
+#mount jffs2, ugw & etc
+mount_jffs2
 
 #start daemons
 ugw.sh &
 
 #Banner
 cat /etc/motd
-

@@ -3,8 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <netinet/in.h>
+
 #include <linux/types.h>
+#include <linux/autoconf.h>
+
+#include "flash_api.h"
 
 struct mtd_info_user {
 	u_char type;
@@ -223,3 +233,193 @@ int flash_write(char *buf, off_t to, size_t len)
 	return ret;
 }
 
+unsigned int flush_mtd_size(char *part)
+{
+	char buf[128], name[32], size[32], dev[32], erase[32];
+	unsigned int result=0;
+	FILE *fp = fopen("/proc/mtd", "r");
+	if(!fp){
+		fprintf(stderr, "mtd support not enable?");
+		return 0;
+	}
+	while(fgets(buf, sizeof(buf), fp)){
+		sscanf(buf, "%s %s %s %s", dev, size, erase, name);
+		if(!strcmp(name, part)){
+			result = strtol(size, NULL, 16);
+			break;
+		}
+	}
+	fclose(fp);
+	return result;
+}
+
+int mtd_write_bootloader(char *filename, int offset, int len)
+{
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd), "/bin/mtd_write -o %d -l %d write %s Bootloader", offset, len, filename);
+	fprintf(stderr, "write bootloader...");
+    return system(cmd);
+}
+
+int mtd_write_firmware(char *filename, int offset, int len)
+{
+	char cmd[512];
+	int status;
+#if defined (CONFIG_RT2880_FLASH_8M) || defined (CONFIG_RT2880_FLASH_16M)
+    /* workaround: erase 8k sector by myself instead of mtd_erase */
+    /* this is for bottom 8M NOR flash only */
+    snprintf(cmd, sizeof(cmd), "/bin/flash -f 0x400000 -l 0x40ffff");
+    system(cmd);
+#endif
+
+#if defined (CONFIG_RT2880_ROOTFS_IN_RAM)
+    snprintf(cmd, sizeof(cmd), "/bin/mtd_write -o %d -l %d write %s Kernel", offset, len, filename);
+    status = system(cmd);
+#elif defined (CONFIG_RT2880_ROOTFS_IN_FLASH)
+  #ifdef CONFIG_ROOTFS_IN_FLASH_NO_PADDING
+    snprintf(cmd, sizeof(cmd), "/bin/mtd_write -o %d -l %d write %s Kernel_RootFS", offset, len, filename);
+    status = system(cmd);
+  #else
+    snprintf(cmd, sizeof(cmd), "/bin/mtd_write -o %d -l %d write %s Kernel", offset,  CONFIG_MTD_KERNEL_PART_SIZ, filename);
+    status = system(cmd);
+	if (status != 0)
+		return -1;
+    if(len > CONFIG_MTD_KERNEL_PART_SIZ ){
+		snprintf(cmd, sizeof(cmd), "/bin/mtd_write -o %d -l %d write %s RootFS", offset + CONFIG_MTD_KERNEL_PART_SIZ, len - CONFIG_MTD_KERNEL_PART_SIZ, filename);
+		status = system(cmd);
+    }
+  #endif
+#else
+    fprintf(stderr, "flash api: no CONFIG_RT2880_ROOTFS defined!");
+#endif
+    return status;
+}
+
+/*
+ *  taken from "mkimage -l" with few modified....
+ */
+int image_check(int image_fd, int offset, int len, char *err_msg)
+{
+	struct stat sbuf;
+
+	int  data_len;
+	char *data;
+	unsigned char *ptr;
+	unsigned long checksum;
+
+	image_header_t header;
+	image_header_t *hdr = &header;
+
+	if(image_fd < 0) {
+		sprintf (err_msg, "Can't open file %s\n", strerror(errno));
+		return 0;
+	}
+
+	if ((unsigned)len < sizeof(image_header_t)) {
+		sprintf (err_msg, "Bad size is no valid image.\n");
+		return 0;
+	}
+
+	if (fstat(image_fd, &sbuf) < 0) {
+		close(image_fd);
+		sprintf (err_msg, "Can't stat %s\n", strerror(errno));
+		return 0;
+	}
+
+	ptr = (unsigned char *) mmap(0, sbuf.st_size, PROT_READ, MAP_SHARED, image_fd, 0);
+	if ((caddr_t)ptr == (caddr_t)-1) {
+		close(image_fd);
+		sprintf (err_msg, "Can't mmap: %s\n", strerror(errno));
+		return 0;
+    }
+	ptr += offset;
+
+	/*
+	 *  handle Header CRC32
+	 */
+    memcpy (hdr, ptr, sizeof(image_header_t));
+
+    if (ntohl(hdr->ih_magic) != IH_MAGIC) {
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf (err_msg, "Bad Magic Number is no valid image\n");
+		return 0;
+	}
+
+	data = (char *)hdr;
+
+    checksum = ntohl(hdr->ih_hcrc);
+    hdr->ih_hcrc = htonl(0);	/* clear for re-calculation */
+
+    if (crc32 (0, data, sizeof(image_header_t)) != checksum) {
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf (err_msg, "*** Warning: has bad header checksum!\n");
+		return 0;
+    }
+
+	/*
+	 *  handle Data CRC32
+	 */
+    data = (char *)(ptr + sizeof(image_header_t));
+    data_len  = len - sizeof(image_header_t) ;
+
+    if (crc32 (0, data, data_len) != ntohl(hdr->ih_dcrc)) {
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf (err_msg, "*** Warning: has corrupted data!\n");
+		return 0;
+    }
+
+    /*
+    * ROY: fw name match 
+    */
+    if(strncmp(hdr->ih_name, "MR", 2) != 0) {
+    	munmap(ptr, len);
+    	close(image_fd);
+    	sprintf(err_msg, "Fireware name not match!\n");
+    	return 0;
+    }
+
+	/*
+	 * compare MTD partition size and image size
+	 */
+#if defined (CONFIG_RT2880_ROOTFS_IN_RAM)
+	if(len > flush_mtd_size("\"Kernel\"")){
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than Kernel MTD partition.\n", len);
+		return 0;
+	}
+#elif defined (CONFIG_RT2880_ROOTFS_IN_FLASH)
+  #ifdef CONFIG_ROOTFS_IN_FLASH_NO_PADDING
+	if(len > flush_mtd_size("\"Kernel_RootFS\"")){
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than Kernel_RootFS MTD partition.\n", len);
+		return 0;
+	}
+  #else
+	if(len < CONFIG_MTD_KERNEL_PART_SIZ){
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf(err_msg, "*** Warning: the image file(0x%x) size doesn't make sense.\n", len);
+		return 0;
+	}
+
+	if((len - CONFIG_MTD_KERNEL_PART_SIZ) > flush_mtd_size("\"RootFS\"")){
+		munmap(ptr, len);
+		close(image_fd);
+		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than RootFS MTD partition.\n", len - CONFIG_MTD_KERNEL_PART_SIZ);
+		return 0;
+	}
+  #endif
+#else
+#error "flash api: no CONFIG_RT2880_ROOTFS defined!"
+#endif
+
+	munmap(ptr, len);
+	close(image_fd);
+
+	return 1;
+}

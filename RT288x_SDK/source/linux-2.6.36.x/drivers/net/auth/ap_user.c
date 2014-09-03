@@ -17,11 +17,13 @@ static int online_user_fill(struct ap_user_hash *uh, char *buf, int buflen);
 
 int get_idx(const char *in) {
 	int idx;
-	
-	if (*in == 'e')
-		return 0;
+
+	/*ra0, ra1...; eth2*/
+	// if (*in == 'e')
+	// 	return 0;
 		
-	idx = in[4] - '0';
+	//idx = in[4] - '0';
+	idx = in[2] - '0';
 	if (idx >= AP_SSID_COUNT) {
 		idx = 0;
 		logerr("error ssid %d %s\n", idx, in);
@@ -601,6 +603,17 @@ int ac_host_fill(struct ap_st *ap, char *buff, int buflen) {
 	buff[len] = 0;
 	return len;
 }
+/*
+RALINK
+2.4G
+ra0	SSID1
+ra1	SSID2
+....
+
+5G
+木有.
+
+*/
 /*
 单频:2.4G
  eth1 	SSID1

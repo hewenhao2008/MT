@@ -8,6 +8,8 @@ MKIMAGE_DIR = $(ROOTDIR)/user/mkimage
 CUR_DIR = $(shell pwd)
 COMP = lzma
 
+UGW_VERSION="MR7620-201409032040"
+
 ROMFS_DIRS = \
 	tmp \
 	bin \
@@ -43,8 +45,10 @@ romfs:
 	#ugw system conf & scripts.
 	$(ROMFSINST) /ugw/scripts/ugw.sh
 	$(ROMFSINST) /ugw/scripts/ugw_networks.sh
-	#$(ROMFSINST) /usr/share/udhcpc/default.script
+	$(ROMFSINST) /ugw/scripts/synctime.sh
+	$(ROMFSINST) /ugw/scripts/online_upgrade.sh
 	$(ROMFSINST) /sbin/nvram
+	#$(ROMFSINST) /usr/share/udhcpc/default.script
 
 	#dropbear
 	$(ROMFSINST) /etc/dropbear/dropbear_rsa_host_key
@@ -54,6 +58,7 @@ romfs:
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/motd
 	$(ROMFSINST) /etc/fstab
+	$(ROMFSINST) /etc/resolv.conf
 
 	$(ROMFSINST) /etc_ro/wlan/MT7620_AP_2T2R-4L_V15.BIN
 
@@ -164,6 +169,6 @@ ifeq	($(CONFIG_ROOTFS_IN_FLASH_NO_PADDING),y)
 	ENTRY=`readelf -h $(ROOTDIR)/$(LINUXDIR)/vmlinux | grep "Entry" | awk '{print $$4}'` ; \
 	$(CUR_DIR)/mkimage -A mips -O linux -T kernel -C $(COMP) -a 80000000 -e $$ENTRY -k $$KRN_SIZE -n "Linux Kernel Image" -d $(KERNELZ).$(COMP) $(IMAGE)
 else
-	@cd $(IMAGEDIR) ; $(CUR_DIR)/mkimage -A mips -O linux -T kernel -C $(COMP) -a 80000000 -e $(shell readelf -h $(ROOTDIR)/$(LINUXDIR)/vmlinux | grep "Entry" | awk '{print $$4}') -n "Linux Kernel Image"  -d $(KERNELZ).$(COMP) $(IMAGE)
+	@cd $(IMAGEDIR) ; $(CUR_DIR)/mkimage -A mips -O linux -T kernel -C $(COMP) -a 80000000 -e $(shell readelf -h $(ROOTDIR)/$(LINUXDIR)/vmlinux | grep "Entry" | awk '{print $$4}') -n "${UGW_VERSION}"  -d $(KERNELZ).$(COMP) $(IMAGE)
 endif
 

@@ -37,6 +37,7 @@ dir_y	+= goahead
 dir_y	+= rt2880_app
 dir_y 	+= wireless_tools
 dir_y 	+= lua
+dir_y	+= mtd_write
 
 # dir_$(CONFIG_USER_802_1X)		    += 802.1x
 # dir_$(CONFIG_USER_ACCEL_PPTP)		    += accel-pptp

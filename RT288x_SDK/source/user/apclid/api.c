@@ -151,19 +151,9 @@ char *api_set_exec_cmds(char *par)
 
 char *api_set_upgrade(char *par)
 {
-	// int ppid;
-	// char *argv[] = {NULL, NULL, NULL, NULL};
-	// char res[256];
-
-	// //write url linux mtd.
-	// argv[0] = "write";
-	// argv[1] = par;
-	// argv[2] = "linux";
-	// argv[3] = NULL;
-	// _eval(argv, NULL, 0, &ppid);
-
-	// snprintf(res, sizeof(res), "upgrade started pid[%d]...\n", ppid);
-	return strdup("");
+	char buff[128];
+	snprintf(buff, sizeof(buff), "online_upgrade.sh %s", par);
+	return strdup(buff);
 }
 
 char *api_set_fetch(char *fn, char *cmds)

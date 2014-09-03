@@ -22,12 +22,15 @@
 #
 
 TOPDIR=../
-include $(TOPDIR)Rules.mak
+include $(TOPDIR)Rules.mk
 
-CFLAGS+=$(SSP_ALL_CFLAGS) -DUSE_HOSTCC
-CFLAGS+=-I$(TOPDIR)zlib
+#-include $(TOPDIR)/.config
+#-include $(ROOTDIR)/$(LINUXDIR)/.config
 
-CFLAGS+=-I$(LINUXDIR)/include
+#CFLAGS+=$(SSP_ALL_CFLAGS)
+CFLAGS +=-DUSE_HOSTCC -fPIC
+CFLAGS +=-I$(TOPDIR)libugw/include
+#CFLAGS+=-I$(LINUXDIR)/include
 
 LIBNVRAM=libnvram.a
 LIBNVRAM_SHARED=libnvram.so
@@ -40,16 +43,17 @@ ifneq ("$(CONFIG_RALINK_RT6855A)", "")
 CFLAGS += -DNO_WIFI_SOC
 endif
 
-all:	$(LIBNVRAM)
+all: $(LIBNVRAM)
 
 $(OBJS): %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 	$(STRIPTOOL) -x -R .note -R .comment $*.o
 
-shared: all
+shared:
 	$(LD) $(LDFLAGS) -soname=$(LIBNVRAM_SHARED).$(MAJOR_VERSION) \
 		-o $(LIBNVRAM_SHARED_FULLNAME) --whole-archive $(LIBNVRAM) \
 		--no-whole-archive \
+		--shared \
 		-L$(TOPDIR)lib -lc $(LDADD_LIBFLOAT) $(LIBGCC);
 		#$(TOPDIR)libc/misc/internals/interp.o \
 	$(INSTALL) -d $(TOPDIR)lib
@@ -58,7 +62,7 @@ shared: all
 	$(LN) -sf $(LIBNVRAM_SHARED_FULLNAME) $(TOPDIR)lib/$(LIBNVRAM_SHARED)
 	$(LN) -sf $(LIBNVRAM_SHARED_FULLNAME) $(TOPDIR)lib/$(LIBNVRAM_SHARED).$(MAJOR_VERSION)
 
-$(LIBNVRAM) ar-target: $(OBJS)
+$(LIBNVRAM): $(OBJS)
 	$(AR) $(ARFLAGS) $(LIBNVRAM) $(OBJS)
 	$(INSTALL) -d $(TOPDIR)lib
 	$(RM) $(TOPDIR)lib/$(LIBNVRAM)

@@ -26,7 +26,25 @@ noconfig_targets := menuconfig config oldconfig randconfig \
 	defconfig allyesconfig allnoconfig clean distclean \
 	release tags TAGS
 TOPDIR=./
-include Rules.mak
+
+# CC         = $(CROSS_COMPILE)gcc
+# AR         = $(CROSS_COMPILE)ar
+# LD         = $(CROSS_COMPILE)ld
+# NM         = $(CROSS_COMPILE)nm
+# RANLIB     = $(CROSS_COMPILE)ranlib
+# STRIPTOOL  = $(CROSS_COMPILE)strip
+
+# MAJOR_VERSION := 0
+# MINOR_VERSION := 9
+# SUBLEVEL      := 28
+# VERSION       := $(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL)
+
+# INSTALL    = install
+# LN         = ln
+# RM         = rm -f
+
+# export CC AR LD NM RANLIB STRIPTOOL MAJOR_VERSION MINOR_VERSION SUBLEVEL VERSION INSTALL LN RM
+include Rules.mk
 -include $(CONFIG_CONFIG)
 
 #DIRS = ldso libc
@@ -34,7 +52,7 @@ DIRS =
 DIRS += libnvram
 
 
-ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
+#ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
 
 #all: headers pregen subdirs shared finished
 all: subdirs shared finished
@@ -50,81 +68,81 @@ finished: shared
 	$(SECHO) Finally finished compiling ...
 	$(SECHO)
 
-include/bits/uClibc_config.h: .config
-	@if [ ! -x ./extra/config/conf ] ; then \
-	    $(MAKE) -C extra/config conf; \
-	fi;
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -o extra/Configs/Config.in
+# include/bits/uClibc_config.h: .config
+# 	@if [ ! -x ./extra/config/conf ] ; then \
+# 	    $(MAKE) -C extra/config conf; \
+# 	fi;
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -o extra/Configs/Config.in
 
 # For the moment, we have to keep re-running this target 
 # because the fix includes scripts rely on pre-processers 
 # in order to generate the headers correctly :(.  That 
 # means we can't use the $(HOSTCC) in order to get the 
 # correct output.
-ifeq ($(strip $(ARCH_HAS_MMU)),y)
-export header_extra_args = 
-else
-export header_extra_args = -n
-endif
-headers: include/bits/uClibc_config.h
-	@$(SHELL_SET_X); \
-	./extra/scripts/fix_includes.sh \
-		-k $(KERNEL_SOURCE) -t $(TARGET_ARCH) \
-		$(header_extra_args)
-	@cd include/bits; \
-	set -e; \
-	for i in `ls ../../libc/sysdeps/linux/common/bits/*.h` ; do \
-		$(LN) -fs $$i .; \
-	done; \
-	if [ -d ../../libc/sysdeps/linux/$(TARGET_ARCH)/bits ] ; then \
-		for i in `ls ../../libc/sysdeps/linux/$(TARGET_ARCH)/bits/*.h` ; do \
-			$(LN) -fs $$i .; \
-		done; \
-	fi
-	@cd include/sys; \
-	set -e; \
-	for i in `ls ../../libc/sysdeps/linux/common/sys/*.h` ; do \
-		$(LN) -fs $$i .; \
-	done; \
-	if [ -d ../../libc/sysdeps/linux/$(TARGET_ARCH)/sys ] ; then \
-		for i in `ls ../../libc/sysdeps/linux/$(TARGET_ARCH)/sys/*.h` ; do \
-			$(LN) -fs $$i .; \
-		done; \
-	fi
-	@cd $(TOPDIR); \
-	set -e; \
-	$(SHELL_SET_X); \
-	TOPDIR=. CC="$(CC)" /bin/sh extra/scripts/gen_bits_syscall_h.sh > include/bits/sysnum.h.new; \
-	if cmp include/bits/sysnum.h include/bits/sysnum.h.new >/dev/null 2>&1; then \
-		$(RM) include/bits/sysnum.h.new; \
-	else \
-		mv -f include/bits/sysnum.h.new include/bits/sysnum.h; \
-	fi
-	$(MAKE) -C libc/sysdeps/linux/common headers
-	$(MAKE) -C libc/sysdeps/linux/$(TARGET_ARCH) headers
+# ifeq ($(strip $(ARCH_HAS_MMU)),y)
+# export header_extra_args = 
+# else
+# export header_extra_args = -n
+#endif
+# headers: include/bits/uClibc_config.h
+# 	@$(SHELL_SET_X); \
+# 	./extra/scripts/fix_includes.sh \
+# 		-k $(KERNEL_SOURCE) -t $(TARGET_ARCH) \
+# 		$(header_extra_args)
+# 	@cd include/bits; \
+# 	set -e; \
+# 	for i in `ls ../../libc/sysdeps/linux/common/bits/*.h` ; do \
+# 		$(LN) -fs $$i .; \
+# 	done; \
+# 	if [ -d ../../libc/sysdeps/linux/$(TARGET_ARCH)/bits ] ; then \
+# 		for i in `ls ../../libc/sysdeps/linux/$(TARGET_ARCH)/bits/*.h` ; do \
+# 			$(LN) -fs $$i .; \
+# 		done; \
+# 	fi
+# 	@cd include/sys; \
+# 	set -e; \
+# 	for i in `ls ../../libc/sysdeps/linux/common/sys/*.h` ; do \
+# 		$(LN) -fs $$i .; \
+# 	done; \
+# 	if [ -d ../../libc/sysdeps/linux/$(TARGET_ARCH)/sys ] ; then \
+# 		for i in `ls ../../libc/sysdeps/linux/$(TARGET_ARCH)/sys/*.h` ; do \
+# 			$(LN) -fs $$i .; \
+# 		done; \
+# 	fi
+# 	@cd $(TOPDIR); \
+# 	set -e; \
+# 	$(SHELL_SET_X); \
+# 	TOPDIR=. CC="$(CC)" /bin/sh extra/scripts/gen_bits_syscall_h.sh > include/bits/sysnum.h.new; \
+# 	if cmp include/bits/sysnum.h include/bits/sysnum.h.new >/dev/null 2>&1; then \
+# 		$(RM) include/bits/sysnum.h.new; \
+# 	else \
+# 		mv -f include/bits/sysnum.h.new include/bits/sysnum.h; \
+# 	fi
+# 	$(MAKE) -C libc/sysdeps/linux/common headers
+# 	$(MAKE) -C libc/sysdeps/linux/$(TARGET_ARCH) headers
 
-# Command used to download source code
-WGET:=wget --passive-ftp
+# # Command used to download source code
+# WGET:=wget --passive-ftp
 
-LOCALE_DATA_FILENAME:=uClibc-locale-030818.tgz
+# LOCALE_DATA_FILENAME:=uClibc-locale-030818.tgz
 
-pregen: headers
-ifeq ($(strip $(UCLIBC_DOWNLOAD_PREGENERATED_LOCALE_DATA)),y)
-	(cd extra/locale; \
-	if [ ! -f $(LOCALE_DATA_FILENAME) ] ; then \
-	$(WGET) http://www.uclibc.org/downloads/$(LOCALE_DATA_FILENAME) ; \
-	fi );
-endif
-ifeq ($(strip $(UCLIBC_PREGENERATED_LOCALE_DATA)),y)
-	(cd extra/locale; zcat $(LOCALE_DATA_FILENAME) | tar -xvf -)
-	$(MAKE) -C extra/locale pregen
-endif
+# pregen: headers
+# ifeq ($(strip $(UCLIBC_DOWNLOAD_PREGENERATED_LOCALE_DATA)),y)
+# 	(cd extra/locale; \
+# 	if [ ! -f $(LOCALE_DATA_FILENAME) ] ; then \
+# 	$(WGET) http://www.uclibc.org/downloads/$(LOCALE_DATA_FILENAME) ; \
+# 	fi );
+# endif
+# ifeq ($(strip $(UCLIBC_PREGENERATED_LOCALE_DATA)),y)
+# 	(cd extra/locale; zcat $(LOCALE_DATA_FILENAME) | tar -xvf -)
+# 	$(MAKE) -C extra/locale pregen
+# endif
 
 
 subdirs: $(patsubst %, _dir_%, $(DIRS))
-$(patsubst %, _dir_%, $(DIRS)): headers
+$(patsubst %, _dir_%, $(DIRS)):
 	$(MAKE) -C $(patsubst _dir_%, %, $@)
 
 tags:
@@ -235,7 +253,6 @@ endif
 
 # Installs run-time libraries
 install_runtime:
-ifeq ($(strip $(HAVE_SHARED)),y)
 	$(INSTALL) -d $(PREFIX)$(RUNTIME_PREFIX)lib
 	$(INSTALL) -m 644 lib/lib*-$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL).so \
 		$(PREFIX)$(RUNTIME_PREFIX)lib
@@ -246,8 +263,6 @@ ifeq ($(strip $(HAVE_SHARED)),y)
 	    $(INSTALL) -m 755 lib/ld-uClibc-$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL).so \
 	    		$(PREFIX)$(RUNTIME_PREFIX)lib; \
 	fi;
-endif
-ifeq ($(strip $(OPTIMIZED_SHARED)),y)
 	utils/liboptim.sh $(CROSS) ; \
 	if [ -e liboptim/libc.so.0 ]; then cp liboptim/libc.so.0 $(PREFIX)$(RUNTIME_PREFIX)lib/libuClibc-0.9.28.so; fi ; \
 	if [ -e liboptim/libiw.so.29 ]; then cp liboptim/libiw.so.29 $(PREFIX)$(RUNTIME_PREFIX)lib/libiw.so.29; fi ; \
@@ -255,15 +270,10 @@ ifeq ($(strip $(OPTIMIZED_SHARED)),y)
 		if [ "$$i" == libc.so.0 ]; then continue; fi ; \
 		cp liboptim/$$i $(PREFIX)$(RUNTIME_PREFIX)lib/`echo $$i | sed -e 's/.so.0/-0.9.28.so/'` ; \
 	done;
-endif
 
 .PHONY: utils
-ifeq ($(strip $(HAVE_SHARED)),y)
 utils:
 	$(MAKE) CROSS="$(CROSS)" CC="$(CC)" -C utils
-else
-utils: dummy
-endif
 
 # Installs helper applications, such as 'ldd' and 'ldconfig'
 install_utils: utils
@@ -279,160 +289,160 @@ finished2:
 	$(SECHO) Finished installing ...
 	$(SECHO)
 
-else # ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
+# else # ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
 
-all: menuconfig
+# all: menuconfig
 
-# configuration
-# ---------------------------------------------------------------------------
-extra/config/conf:
-	$(MAKE) -C extra/config conf
+# # configuration
+# # ---------------------------------------------------------------------------
+# extra/config/conf:
+# 	$(MAKE) -C extra/config conf
 
-extra/config/mconf:
-	$(MAKE) -C extra/config ncurses mconf
+# extra/config/mconf:
+# 	$(MAKE) -C extra/config ncurses mconf
 
-menuconfig: extra/config/mconf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/mconf extra/Configs/Config.in
+# menuconfig: extra/config/mconf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/mconf extra/Configs/Config.in
 
-config: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf extra/Configs/Config.in
+# config: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf extra/Configs/Config.in
 
-oldconfig: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -o extra/Configs/Config.in
+# oldconfig: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -o extra/Configs/Config.in
 
-randconfig: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -r extra/Configs/Config.in
+# randconfig: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -r extra/Configs/Config.in
 
-allyesconfig: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -y extra/Configs/Config.in
-	sed -i -e "s/^DODEBUG=.*/# DODEBUG is not set/" .config
-	sed -i -e "s/^DOASSERTS=.*/# DOASSERTS is not set/" .config
-	sed -i -e "s/^SUPPORT_LD_DEBUG_EARLY=.*/# SUPPORT_LD_DEBUG_EARLY is not set/" .config
-	sed -i -e "s/^SUPPORT_LD_DEBUG=.*/# SUPPORT_LD_DEBUG is not set/" .config
-	sed -i -e "s/^UCLIBC_MJN3_ONLY=.*/# UCLIBC_MJN3_ONLY is not set/" .config
-	@./extra/config/conf -o extra/Configs/Config.in
+# allyesconfig: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -y extra/Configs/Config.in
+# 	sed -i -e "s/^DODEBUG=.*/# DODEBUG is not set/" .config
+# 	sed -i -e "s/^DOASSERTS=.*/# DOASSERTS is not set/" .config
+# 	sed -i -e "s/^SUPPORT_LD_DEBUG_EARLY=.*/# SUPPORT_LD_DEBUG_EARLY is not set/" .config
+# 	sed -i -e "s/^SUPPORT_LD_DEBUG=.*/# SUPPORT_LD_DEBUG is not set/" .config
+# 	sed -i -e "s/^UCLIBC_MJN3_ONLY=.*/# UCLIBC_MJN3_ONLY is not set/" .config
+# 	@./extra/config/conf -o extra/Configs/Config.in
 
-allnoconfig: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -n extra/Configs/Config.in
+# allnoconfig: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -n extra/Configs/Config.in
 
-defconfig: extra/config/conf
-	$(RM) -r include/bits
-	$(INSTALL) -d include/bits
-	@./extra/config/conf -d extra/Configs/Config.in
+# defconfig: extra/config/conf
+# 	$(RM) -r include/bits
+# 	$(INSTALL) -d include/bits
+# 	@./extra/config/conf -d extra/Configs/Config.in
 
 clean:
 	- find . \( -name \*.o -o -name \*.a -o -name \*.so -o -name core -o -name .\#\* \) -exec $(RM) {} \;
 	@$(RM) -r tmp lib include/bits libc/tmp _install lib_optim
 	$(RM) libc/obj.* headers lib_diff
-	$(MAKE) -C test clean
-	$(MAKE) -C ldso clean
-	$(MAKE) -C libc/misc/internals clean
-	$(MAKE) -C libc/misc/wchar clean
-	$(MAKE) -C libc/unistd clean
-	$(MAKE) -C libc/sysdeps/linux/common clean
-	$(MAKE) -C extra/locale clean
-	$(MAKE) -C utils clean
-	$(MAKE) -C extra clean
+	# $(MAKE) -C test clean
+	# $(MAKE) -C ldso clean
+	# $(MAKE) -C libc/misc/internals clean
+	# $(MAKE) -C libc/misc/wchar clean
+	# $(MAKE) -C libc/unistd clean
+	# $(MAKE) -C libc/sysdeps/linux/common clean
+	# $(MAKE) -C extra/locale clean
+	# $(MAKE) -C utils clean
+	# $(MAKE) -C extra clean
 
-ifeq ($(CONFIG_LIB_LIBUPNP_FORCE),y)
-	$(MAKE) -C libupnp clean
-endif
-ifeq ($(CONFIG_LIB_LIBUPNP166_DMS_FORCE),y)
-	@$(MAKE) -C libupnp-1.6.6-dms clean
-endif
-ifeq ($(CONFIG_LIB_LIBBT_FORCE),y)
-	$(MAKE) -C libbluetooth clean
-endif
-ifeq ($(CONFIG_LIB_READLINE_FORCE),y)
-	$(MAKE) -C libreadline clean
-endif
-ifeq ($(CONFIG_LIB_LIBSQLITE3_FORCE),y)
-	@$(MAKE) -C libsqlite3 clean
-endif
-ifeq ($(CONFIG_LIB_LIBEXIF_FORCE),y)
-	@$(MAKE) -C libexif clean
-endif
-ifeq ($(CONFIG_LIB_LIBOGG),y)
-	@$(MAKE) -C libogg clean
-endif
-ifeq ($(CONFIG_LIB_LIBVORBIS),y)
-	@$(MAKE) -C libvorbis clean
-endif
-ifeq ($(CONFIG_LIB_LIBFLAC),y)
-	@$(MAKE) -C libflac clean
-endif
-ifeq ($(CONFIG_LIB_LIBJPEG_FORCE),y)
-	@$(MAKE) -C libjpeg clean
-endif
-ifeq ($(CONFIG_LIB_LIBPCAP_FORCE),y)
-	$(MAKE) -C libpcap-1.0.0 clean
-endif
-ifeq ($(CONFIG_LIB_LIBEVENT_FORCE),y)
-	$(MAKE) -C libevent-2.0.2-alpha clean
-endif
-ifeq ($(CONFIG_LIB_NCURSE_FORCE),y)
-	$(MAKE) -C libncurses-5.7 clean
-endif
-ifeq ($(CONFIG_LIB_LIBNTFS3G_FORCE),y)
-	$(MAKE) -C libntfs-3g clean
-endif
-ifeq ($(CONFIG_LIB_FLEX_FORCE),y)
-	$(MAKE) -C libflex clean
-endif
-ifeq ($(CONFIG_LIB_USB0112_FORCE),y)
-	$(MAKE) -C libusb-0.1.12 clean
-endif
-ifeq ($(CONFIG_LIB_USB100_FORCE),y)
-	$(MAKE) -C libusb-1.0.0 clean
-endif
-ifeq ($(CONFIG_LIB_PCRE_FORCE),y)
-	$(MAKE) -C pcre-8.01 clean
-endif
-ifeq ($(CONFIG_LIB_VSTR_FORCE),y)
-	$(MAKE) -C vstr-1.0.15 clean
-endif
+# ifeq ($(CONFIG_LIB_LIBUPNP_FORCE),y)
+# 	$(MAKE) -C libupnp clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBUPNP166_DMS_FORCE),y)
+# 	@$(MAKE) -C libupnp-1.6.6-dms clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBBT_FORCE),y)
+# 	$(MAKE) -C libbluetooth clean
+# endif
+# ifeq ($(CONFIG_LIB_READLINE_FORCE),y)
+# 	$(MAKE) -C libreadline clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBSQLITE3_FORCE),y)
+# 	@$(MAKE) -C libsqlite3 clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBEXIF_FORCE),y)
+# 	@$(MAKE) -C libexif clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBOGG),y)
+# 	@$(MAKE) -C libogg clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBVORBIS),y)
+# 	@$(MAKE) -C libvorbis clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBFLAC),y)
+# 	@$(MAKE) -C libflac clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBJPEG_FORCE),y)
+# 	@$(MAKE) -C libjpeg clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBPCAP_FORCE),y)
+# 	$(MAKE) -C libpcap-1.0.0 clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBEVENT_FORCE),y)
+# 	$(MAKE) -C libevent-2.0.2-alpha clean
+# endif
+# ifeq ($(CONFIG_LIB_NCURSE_FORCE),y)
+# 	$(MAKE) -C libncurses-5.7 clean
+# endif
+# ifeq ($(CONFIG_LIB_LIBNTFS3G_FORCE),y)
+# 	$(MAKE) -C libntfs-3g clean
+# endif
+# ifeq ($(CONFIG_LIB_FLEX_FORCE),y)
+# 	$(MAKE) -C libflex clean
+# endif
+# ifeq ($(CONFIG_LIB_USB0112_FORCE),y)
+# 	$(MAKE) -C libusb-0.1.12 clean
+# endif
+# ifeq ($(CONFIG_LIB_USB100_FORCE),y)
+# 	$(MAKE) -C libusb-1.0.0 clean
+# endif
+# ifeq ($(CONFIG_LIB_PCRE_FORCE),y)
+# 	$(MAKE) -C pcre-8.01 clean
+# endif
+# ifeq ($(CONFIG_LIB_VSTR_FORCE),y)
+# 	$(MAKE) -C vstr-1.0.15 clean
+# endif
 
-	@set -e; \
-	for i in `(cd $(TOPDIR)/libc/sysdeps/linux/common/sys; ls *.h)` ; do \
-		$(RM) include/sys/$$i; \
-	done; \
-	if [ -d libc/sysdeps/linux/$(TARGET_ARCH)/sys ] ; then \
-		for i in `(cd libc/sysdeps/linux/$(TARGET_ARCH)/sys; ls *.h)` ; do \
-			$(RM) include/sys/$$i; \
-		done; \
-	fi;
-	@$(RM) include/linux include/asm*
-	@if [ -d libc/sysdeps/linux/$(TARGET_ARCH) ]; then		\
-	    $(MAKE) -C libc/sysdeps/linux/$(TARGET_ARCH) clean;		\
-	fi;
+# 	@set -e; \
+# 	for i in `(cd $(TOPDIR)/libc/sysdeps/linux/common/sys; ls *.h)` ; do \
+# 		$(RM) include/sys/$$i; \
+# 	done; \
+# 	if [ -d libc/sysdeps/linux/$(TARGET_ARCH)/sys ] ; then \
+# 		for i in `(cd libc/sysdeps/linux/$(TARGET_ARCH)/sys; ls *.h)` ; do \
+# 			$(RM) include/sys/$$i; \
+# 		done; \
+# 	fi;
+# 	@$(RM) include/linux include/asm*
+# 	@if [ -d libc/sysdeps/linux/$(TARGET_ARCH) ]; then		\
+# 	    $(MAKE) -C libc/sysdeps/linux/$(TARGET_ARCH) clean;		\
+# 	fi;
 
-distclean: clean
-	$(RM) .config .config.old .config.cmd
+# distclean: clean
+# 	$(RM) .config .config.old .config.cmd
 
-release: distclean
-	cd ..;					\
-	$(RM) -r uClibc-$(VERSION);		\
-	cp -dRf uClibc uClibc-$(VERSION);	\
-	find uClibc-$(VERSION)/ -type f		\
-	    -name .\#* -exec $(RM) -r {} \; ;	\
-	find uClibc-$(VERSION)/ -type d		\
-	    -name .svn -exec $(RM) -r {} \; ;	\
-						\
-	tar -cvzf uClibc-$(VERSION).tar.gz uClibc-$(VERSION)/;
+# release: distclean
+# 	cd ..;					\
+# 	$(RM) -r uClibc-$(VERSION);		\
+# 	cp -dRf uClibc uClibc-$(VERSION);	\
+# 	find uClibc-$(VERSION)/ -type f		\
+# 	    -name .\#* -exec $(RM) -r {} \; ;	\
+# 	find uClibc-$(VERSION)/ -type d		\
+# 	    -name .svn -exec $(RM) -r {} \; ;	\
+# 						\
+# 	tar -cvzf uClibc-$(VERSION).tar.gz uClibc-$(VERSION)/;
 
-endif # ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
+# endif # ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
 
 check:
 	$(MAKE) -C test

@@ -261,7 +261,8 @@ static int br_fwd_hookfn(struct sk_buff *skb,
 	if (skb->protocol != htons(ETH_P_IP))
 		return 0; 	/* 非IP协议放通 */
 		
-	if (*(int *)in->name == *(int *)"eth0" || *(int *)in->name == *(int *)"vlan") 
+	//if (*(int *)in->name == *(int *)"eth0" || *(int *)in->name == *(int *)"vlan") 
+	if (*(int *)in->name == *(int *)"eth2") //eth2, eth2.x 都是物理网口.
 		return 0; 	/* 回包放通 */
 		
 	iph = (struct iphdr *)skb->data; 

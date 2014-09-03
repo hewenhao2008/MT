@@ -373,7 +373,7 @@ int nvram_buftrav(int index, char *buff, int size)
 		}else{
 			n = snprintf(buff+cur, size - cur, "%s=%s\n", fb[index].cache[i].name, fb[index].cache[i].value);
 			if(n<=0){
-				printf(stderr, "%s, buff to small?%d:%d:%d\n", __FUNCTION__, n, cur, size);
+				fprintf(stderr, "%s, buff to small?%d:%d:%d\n", __FUNCTION__, n, cur, size);
 				return -ENOMEM;
 			}
 			cur += n;

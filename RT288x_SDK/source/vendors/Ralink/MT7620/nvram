@@ -23,6 +23,7 @@ case $# in
 			;;
 			"commit")
 				#nothing to do, auto commit when set
+				nvram_set 2860 commit "`date '+%Y-%m-%d %H:%M:%S'`"
 			;;
 			*) useage;;
 		esac
@@ -30,16 +31,16 @@ case $# in
 	2)
 		case $1 in
 			"get")
-				nvram_get 2860 $2
+				nvram_get $2
 			;;
 			"set")
 				KEY=`echo $2| awk -F= '{print $1}'`
-				VAL=`echo $2| awk -F= '{print $2}' | sed s/\"//g`
+				VAL=`echo $2| awk -F= '{print $2}'`
 				echo "nvram set $KEY $VAL" >&2
-				nvram_set 2860 $KEY $VAL
+				nvram_set $KEY $VAL
 			;;
 			"unset")
-				nvram_set 2860 $KEY "" #set empty
+				nvram_set $KEY #set empty
 			;;
 		esac
 	;;
