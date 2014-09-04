@@ -258,20 +258,10 @@ int main(int argc,char **argv)
 	if (strcmp(nvram_bufget(RT2860_NVRAM, "WebInit"),"1")) {
 		loadDefault(2860);
 	}
-	
-	if (strcmp(nvram_bufget(RTDEV_NVRAM, "WebInit"),"1")) {
-#if defined (CONFIG_RTDEV) || \
-    defined (CONFIG_RTDEV_PLC)
-		loadDefault(2880);
-#elif defined (CONFIG_RT2561_AP) || defined (CONFIG_RT2561_AP_MODULE)
-		loadDefault(2561);
-#endif
-	}
+	//每次都强制写入版本信息, 防止被修改. 
+	nvram_bufset(RT2860_NVRAM, "ugw_version", UGW_VERSION);
+	//提交,关闭.
 	nvram_close(RT2860_NVRAM);
-#if defined (CONFIG_RTDEV) || \
-	defined (CONFIG_RT2561_AP) || defined (CONFIG_RT2561_AP_MODULE)
-	nvram_close(RTDEV_NVRAM);
-#endif
 
 	if (initGpio() != 0)
 		exit(EXIT_FAILURE);
@@ -279,14 +269,9 @@ int main(int argc,char **argv)
 	fd = pidfile_acquire("/var/run/nvramd.pid");
 	pidfile_write_release(fd);
 
-#ifdef CONFIG_RT2880_L2_MANAGE
-	//start the management daemon (blocking)
-	ramad_start();
-#else
 	while (1) {
 		pause();
 	}
-#endif
 
 	exit(EXIT_SUCCESS);
 }

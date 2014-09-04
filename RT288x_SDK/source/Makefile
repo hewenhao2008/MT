@@ -76,6 +76,11 @@ export ARCH_CONFIG
 endif
 endif
 
+#ugw system version
+ifneq ($(CONFIG_UGW_VERSION),)
+export UGW_VERSION=$(CONFIG_UGW_VERSION)
+endif
+
 # May use a different compiler for the kernel
 #KERNEL_CROSS_COMPILE ?= $(CROSS_COMPILE)
 #KERNEL_CROSS_COMPILE_PATH = /opt/Tenda/mips/bin

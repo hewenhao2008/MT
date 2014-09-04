@@ -8,8 +8,6 @@ MKIMAGE_DIR = $(ROOTDIR)/user/mkimage
 CUR_DIR = $(shell pwd)
 COMP = lzma
 
-UGW_VERSION="MR7620-201409032040"
-
 ROMFS_DIRS = \
 	tmp \
 	bin \
@@ -58,6 +56,7 @@ romfs:
 	$(ROMFSINST) /etc/inittab
 	$(ROMFSINST) /etc/motd
 	$(ROMFSINST) /etc/fstab
+	$(ROMFSINST) /etc/TZ
 	$(ROMFSINST) /etc/resolv.conf
 
 	$(ROMFSINST) /etc_ro/wlan/MT7620_AP_2T2R-4L_V15.BIN

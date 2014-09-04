@@ -1,10 +1,11 @@
 NVDIR = $(ROOTDIR)/lib/libnvram
-CFLAGS += -I$(NVDIR) -I$(ROOTDIR)/$(LINUXDIR)/drivers/char
-LDFLAGS += -lnvram
 LIBNVRAM = $(ROOTDIR)/lib/libnvram/libnvram-0.9.28.so
 EXEC = nvram_daemon ralink_init
 CONF_H	= $(ROOTDIR)/$(LINUXDIR)/include/linux/autoconf.h
-UCONF_H	= $(ROOTDIR)/config/autoconf.h
+UCONF_H	= $(ROOTDIR)/config/autoconf.h $(ROOTDIR)/autoconf.h
+
+CFLAGS += -I$(NVDIR) -DUGW_VERSION='$(UGW_VERSION)' -I$(ROOTDIR)/$(LINUXDIR)/drivers/char
+LDFLAGS += -lnvram
 
 
 all: $(EXEC)

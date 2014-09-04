@@ -321,14 +321,12 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 	}
 
 	if (fstat(image_fd, &sbuf) < 0) {
-		close(image_fd);
 		sprintf (err_msg, "Can't stat %s\n", strerror(errno));
 		return 0;
 	}
 
 	ptr = (unsigned char *) mmap(0, sbuf.st_size, PROT_READ, MAP_SHARED, image_fd, 0);
 	if ((caddr_t)ptr == (caddr_t)-1) {
-		close(image_fd);
 		sprintf (err_msg, "Can't mmap: %s\n", strerror(errno));
 		return 0;
     }
@@ -341,7 +339,6 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 
     if (ntohl(hdr->ih_magic) != IH_MAGIC) {
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf (err_msg, "Bad Magic Number is no valid image\n");
 		return 0;
 	}
@@ -353,7 +350,6 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 
     if (crc32 (0, data, sizeof(image_header_t)) != checksum) {
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf (err_msg, "*** Warning: has bad header checksum!\n");
 		return 0;
     }
@@ -366,7 +362,6 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 
     if (crc32 (0, data, data_len) != ntohl(hdr->ih_dcrc)) {
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf (err_msg, "*** Warning: has corrupted data!\n");
 		return 0;
     }
@@ -376,7 +371,6 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
     */
     if(strncmp(hdr->ih_name, "MR", 2) != 0) {
     	munmap(ptr, len);
-    	close(image_fd);
     	sprintf(err_msg, "Fireware name not match!\n");
     	return 0;
     }
@@ -387,7 +381,6 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 #if defined (CONFIG_RT2880_ROOTFS_IN_RAM)
 	if(len > flush_mtd_size("\"Kernel\"")){
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than Kernel MTD partition.\n", len);
 		return 0;
 	}
@@ -395,21 +388,18 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
   #ifdef CONFIG_ROOTFS_IN_FLASH_NO_PADDING
 	if(len > flush_mtd_size("\"Kernel_RootFS\"")){
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than Kernel_RootFS MTD partition.\n", len);
 		return 0;
 	}
   #else
 	if(len < CONFIG_MTD_KERNEL_PART_SIZ){
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf(err_msg, "*** Warning: the image file(0x%x) size doesn't make sense.\n", len);
 		return 0;
 	}
 
 	if((len - CONFIG_MTD_KERNEL_PART_SIZ) > flush_mtd_size("\"RootFS\"")){
 		munmap(ptr, len);
-		close(image_fd);
 		sprintf(err_msg, "*** Warning: the image file(0x%x) is bigger than RootFS MTD partition.\n", len - CONFIG_MTD_KERNEL_PART_SIZ);
 		return 0;
 	}
@@ -417,9 +407,7 @@ int image_check(int image_fd, int offset, int len, char *err_msg)
 #else
 #error "flash api: no CONFIG_RT2880_ROOTFS defined!"
 #endif
-
+	
 	munmap(ptr, len);
-	close(image_fd);
-
 	return 1;
 }

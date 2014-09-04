@@ -153,6 +153,10 @@ char *api_set_upgrade(char *par)
 {
 	char buff[128];
 	snprintf(buff, sizeof(buff), "online_upgrade.sh %s", par);
+	if(system(buff)==0){
+		APLOG(LOG_INFO, "try online upgrade & exit apclid.\n");
+		exit(0);
+	}
 	return strdup(buff);
 }
 

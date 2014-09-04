@@ -40,7 +40,7 @@ case $# in
 				nvram_set $KEY $VAL
 			;;
 			"unset")
-				nvram_set $KEY #set empty
+				nvram_set $2 #set empty
 			;;
 		esac
 	;;
