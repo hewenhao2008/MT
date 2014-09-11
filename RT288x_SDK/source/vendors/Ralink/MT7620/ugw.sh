@@ -27,7 +27,20 @@ start-stop-daemon -S -q -p /var/run/dropbear.pid --exec /usr/sbin/dropbear -- -p
 
 
 #watchdog for daemons
-UGW_DAEMONS="syslogd klogd nvram_daemon goahead apclid dropbear synctime.sh"
+StartProcess()
+{
+	case $1 in
+		'syslogd')
+			syslogd -S -b8
+		;;
+
+		*)
+			$1 &
+		;;
+	esac
+}
+#UGW_DAEMONS="syslogd klogd nvram_daemon goahead apclid dropbear synctime.sh"
+UGW_DAEMONS="syslogd klogd nvram_daemon apclid dropbear synctime.sh"
 while true;
 do
 	# 遛狗
@@ -36,7 +49,7 @@ do
 		if ! pidof $d > /dev/null 2>&1 ; then
 			echo `date`" start daemon: $d" >> /tmp/daemon.log
 			
-			$d &
+			StartProcess $d
 		fi
 		
 		sleep 1;

@@ -16,14 +16,6 @@
 #include "conn.h"
 #include "api.h"
 
-///////////////////////////////////////////////////////////////////
-struct maclist* get_wl_mac_list(char *ifname, const char *query_cmds)
-{
-	int mac_list_size;
-	struct maclist *mac_list;
-
-	return mac_list;
-}
 ///////////////////////////////////////////////////////////////////apis
 int api_get_channel_id(char *ifname) 
 {
@@ -72,11 +64,6 @@ char* api_get_user_addrs(unsigned char *ea)
 	int i, brIndex, fd = -1, n, len;
 	char *buffer = NULL;
 	struct __fdb_entry fe;
-	
-	// if(ea){
-	// 	APLOG(LOG_DEBUG, "GetAddr of: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n",
-	// 			ea[0],ea[1],ea[2],ea[3],ea[4],ea[5]);
-	// }
 
 	n = 1024;
 	buff_size = n * sizeof("00:00:00:00:00:00 255.255.255.255\n");

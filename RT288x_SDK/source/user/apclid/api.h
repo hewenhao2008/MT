@@ -8,12 +8,8 @@
 	((unsigned char *)&addr)[3]
 #define NIPQUAD_FMT "%u.%u.%u.%u"
 
-
-typedef struct maclist;
-
 //common ext call
-struct maclist* get_wl_mac_list(char *ifname, const char *query);
-
+	
 //api interface.
 int api_get_channel_id(char *ifname);
 int api_get_wl_auth_count(char *ifname, int *assoc_num);

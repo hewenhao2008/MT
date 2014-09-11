@@ -18,7 +18,8 @@ stop()
 	LOG "stop networks..."
 
 	ifconfig ra0 down
-	BssidNum=`nvram get BssidNum`
+	#最多8个SSID, 目前只支持4个, 下发配置, SSID可能会变少, 所以不要读配置. #BssidNum=`nvram get BssidNum`
+	BssidNum=4
 	num=1
 	while [ $num -lt $BssidNum ]; do
 		LOG "stop ra$num..."
@@ -122,6 +123,9 @@ case $# in
 				stop
 			;;
 			start)
+				start
+			;;
+			*)
 				start
 			;;
 		esac

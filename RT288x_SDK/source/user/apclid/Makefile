@@ -11,7 +11,10 @@ CFLAGS = -O2 -Wall -g
 endif
 
 CFLAGS	+= -I$(ROOTDIR)/lib/libnvram
-LDFLAGS	+= -lnvram
+CFLAGS	+= -I$(ROOTDIR)/user/wireless_tools
+
+LDFLAGS += -L$(ROOTDIR)/user/wireless_tools
+LDFLAGS	+= -lnvram -liw -lm
 
 # If you want to debug daemon, add following line
 CFLAGS +=  -DDBG 
@@ -31,6 +34,6 @@ clean:
 romfs:
 	install -d $(ROMFSDIR)/ugw/bin
 	$(ROMFSINST) apclid /ugw/bin/apclid
-	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid gpio
+	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid wlconf
 
 -include $(OBJS:%.o=%.d)

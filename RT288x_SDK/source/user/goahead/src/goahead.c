@@ -387,7 +387,8 @@ static int initWebs(void)
 	struct hostent	*hp;
 	char			host[128];
 #else
-	const char			*lan_ip = nvram_bufget(RT2860_NVRAM, "lan_ipaddr");
+	//ROY: any ip addr
+	const char			*lan_ip = "0.0.0.0";//nvram_bufget(RT2860_NVRAM, "lan_ipaddr");
 #endif
 	char			webdir[128];
 	char			*cp;
@@ -443,7 +444,8 @@ static int initWebs(void)
 	if (intaddr.s_addr == INADDR_NONE) {
 		error(E_L, E_LOG, T("initWebs: failed to convert %s to binary ip data"),
 				lan_ip);
-		return -1;
+		intaddr.s_addr = 0;
+		//return -1;
 	}
 #endif
 

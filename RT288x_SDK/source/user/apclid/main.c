@@ -1,5 +1,6 @@
 #include "apclid.h"
 #include "api.h"
+#include "wlconf.h"
 
 //全局变量
 int ac_addr_invalid = 0;
@@ -15,6 +16,11 @@ static void signal_handler(int sig)
 int main(char argc, char *argv[])
 {
 	int r;
+
+	if(strstr(argv[0], "wlconf")!=NULL) {
+		logdbg("start wlconf...\n");
+		return wlconf_main(argc, argv);
+	}
 
 	openlog("apclid", 0, 0);
 

@@ -433,6 +433,7 @@ do{                                   \
     {                               \
     	if ((RTDebugFunc == 0) || \
 		((RTDebugFunc != 0) && (((__fLevel & RTDebugFunc)!= 0) || (__gLevel <= RT_DEBUG_ERROR))))\
+        printk("%s:%d ", __FILE__, __LINE__); \
         printk Fmt;               \
     }                               \
 }while(0)
