@@ -2446,12 +2446,12 @@ irqreturn_t ralink_gpio_irq_handler(int irq, void *irqaction)
 				record[i].rising = now;
 				if (time_before(now, record[i].falling + 200L)) {
 					//one click
-					printk("i=%d, one click\n", i);
+					printk("%s:%d i=%d, one click\n", __FUNCTION__, __LINE__, i);
 					ralink_gpio_notify_user(1);
 				}
 				else {
 					//press for several seconds
-					printk("i=%d, push several seconds\n", i);
+					printk("%s:%d i=%d, push several seconds\n", __FUNCTION__, __LINE__, i);
 					ralink_gpio_notify_user(2);
 				}
 			}

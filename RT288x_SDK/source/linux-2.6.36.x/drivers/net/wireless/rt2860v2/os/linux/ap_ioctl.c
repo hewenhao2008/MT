@@ -40,6 +40,9 @@ struct iw_priv_args ap_privtab[] = {
 { RTPRIV_IOCTL_SHOW,
   IW_PRIV_TYPE_CHAR | 1024, 0,
   "show"},
+{ RTPRIV_IOCTL_GET_UGW,
+  IW_PRIV_TYPE_CHAR | 1024, IW_PRIV_TYPE_CHAR | 1024 ,
+  "ugw"}, 
 { RTPRIV_IOCTL_GSITESURVEY,
   IW_PRIV_TYPE_CHAR | 1024, IW_PRIV_TYPE_CHAR | 1024 ,
   "get_site_survey"}, 
@@ -374,6 +377,11 @@ INT rt28xx_ap_ioctl(
 			RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_GET_MAC_TABLE_STRUCT, 0, NULL, 0);
 			break;
 /* end of modification */
+
+		/*ROY: ugw system ioctl*/
+		case RTPRIV_IOCTL_GET_UGW:
+			RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_GET_UGW, 0, NULL, 0);
+			break;
 
 #ifdef AP_SCAN_SUPPORT
 		case RTPRIV_IOCTL_GSITESURVEY:

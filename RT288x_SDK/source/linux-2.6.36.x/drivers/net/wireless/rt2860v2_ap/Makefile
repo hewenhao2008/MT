@@ -54,6 +54,7 @@ rt2860v2_ap-objs += ../rt2860v2/ap/ap_data.o
 rt2860v2_ap-objs += ../rt2860v2/ap/ap_autoChSel.o
 rt2860v2_ap-objs += ../rt2860v2/ap/ap_qload.o
 rt2860v2_ap-objs += ../rt2860v2/ap/ap_cfg.o
+rt2860v2_ap-objs += ../rt2860v2/ap/ap_ugw.o
 
 rt2860v2_ap-objs += ../rt2860v2/rate_ctrl/ra_ctrl.o
 rt2860v2_ap-objs += ../rt2860v2/rate_ctrl/alg_legacy.o
