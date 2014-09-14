@@ -34,6 +34,7 @@ clean:
 romfs:
 	install -d $(ROMFSDIR)/ugw/bin
 	$(ROMFSINST) apclid /ugw/bin/apclid
-	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid wlconf
+	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid wlconf; \
+		ln -sf apclid press_any_key;
 
 -include $(OBJS:%.o=%.d)

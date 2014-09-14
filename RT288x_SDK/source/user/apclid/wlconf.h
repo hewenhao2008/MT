@@ -11,5 +11,3 @@ typedef struct maclist{
 
 int wl_sta_info(char *ifname, char *ea);
 struct maclist* wl_sta_list(char *ifname);
-
-int wlconf_main(int argc, char *argv[]);

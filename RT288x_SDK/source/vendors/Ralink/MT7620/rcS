@@ -68,7 +68,11 @@ export LD_LIBRARY_PATH=/ugw/so:/usr/lib:/lib
 #init sysfs
 init_sysfs
 
+#监测按键,停止系统
+press_any_key && exit 0
+
 #开启网口,供调试
+insmod /lib/modules/ralink_wdt.ko
 insmod /lib/modules/rt_rdm.ko
 insmod /lib/modules/raeth.ko
 ifconfig lo 127.0.0.1

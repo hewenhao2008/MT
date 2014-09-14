@@ -507,7 +507,7 @@ static int connect_ac()
 		const char *p = extract_field(msg, msg + sizeof(msg), &chksum);
 		if (p != NULL && extract_field(p, msg + sizeof(msg), &ip) != NULL) {
 			if (strtoul(chksum.data, NULL, 16) == XXH32(ip.data, (int)ip.size, 0)) {
-				LOG(LOG_DEBUG, "ac addr from brd: %.*s\n", (int)ip.size, ip.data);
+				LOG(LOG_DEBUG, "recv addr from brd: %.*s\n", (int)ip.size, ip.data);
 				//保存当前AC地址
 				sstr_free(str_ac_addr);
 				str_ac_addr = sstr_copy_buf(ip.data, ip.size);
@@ -526,7 +526,7 @@ static int connect_ac()
 		//配置有效, 且没有超时.
 		sstr_free(str_ac_addr);
 		str_ac_addr = sstr_copy_cstr(ac_addr);
-		LOG(LOG_ERR, "ac addr from config:[%s]\n", ac_addr);
+		LOG(LOG_ERR, "try addr from config:[%s]\n", ac_addr);
 	}else if(found){
 		//使用广播地址
 		ac_addr = str_ac_addr.data;

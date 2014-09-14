@@ -42,6 +42,7 @@ romfs:
 
 	#ugw system conf & scripts.
 	$(ROMFSINST) /ugw/scripts/ugw.sh
+	$(ROMFSINST) /ugw/scripts/ugw_daemons.sh
 	$(ROMFSINST) /ugw/scripts/ugw_networks.sh
 	$(ROMFSINST) /ugw/scripts/synctime.sh
 	$(ROMFSINST) /ugw/scripts/test_gpio.sh
@@ -102,7 +103,7 @@ mkimage: $(MKIMAGE_DIR)/crc32.c $(MKIMAGE_DIR)/mkimage.c
 	$(HOSTCC) $(HOST_CFLAGS) -DUSE_HOSTCC -o $@ -I$(MKIMAGE_DIR)/include $^ 
 
 image: mkimage
-	$(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S $(ROOTDIR)/$(LINUXDIR)/vmlinux  $(KERNELZ)
+	$(KERNEL_CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S $(ROOTDIR)/$(LINUXDIR)/vmlinux  $(KERNELZ)
 	cd $(IMAGEDIR) ; rm -f $(KERNELZ).*; $(COMP) -9 -f -S .$(COMP) $(KERNELZ)
 
 ifeq	($(CONFIG_BLK_DEV_INITRD),)

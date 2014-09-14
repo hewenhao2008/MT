@@ -865,11 +865,14 @@ VOID	NICReadEEPROMParameters(
 		if (IS_RT6352(pAd))
 		{
 #ifdef RT6352_EP_SUPPORT
+			DBGPRINT(RT_DEBUG_ERROR, ("ROY:-->>>%x, %x\n", NicConfig2.word, pAd->EEPROMDefaultValue[EEPROM_NIC_CFG2_OFFSET]));
 			if ((NicConfig2.word != 0) && (pAd->EEPROMDefaultValue[EEPROM_NIC_CFG2_OFFSET] & 0xC000))
 				pAd->bExtPA = TRUE;
 			else
 #endif /* RT6352_EP_SUPPORT */
-			pAd->bExtPA = FALSE; 
+			//pAd->bExtPA = FALSE; 
+			//ROY: 不用外部PA很多平台不稳定...
+			pAd->bExtPA = TRUE;
 		}
 #endif /* RT6352 */
 	}

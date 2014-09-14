@@ -1,9 +1,10 @@
 #include "apclid.h"
 #include "api.h"
-#include "wlconf.h"
 
 //全局变量
 int ac_addr_invalid = 0;
+extern int wlconf_main(int argc, char *argv[]);
+extern int press_any_key_main(int argc, char *argv[]);
 
 static void signal_handler(int sig)
 {
@@ -20,6 +21,11 @@ int main(char argc, char *argv[])
 	if(strstr(argv[0], "wlconf")!=NULL) {
 		logdbg("start wlconf...\n");
 		return wlconf_main(argc, argv);
+	}
+
+	if(strstr(argv[0], "press_any_key")!=NULL) {
+		logdbg("start press_any_key...\n");
+		return press_any_key_main(argc, argv);
 	}
 
 	openlog("apclid", 0, 0);

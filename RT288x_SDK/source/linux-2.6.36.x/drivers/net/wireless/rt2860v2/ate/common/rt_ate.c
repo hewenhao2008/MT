@@ -4722,24 +4722,26 @@ INT Set_ATE_Load_E2P_Proc(
     return ret;
 }
 
-
+extern void rtmp_hexdump(int level, const char *title, const UINT8 *buf, size_t len);
 INT Set_ATE_Read_E2P_Proc(
 	IN	PRTMP_ADAPTER	pAd, 
 	IN	PSTRING			arg)
 {
 	USHORT buffer[EEPROM_SIZE >> 1];
-	USHORT *p;
-	int i;
 	
 	rt_ee_read_all(pAd, (USHORT *)buffer);
-	p = buffer;
-	for (i = 0; i < (EEPROM_SIZE >> 1); i++)
-	{
-		DBGPRINT(RT_DEBUG_OFF, ("%4.4x ", *p));
-		if (((i+1) % 16) == 0)
-			DBGPRINT(RT_DEBUG_OFF, ("\n"));
-		p++;
-	}
+	rtmp_hexdump(RT_DEBUG_ERROR, "eeprom", (void*)buffer, EEPROM_SIZE);
+	
+	// USHORT *p;
+	// int i;
+	// p = buffer;
+	// for (i = 0; i < (EEPROM_SIZE >> 1); i++)
+	// {
+	// 	DBGPRINT(RT_DEBUG_OFF, ("%04x\t%4.4x \n", p-buffer, *p));
+	// 	if (((i+1) % 16) == 0)
+	// 		DBGPRINT(RT_DEBUG_OFF, ("\n"));
+	// 	p++;
+	// }
 	return TRUE;
 }
 

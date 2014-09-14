@@ -3810,7 +3810,7 @@ VOID RTMPIoctlGetMacTableStaInfo(
 	wrq->u.data.length = sizeof(RT_802_11_MAC_TABLE);
 	if (copy_to_user(wrq->u.data.pointer, pMacTab, wrq->u.data.length))
 	{
-		DBGPRINT(RT_DEBUG_TRACE, ("%s: copy_to_user() fail\n", __FUNCTION__));
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: copy_to_user() fail\n", __FUNCTION__));
 	}
 
 	if (pMacTab != NULL)

@@ -6354,13 +6354,49 @@ INT	Set_ACLClearAll_Proc(
 static void _rtmp_hexdump(int level, const char *title, const UINT8 *buf,
 			 size_t len, int show)
 {
-	size_t i;
+	size_t n;
 	if (level < RTDebugLevel)
 		return;
-	printk("%s - hexdump(len=%lu):", title, (unsigned long) len);
+	printk("%s - hexdump(len=%lu):\n", title, (unsigned long) len);
 	if (show) {
-		for (i = 0; i < len; i++)
-			printk(" %02x", buf[i]);
+		unsigned char c;
+		const unsigned char *p = buf;
+    	char bytestr[4] = {0};
+    	char addrstr[10] = {0};
+    	char hexstr[ 16*3 + 5] = {0};
+    	char charstr[16*1 + 5] = {0};
+		for (n = 1; n <= len; n++){
+			if (n%16 == 1) {
+            	/* store address for this line */
+            	snprintf(addrstr, sizeof(addrstr), "%.4x",
+            	   (unsigned int)(p-(const unsigned char *)buf));
+        	}
+        	    
+        	c = *p;
+        	if (c<'!' || c>'}') {
+        	    c = '.';
+        	}
+	
+        	/* store hex str (for left side) */
+        	snprintf(bytestr, sizeof(bytestr), "%02x ", *p);
+        	strncat(hexstr, bytestr, sizeof(hexstr)-strlen(hexstr)-1);
+	
+        	/* store char str (for right side) */
+        	snprintf(bytestr, sizeof(bytestr), "%c", c);
+        	strncat(charstr, bytestr, sizeof(charstr)-strlen(charstr)-1);
+	
+        	if(n%16 == 0) { 
+        	    /* line completed */
+        	    printk("[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
+        	    hexstr[0] = 0;
+        	    charstr[0] = 0;
+        	} else if(n%8 == 0) {
+        	    /* half line: add whitespaces */
+        	    strncat(hexstr, "  ", sizeof(hexstr)-strlen(hexstr)-1);
+        	    strncat(charstr, " ", sizeof(charstr)-strlen(charstr)-1);
+        	}
+        	p++; /* next byte */
+		}
 	} else {
 		printk(" [REMOVED]");
 	}
@@ -8325,11 +8361,13 @@ VOID RTMPAPIoctlMAC(
 		{
 			if ((IdMac & 0x0f) == 0)
 			{
-				DBGPRINT(RT_DEBUG_TRACE, ("\n0x%04x: ", IdMac));
+				//DBGPRINT(RT_DEBUG_ERROR, ("\n0x%04x: ", IdMac));
+				printk("\n0x%04x: ", IdMac);
 			}
 
 			RTMP_IO_READ32(pAdapter, IdMac, &macValue);
-			DBGPRINT(RT_DEBUG_TRACE, ("%08x ", macValue));
+			//DBGPRINT(RT_DEBUG_ERROR, ("%08x ", macValue));
+			printk("%08x ", macValue);
 		}
 
 		bIsPrintAllMAC = TRUE;
@@ -8344,7 +8382,7 @@ VOID RTMPAPIoctlMAC(
 	wrq->u.data.length = strlen(msg);
 	if (copy_to_user(wrq->u.data.pointer, msg, wrq->u.data.length))
 	{
-		DBGPRINT(RT_DEBUG_TRACE, ("%s: copy_to_user() fail\n", __FUNCTION__));			
+		DBGPRINT(RT_DEBUG_ERROR, ("%s: copy_to_user() fail\n", __FUNCTION__));			
 	}
 #endif /* LINUX */
 
@@ -8355,7 +8393,7 @@ done:
 /*	kfree(mpool); */
 	os_free_mem(NULL, mpool);
 	if (!bFromUI)	
-		DBGPRINT(RT_DEBUG_TRACE, ("<==RTMPIoctlMAC\n\n"));
+		DBGPRINT(RT_DEBUG_ERROR, ("<==RTMPIoctlMAC\n\n"));
 }
 
 
@@ -12619,7 +12657,7 @@ INT RTMP_AP_IoctlHandle(
 #endif/*WSC_AP_SUPPORT*/
 
 		case CMD_RTPRIV_IOCTL_GET_MAC_TABLE:
-			RTMPIoctlGetMacTable(pAd,wrq);
+			RTMPIoctlGetMacTable(pAd, wrq);
 		    break;
 
 		case CMD_RTPRIV_IOCTL_GET_UGW:

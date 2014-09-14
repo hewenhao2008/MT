@@ -136,6 +136,7 @@ VOID rtmp_ee_flash_write_all(PRTMP_ADAPTER pAd, USHORT *Data)
 	if ((pAd->E2P_OFFSET_IN_FLASH[pAd->MC_RowID]==0x48000) || (pAd->E2P_OFFSET_IN_FLASH[pAd->MC_RowID]==0x40000))
 		RtmpFlashWrite(pAd->eebuf, pAd->E2P_OFFSET_IN_FLASH[pAd->MC_RowID], EEPROM_SIZE);
 #else
+	DBGPRINT(RT_DEBUG_ERROR, ("ROY:--> load from bin.\n"));
 	RtmpFlashWrite(pAd->eebuf, RF_OFFSET, EEPROM_SIZE);
 #endif /* MULTIPLE_CARD_SUPPORT */
 }
@@ -159,7 +160,7 @@ static NDIS_STATUS rtmp_ee_flash_reset(
 		srcf = RtmpOSFileOpen(src, O_RDONLY, 0);
 		if (IS_FILE_OPEN_ERR(srcf)) 
 		{
-			DBGPRINT(RT_DEBUG_TRACE, ("--> Error opening file %s\n", src));
+			DBGPRINT(RT_DEBUG_ERROR, ("--> Error opening file %s\n", src));
 			return NDIS_STATUS_FAILURE;
 		}
 		else 
@@ -170,7 +171,7 @@ static NDIS_STATUS rtmp_ee_flash_reset(
 			retval = RtmpOSFileRead(srcf, start, EEPROM_SIZE);
 			if (retval < 0)
 			{
-				DBGPRINT(RT_DEBUG_TRACE, ("--> Read %s error %d\n", src, -retval));
+				DBGPRINT(RT_DEBUG_ERROR, ("--> Read %s error %d\n", src, -retval));
 			}
 			else
 			{
@@ -180,12 +181,14 @@ static NDIS_STATUS rtmp_ee_flash_reset(
 			retval = RtmpOSFileClose(srcf);
 			if (retval)
 			{
-				DBGPRINT(RT_DEBUG_TRACE, ("--> Error %d closing %s\n", -retval, src));
+				DBGPRINT(RT_DEBUG_ERROR, ("--> Error %d closing %s\n", -retval, src));
 			}
 		}
 	}
 
 	RtmpOSFSInfoChange(&osFsInfo, FALSE);
+
+	DBGPRINT(RT_DEBUG_ERROR, ("ROY:> eerom update finished.\n"));
 
 	return NDIS_STATUS_SUCCESS;
 }
