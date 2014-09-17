@@ -719,7 +719,8 @@ void start_ap_client()
 			if (sock < 0) {
 				nvram_ra_unset("ac_connected");
 				try_counter ++;
-				if (try_counter > 11) {
+				if (try_counter > 11 || (time(NULL) - last_active_time) > 15) {
+					LOG(LOG_ERR, "timeout %d->%d\n", last_active_time, time(NULL));
 					break;
 				}
 				continue;

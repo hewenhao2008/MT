@@ -380,7 +380,7 @@ INT rt28xx_ap_ioctl(
 
 		/*ROY: ugw system ioctl*/
 		case RTPRIV_IOCTL_GET_UGW:
-			RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_GET_UGW, 0, NULL, 0);
+			Status = RTMP_AP_IoctlHandle(pAd, wrq, CMD_RTPRIV_IOCTL_GET_UGW, 0, NULL, 0);
 			break;
 
 #ifdef AP_SCAN_SUPPORT

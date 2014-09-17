@@ -9,6 +9,7 @@
 #define NIPQUAD_FMT "%u.%u.%u.%u"
 
 //common ext call
+char *pipe_get(const char* FMT, char *cmd, char *buff, int bufsize, int all);
 	
 //api interface.
 int api_get_channel_id(char *ifname);

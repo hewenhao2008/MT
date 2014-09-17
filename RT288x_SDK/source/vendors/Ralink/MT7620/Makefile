@@ -44,6 +44,8 @@ romfs:
 	$(ROMFSINST) /ugw/scripts/ugw.sh
 	$(ROMFSINST) /ugw/scripts/ugw_daemons.sh
 	$(ROMFSINST) /ugw/scripts/ugw_networks.sh
+	$(ROMFSINST) /ugw/scripts/ugw_coverup.sh
+	$(ROMFSINST) /ugw/scripts/ugw_services.sh
 	$(ROMFSINST) /ugw/scripts/synctime.sh
 	$(ROMFSINST) /ugw/scripts/test_gpio.sh
 	$(ROMFSINST) /ugw/scripts/online_upgrade.sh

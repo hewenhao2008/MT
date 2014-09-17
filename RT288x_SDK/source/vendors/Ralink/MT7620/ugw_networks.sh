@@ -84,6 +84,8 @@ start()
 		num=`expr $num + 1`
 	done
 
+	#修正br0的mac地址, 防止wlan的mac相同,导致自己上网慢.
+	ip link set dev br0 address `nvram get et0macaddr`
 	#判断DHCP是否开启(apcli 在连不上AC的时候, 能开启DHCP)
 	ifconfig br0 0.0.0.0
 	if [ x`nvram get lan_dhcp` == x'1' ]; then

@@ -39,33 +39,6 @@ char * nvram_trim(char *v)
 	return v;
 }
 
-char *pipe_get(const char* FMT, char *cmd, char *buff, int bufsize, int all)
-{
-	FILE *fp_pipe;
-
-	fp_pipe = popen(cmd, "r");
-	if(!fp_pipe) {
-		logerr("popen %s,%s\n", cmd, strerror(errno));
-		return NULL;
-	}
-	int cur = 0, n;
-	char tmp[MAX_NVRAM_SIZE];
-	buff[0] = '\0';
-	while(fgets(tmp, sizeof(tmp), fp_pipe)!=NULL) {
-		n = snprintf(buff + cur, bufsize - cur, FMT, tmp);
-		if(!all) 
-			break;
-		if(n<=0) {
-			logerr("fmt %d,%d,%d\n", bufsize, cur, n);
-			break;
-		}
-		cur += n;
-	}
-	pclose(fp_pipe);
-
-	return buff;
-}
-
 char *pipe_get_mac(char *ifname)
 {
 	char buff[NVRAM_BUFSIZE];
@@ -185,21 +158,11 @@ int on_get_user_addrs(sstr_t *rep)
 
 int on_get_basic(sstr_t *rep)
 {
-	char *lanip;
-	int sta_num1 = 0, sta_num2 = 0, assoc_num1 = 0, assoc_num2 = 0, channel_id1 = 0, channel_id2 = 0;
-	int wl0_txpwr, wl1_txpwr = 0, wl0_noise = 0, wl1_noise = 0;
-
 	//连接AC成功, 回显当前AC地址.
+	int c = 0;
 	extern sstr_t str_ac_addr;
-	char *ac_addr = str_ac_addr.data ? str_ac_addr.data : "";
+	char *ac_addr = str_ac_addr.data ? str_ac_addr.data : "x.x.x.x";
 
-	lanip = pipe_get("%s", "ip addr show dev br0 | grep inet | awk '{print $2}'", sys_buff, sizeof(sys_buff), 0);
-
-	channel_id1 = api_get_channel_id("ra0");
-	sta_num1 = api_get_wl_auth_count("ra0", &assoc_num1);
-	api_get_noise("ra0", &wl0_noise);
-	api_get_txpwr("ra0", &wl0_txpwr);
-	
 	//format results.
 	*rep = sstr_fmt(
 		"ipaddr=%s\n"
@@ -210,17 +173,12 @@ int on_get_basic(sstr_t *rep)
 		"lan_netmask=%s\n"
 		"lan_gateway=%s\n"
 		"ac_current=%s\n"
-		"wl0_channel=%d\n"
-		"wl1_channel=%d\n"
-		"wl0_noise=%d\n"
-		"wl1_noise=%d\n"
-		"auth_count=%d\n"
-		"assoc_num=%d\n"
-		"auth_count1=%d\n"
-		"assoc_num1=%d\n"
-		"wl0_txpwr_cur=%d\n"
-		"wl1_txpwr_cur=%d\n",
-		lanip, 
+		"wl0_channel=%s\n"
+		"wl0_noise=%s\n"
+		"auth_count=%s\n"
+		"assoc_num=%s\n"
+		"wl0_txpwr_cur=%s\n",
+		pipe_get("%s", "ip addr show dev br0 | grep inet | awk '{print $2}'", sys_buff, sizeof(sys_buff), 0), 
 		nvram_ra_get("nick_name"),
 		nvram_ra_get("os_version"),
 		nvram_ra_get("lan_dhcp"),
@@ -228,13 +186,14 @@ int on_get_basic(sstr_t *rep)
 		nvram_ra_get("lan_netmask"),
 		nvram_ra_get("lan_gateway"),
 		ac_addr,
-		channel_id1, channel_id2, 
-		wl0_noise, wl1_noise,
-		sta_num1, assoc_num1, sta_num2, assoc_num2,
-		wl0_txpwr, wl1_txpwr);
+		pipe_get("%s", "wlconf ra0 ugw info,channel", sys_buff+(24*c++), 24, 0), 
+		pipe_get("%s", "wlconf ra0 ugw info,noise", sys_buff+(24*c++), 24, 0),
+		pipe_get("%s", "wlconf ra0 ugw info,conn", sys_buff+(24*c++), 24, 0), 
+		pipe_get("%s", "wlconf ra0 ugw info,assoc", sys_buff+(24*c++), 24, 0),
+		pipe_get("%s", "wlconf ra0 ugw info,txpower", sys_buff+(24*c++), 24, 0));
 
 	//free mem
-	APLOG(LOG_INFO, "basic %s\n", lanip);
+	APLOG(LOG_INFO, "basic %s\n", rep->data);
 	return 0;
 }
 

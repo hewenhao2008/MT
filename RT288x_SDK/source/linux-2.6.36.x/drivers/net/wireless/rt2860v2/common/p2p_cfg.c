@@ -10572,6 +10572,10 @@ INT RTMP_AP_IoctlHandle(
 			RTMPIoctlGetMacTable(pAd,wrq);
 		    break;
 
+		case CMD_RTPRIV_IOCTL_GET_UGW:
+			RTMPIoctlGetUGW(pAd, wrq);
+			break;
+
 #if defined (AP_SCAN_SUPPORT) || defined (CONFIG_STA_SUPPORT)
 		case CMD_RTPRIV_IOCTL_GSITESURVEY:
 			RTMPIoctlGetSiteSurvey(pAd,wrq);

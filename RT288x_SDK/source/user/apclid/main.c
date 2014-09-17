@@ -28,9 +28,16 @@ int main(char argc, char *argv[])
 		return press_any_key_main(argc, argv);
 	}
 
+	if(strstr(argv[0], "apclid")==NULL) {
+		logerr("unknown par[%s]\n", argv[0]);
+		return 0;
+	}
+
 	openlog("apclid", 0, 0);
 
-	if (strlen(nvram_ra_get("apclid_dbg")) > 0) {
+	if (argc>1 && strncmp(argv[1], "dbg", 3)==0) {
+		//debug mode
+	}else{
 		if (daemon(1, 1) == -1) {
 			logerr("daemon failed %d\n", errno);
 			goto __err;

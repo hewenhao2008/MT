@@ -32,10 +32,10 @@ dir_n =
 dir_  =
 
 
-dir_y	+= apclid
 dir_y	+= goahead
 dir_y	+= rt2880_app
 dir_y 	+= wireless_tools
+dir_y	+= apclid
 dir_y 	+= lua
 dir_y	+= mtd_write
 

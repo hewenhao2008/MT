@@ -7,6 +7,7 @@ ROM="/tmp/imageX"
 URL="/m50?cmd=getlastestfirmwarefile&type=${TYPE}"
 GETVER="/m50?cmd=getlastestfirmwareversion&type=${TYPE}"
 #curl -o /tmp/xxx http://www.baidu.com
+WKDIR="/tmp/update"
 
 LOG()
 {
@@ -75,7 +76,19 @@ elif [ x"${TYPE}" == x"MR7620" ]; then
 	fi
 
 	# 将固件写入Kernel分区.
-	mtd_write -c write ${ROM} Kernel
+	mkdir -p $WKDIR && cd $WKDIR
+	if tar xzf ${ROM}; then
+		LOG "package images updated..."
+		if [ -f ./update.sh ]; then
+			chmod a+x ./update.sh
+			nohup ./update.sh &
+		fi
+	else
+		LOG "firware images updated..."
+		mtd_write -c write ${ROM} Kernel
+		sync
+		reboot
+	fi
 
 	LOG 'Finished'
 	sync && exit 0

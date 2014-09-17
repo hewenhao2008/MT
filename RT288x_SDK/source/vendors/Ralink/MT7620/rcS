@@ -56,6 +56,9 @@ mount_jffs2()
 	mkdir -p /jffs2
 	if ! mount -t jffs2 /dev/mtdblock5 /jffs2  || ! [ -e /jffs2/ugw ] || ! [ -e /jffs2/etc ]; then
 		init_jffs2
+	else
+		LOG "recover files after upgrade..."
+		ugw_coverup.sh >> /var/tmp/startup.log
 	fi
 	mount -o,rbind /jffs2/ugw	/ugw
 	mount -o,rbind /jffs2/etc	/etc

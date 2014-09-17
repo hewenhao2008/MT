@@ -10,7 +10,7 @@ useage()
 	echo "nvram unset key"
 }
 
-echo "nvram: $*, parnum: $#" >&2
+#echo "nvram: $*, parnum: $#" >&2
 
 case $# in
 	0)	useage
@@ -36,8 +36,8 @@ case $# in
 			"set")
 				KEY=`echo $2| awk -F= '{print $1}'`
 				VAL=`echo $2| awk -F= '{print $2}'`
-				echo "nvram set $KEY $VAL" >&2
 				nvram_set $KEY $VAL
+				#echo "nvram set $KEY $VAL" >&2
 			;;
 			"unset")
 				nvram_set $2 #set empty

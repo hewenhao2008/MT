@@ -170,6 +170,7 @@ rt2860v2_sta-objs += ../rt2860v2/ap/ap.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_assoc.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_auth.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_connect.o
+rt2860v2_sta-objs += ../rt2860v2/ap/ap_ugw.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_mlme.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_sanity.o
 rt2860v2_sta-objs += ../rt2860v2/ap/ap_sync.o

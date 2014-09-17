@@ -16,12 +16,31 @@
 #include "conn.h"
 #include "api.h"
 
-///////////////////////////////////////////////////////////////////apis
-int api_get_channel_id(char *ifname) 
+char *pipe_get(const char* FMT, char *cmd, char *buff, int bufsize, int all)
 {
-	int channel;
+	FILE *fp_pipe;
 
-	return channel;
+	fp_pipe = popen(cmd, "r");
+	if(!fp_pipe) {
+		logerr("popen %s,%s\n", cmd, strerror(errno));
+		return NULL;
+	}
+	int cur = 0, n;
+	char tmp[MAX_NVRAM_SIZE];
+	buff[0] = '\0';
+	while(fgets(tmp, sizeof(tmp), fp_pipe)!=NULL) {
+		n = snprintf(buff + cur, bufsize - cur, FMT, tmp);
+		if(!all) 
+			break;
+		if(n<=0) {
+			logerr("fmt %d,%d,%d\n", bufsize, cur, n);
+			break;
+		}
+		cur += n;
+	}
+	pclose(fp_pipe);
+
+	return buff;
 }
 
 int api_get_wl_auth_count(char *ifname, int *assoc_num) 
@@ -127,7 +146,7 @@ char *api_set_exec_cmds(char *par)
 {
 	if (strcmp(par, "services") == 0 || strstr(par, "rc restart")!=NULL)
 	{
-		system("ugw_networks.sh restart &");
+		system("ugw_services.sh restart &");
 	}else if(strcmp(par, "reboot") == 0) {
 		system("reboot");
 	}else{

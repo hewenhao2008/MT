@@ -319,6 +319,7 @@ image:
 	[ -d $(IMAGEDIR) ] || mkdir $(IMAGEDIR)
 	$(MAKEARCH) -C vendors image
 	cp $(IMAGEDIR)/$(USER)_uImage $(TFTPDIR)/test.bin
+	cd $(ROMFSDIR) && $(ROOTDIR)/mkpackage.sh
 	#mksquashfs romfs/ images/rom.squashfs -noappend -all-root
 
 .PHONY: release
