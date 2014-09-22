@@ -186,11 +186,11 @@ int on_get_basic(sstr_t *rep)
 		nvram_ra_get("lan_netmask"),
 		nvram_ra_get("lan_gateway"),
 		ac_addr,
-		pipe_get("%s", "wlconf ra0 ugw info,channel", sys_buff+(24*c++), 24, 0), 
-		pipe_get("%s", "wlconf ra0 ugw info,noise", sys_buff+(24*c++), 24, 0),
-		pipe_get("%s", "wlconf ra0 ugw info,conn", sys_buff+(24*c++), 24, 0), 
-		pipe_get("%s", "wlconf ra0 ugw info,assoc", sys_buff+(24*c++), 24, 0),
-		pipe_get("%s", "wlconf ra0 ugw info,txpower", sys_buff+(24*c++), 24, 0));
+		pipe_get("%s", "wlconf ra0 ugw info,channel", sys_buff+(++c*32), 32, 0), 
+		pipe_get("%s", "wlconf ra0 ugw info,noise", sys_buff+(++c*32), 32, 0),
+		pipe_get("%s", "wlconf ra0 ugw info,conn", sys_buff+(++c*32), 32, 0), 
+		pipe_get("%s", "wlconf ra0 ugw info,assoc", sys_buff+(++c*32), 32, 0),
+		pipe_get("%s", "wlconf ra0 ugw info,txpower", sys_buff+(++c*32), 32, 0));
 
 	//free mem
 	APLOG(LOG_INFO, "basic %s\n", rep->data);
@@ -341,26 +341,13 @@ int on_set_nvram(sstr_t req, sstr_t *rep)
 	}
 }
 
-int on_set_auth_user_list(sstr_t req, sstr_t *rep)
+int on_get_auth_user_info(sstr_t *rep)
 {
-	char *ifname = req.data;
+	char *res = pipe_get("%s", "wlconf ra0 ugw stainfo", sys_buff, sizeof(sys_buff), 1);
 	
-	//APLOG(LOG_DEBUG, "on get the ulist of iface[%s]\n", ifname);
-	*rep = sstr_move_cstr(api_get_wl_auth_list(ifname));
-	return 0;
-}
+	//fprintf(stderr, "user info: %s\n", res);
 
-int on_set_auth_user_info(sstr_t req, sstr_t *rep)
-{
-	/* 解析出wl网口名和用户的mac地址 */
-	char *mac = req.data;
-	char *ifname = strchr(req.data, ' ');
-	if(ifname){
-		ifname += 1; //offset
-	}
-
-	//APLOG(LOG_DEBUG, "on set uinfo[%s]\n", mac);
-	*rep =  sstr_move_cstr(api_get_wl_auth_info(ifname, mac));
+	*rep =  sstr_copy_cstr(res);
 	return 0;
 }
 
@@ -410,12 +397,12 @@ void init_handlers(void)
 	register_request_get_handler("mac", on_get_mac);
 	register_request_get_handler("basic", on_get_basic);
 	register_request_get_handler("user_addrs", on_get_user_addrs);
+	register_request_get_handler("user_info", on_get_auth_user_info);
 
 	register_request_set_handler("ip", on_set_ip);
 	register_request_set_handler("nvram", on_set_nvram);
 	register_request_set_handler("unset", on_unset_nvram);
-	register_request_set_handler("user_list", on_set_auth_user_list);
-	register_request_set_handler("user_info", on_set_auth_user_info);
+	//register_request_set_handler("user_list", on_set_auth_user_list);
 	register_request_set_handler("exec_cmds", on_set_exec_cmds);
 	register_request_set_handler("upgrade", on_set_upgrade);
 	register_request_set_handler("fetch", on_set_fetch);

@@ -871,7 +871,7 @@ VOID	NICReadEEPROMParameters(
 			else
 #endif /* RT6352_EP_SUPPORT */
 			//pAd->bExtPA = FALSE; 
-			//ROY: ²»ÓÃÍâ²¿PAºÜ¶àÆ½Ì¨²»ÎÈ¶¨...
+			//ROY: ä¸ç”¨å¤–éƒ¨PAå¾ˆå¤šå¹³å°ä¸ç¨³å®š...
 			pAd->bExtPA = TRUE;
 		}
 #endif /* RT6352 */

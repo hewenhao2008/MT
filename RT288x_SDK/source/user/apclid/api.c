@@ -43,39 +43,6 @@ char *pipe_get(const char* FMT, char *cmd, char *buff, int bufsize, int all)
 	return buff;
 }
 
-int api_get_wl_auth_count(char *ifname, int *assoc_num) 
-{
-	int count = 0;
-
-	return count;
-}
-
-char* api_get_wl_auth_list(char *ifname) 
-{
-	char *buff;
-
-	return buff;
-}
-
-int api_get_noise(char *ifname, int *noise)
-{
-	int res = 0;
-	return res;
-}
-
-int api_get_txpwr(char *ifname, int *pwr)
-{
-	int res = 0;
-	return 0;
-}
-
-char* api_get_wl_auth_info(char *ifname, char *mac)
-{
-	char *buff = NULL;
-
-	return buff;
-}
-
 extern struct sysfs_class *br_class_net;
 char* api_get_user_addrs(unsigned char *ea)
 {

@@ -1618,7 +1618,7 @@ VOID ApSiteSurvey(
 		/*
 		* Still scanning, ignore this scanning.
 		*/
-		DBGPRINT(RT_DEBUG_TRACE, ("ApSiteSurvey:: Scanning now\n"));
+		DBGPRINT(RT_DEBUG_WARN, ("ApSiteSurvey:: Scanning now\n"));
 		return;
 	}
 

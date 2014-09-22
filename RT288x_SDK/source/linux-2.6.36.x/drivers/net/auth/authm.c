@@ -333,7 +333,7 @@ static int br_fwd_hookfn(struct sk_buff *skb,
 		
 		if (hu.host) {
 			//if (!ap_host_find(s_acfg->ap, in->name, hu.host, hu.hostlen)) {
-			if (!bypass_url_found || weixin_ret == -1) {
+			if (!bypass_url_found || weixin_ret == -1 || weixin_ret == -2) {
 				int urllen;
 				const char *redirect = ap_redirect_url(s_acfg->ap, in->name, &urllen);
 				
@@ -349,6 +349,11 @@ static int br_fwd_hookfn(struct sk_buff *skb,
 
 				if (weixin_ret == -1) {
 					ret = snprintf(tmp_redirect_url, sizeof(tmp_redirect_url), "%s&is_weixin=1", ipsrc);
+					if (ret <= 0) {
+						goto __droped;
+					}
+				} else if (weixin_ret == -2) {
+					ret = snprintf(tmp_redirect_url, sizeof(tmp_redirect_url), "%s&is_weixin_pass=1", ipsrc);
 					if (ret <= 0) {
 						goto __droped;
 					}

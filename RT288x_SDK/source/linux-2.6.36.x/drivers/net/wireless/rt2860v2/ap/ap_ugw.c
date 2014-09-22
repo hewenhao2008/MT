@@ -39,31 +39,31 @@ static INT	Ugw_StaInfo_Proc(
 				pEntry->Addr[0], pEntry->Addr[1], pEntry->Addr[2],
 				pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5]);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tifidx=%d\n", (int)pEntry->apidx);//mbss number
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"ifidx=%d\n", (int)pEntry->apidx);//mbss number
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\taid=%d\n", (int)pEntry->Aid);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"aid=%d\n", (int)pEntry->Aid);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tauthm=%d\n", (int)pEntry->AuthMode);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"authm=%d\n", (int)pEntry->AuthMode);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tstatus=%d\n", (int)pEntry->Sst);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"status=%d\n", (int)pEntry->Sst);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\trssi=%d\n", (int)RTMPAvgRssi(pAd, &pEntry->RssiSample));
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"rssi=%d\n", (int)RTMPAvgRssi(pAd, &pEntry->RssiSample));
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tin_network=%d\n", (int)pEntry->StaConnectTime);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"in_network=%d\n", (int)pEntry->StaConnectTime);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tidle=%d\n", (int)pEntry->NoDataIdleCount);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"idle=%d\n", (int)pEntry->NoDataIdleCount);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tdead_line=%d\n", (int)pEntry->AssocDeadLine);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"dead_line=%d\n", (int)pEntry->AssocDeadLine);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\ttx_rate=%d\n", RateIdToMbps[(int)pEntry->CurrTxRate]);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"tx_rate=%d\n", RateIdToMbps[(int)pEntry->CurrTxRate]);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\trx_rate=%d\n", (int)pEntry->LastRxRate);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"rx_rate=%d\n", (int)pEntry->LastRxRate);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\tquality=%d\n", (int)pEntry->ChannelQuality);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"quality=%d\n", (int)pEntry->ChannelQuality);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\ttx_bytes=%d\n", (int)pEntry->TxBytes);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"tx_bytes=%d\n", (int)pEntry->TxBytes);
 			if(n>0){len += n;}else{break;}
-			n=snprintf(msg+len, UGW_IO_SIZE - len,"\trx_bytes=%d\n", (int)pEntry->RxBytes);
+			n=snprintf(msg+len, UGW_IO_SIZE - len,"rx_bytes=%d\n", (int)pEntry->RxBytes);
 			if(n>0){len += n;}else{break;}
 			n=snprintf(msg+len, UGW_IO_SIZE - len,"\n");
 			if(n>0){len += n;}else{break;}
@@ -83,8 +83,8 @@ static INT	Ugw_ApInfo_Proc(
 {
 	INT Status = NDIS_STATUS_SUCCESS;
 	char *msg = ugw_io_buffer;
-	int sta_count = 0, assoc;
-	int channel = pAd->CommonCfg.Channel;
+	int sta_count = 0, assoc = 1;
+	//int channel = pAd->CommonCfg.Channel;
 	int noise = 0, txpower = 0;
 	//Channel:pAd->CommonCfg.Channel
 	//noise: 
@@ -100,13 +100,15 @@ static INT	Ugw_ApInfo_Proc(
 		for (i=0; i<MAX_LEN_OF_MAC_TABLE; i++) {
 			PMAC_TABLE_ENTRY pEntry = &pAd->MacTab.Content[i];
 			if (IS_ENTRY_CLIENT(pEntry) && 
-				(assoc==0 && (pEntry->Sst == SST_ASSOC)) || (pEntry->Sst == SST_AUTH)) {
+				((assoc==0 && (pEntry->Sst == SST_ASSOC)) || (pEntry->Sst == SST_AUTH))) {
 				sta_count ++;
 			}
 		}
 		sprintf(msg, "%d", sta_count);
 	}else if(!strcmp(sub_req, "noise")) {
 		sprintf(msg, "%d", noise);
+	}else if(!strcmp(sub_req, "txpower")) {
+		sprintf(msg, "%d", txpower);
 	}else{
 		sprintf(msg, "-");
 	}
@@ -120,14 +122,56 @@ static INT	Ugw_Scan_Proc(
 	IN	RTMP_IOCTL_INPUT_STRUCT *wrq,
 	int argc, char **argv)
 {
-	INT Status = NDIS_STATUS_SUCCESS;
+	NDIS_802_11_SSID Ssid;
+	PBSS_ENTRY	pBss;
+	INT Status = NDIS_STATUS_SUCCESS, WaitCnt=0;
+	PSTRING msg = ugw_io_buffer;
+	int len, n, i;
+
+	if (!RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_INTERRUPT_IN_USE))
+	{
+		DBGPRINT(RT_DEBUG_ERROR, ("INFO::Network is down!\n"));
+		return -ENETDOWN;   
+	}
+
+	NdisZeroMemory(&Ssid, sizeof(Ssid));
+
+	ApSiteSurvey(pAd, &Ssid, SCAN_PASSIVE, FALSE);
+
+	//wait finished
+	while ((ScanRunning(pAd) == TRUE) && (WaitCnt++ < 200))
+		OS_WAIT(500);
+
+	len = 0;
+	for(i=0; i<pAd->ScanTab.BssNr ;i++)
+	{
+		pBss = &pAd->ScanTab.BssEntry[i];
+		
+		if( pBss->Channel==0)
+			break;
+
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "BSSID=%02x:%02x:%02x:%02x:%02x:%02x\n", 
+			pBss->Bssid[0],pBss->Bssid[1],pBss->Bssid[2],
+			pBss->Bssid[3],pBss->Bssid[4],pBss->Bssid[5]);
+		len += n;
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "SSID=%s\n", pBss->Ssid);
+		len += n;
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "chanspec=%d\n", (int)pBss->Channel);
+		len += n;
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "RSSI=%d\n", (int)pBss->Rssi);
+		len += n;
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "noise=%d\n", pBss->MinSNR);
+		len += n;
+		n=snprintf(msg+len, UGW_IO_SIZE-len, "timestamp=0\n\n");
+		len += n;
+	}
 
 	return Status;
 }
 
 static struct {
 	PSTRING name;
-	INT (*set_proc)(IN PRTMP_ADAPTER pAdapter, IN RTMP_IOCTL_INPUT_STRUCT *wrq, 
+	INT (*set_proc)(IN PRTMP_ADAPTER pAd, IN RTMP_IOCTL_INPUT_STRUCT *wrq, 
 		int argc, char **argv);
 } *PRTMP_PRIVATE_UGW_PROC, RTMP_PRIVATE_UGW_PROC[] = {
 	{"info",						Ugw_ApInfo_Proc},

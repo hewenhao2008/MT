@@ -265,10 +265,10 @@ int ap_3rd_weixin(struct ap_3rd *a3, struct host_uri *hu, const char *mac,
 			} else {
 				logerr("cannot find user! error !!!!!!!\n");
 			}
-			if (is_feixun == 1 ) {
+			if (is_feixun == 1 ) { //飞讯定制
 				return -1;
 			}
-			return 1;	
+			return -2;	//通过微信认证，继续重定向到广告页面，用于统计用户上线
 		}
 	}
 	

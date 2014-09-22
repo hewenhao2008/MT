@@ -1584,7 +1584,7 @@ INT Set_SiteSurvey_Proc(
 	}
 #endif // CONFIG_STA_SUPPORT //
 
-	DBGPRINT(RT_DEBUG_TRACE, ("Set_SiteSurvey_Proc\n"));
+	DBGPRINT(RT_DEBUG_WARN, ("Set_SiteSurvey_Proc: %s\n", arg));
 
     return TRUE;
 }
