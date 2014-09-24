@@ -17,7 +17,7 @@ LDFLAGS += -L$(ROOTDIR)/user/wireless_tools
 LDFLAGS	+= -lnvram -liw -lm -lpthread
 
 # If you want to debug daemon, add following line
-CFLAGS +=  -DDBG 
+#CFLAGS +=  -DDBG 
 
 SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c, %.o, $(SRCS))

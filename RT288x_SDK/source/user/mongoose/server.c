@@ -19,77 +19,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#undef UNICODE                    // Use ANSI WinAPI functions
-#undef _UNICODE                   // Use multibyte encoding on Windows
-#define _MBCS                     // Use multibyte encoding on Windows
-#define _WIN32_WINNT 0x500        // Enable MIIM_BITMAP
-#define _CRT_SECURE_NO_WARNINGS   // Disable deprecation warning in VS2005
-#define _XOPEN_SOURCE 600         // For PATH_MAX on linux
-#undef WIN32_LEAN_AND_MEAN        // Let windows.h always include winsock2.h
-
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <string.h>
-#include <errno.h>
-#include <limits.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <ctype.h>
-#include <time.h>
-
-#include "mongoose.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#include <direct.h>  // For chdir()
-#include <winsvc.h>
-#include <shlobj.h>
-
-#ifndef PATH_MAX
-#define PATH_MAX MAX_PATH
-#endif
-
-#ifndef S_ISDIR
-#define S_ISDIR(x) ((x) & _S_IFDIR)
-#endif
-
-#define DIRSEP '\\'
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#define sleep(x) Sleep((x) * 1000)
-#define abs_path(rel, abs, abs_size) _fullpath((abs), (rel), (abs_size))
-#define SIGCHLD 0
-typedef struct _stat file_stat_t;
-#define stat(x, y) _stat((x), (y))
-#else
-typedef struct stat file_stat_t;
-#include <sys/wait.h>
-#include <unistd.h>
-
-#ifdef IOS
-#include <ifaddrs.h>
-#endif
-
-#define DIRSEP '/'
-#define __cdecl
-#define abs_path(rel, abs, abs_size) realpath((rel), (abs))
-#endif // _WIN32
-
-#define MAX_OPTIONS 100
-#define MAX_CONF_FILE_LINE_SIZE (8 * 1024)
-
-#ifndef MVER
-#define MVER MONGOOSE_VERSION
-#endif
+#include "common.h"
 
 static int exit_flag;
 static char server_name[50];        // Set by init_server_name()
 static char s_config_file[PATH_MAX];  // Set by process_command_line_arguments
 static struct mg_server *server;    // Set by start_mongoose()
-static const char *s_default_document_root = ".";
-static const char *s_default_listening_port = "8080";
+static const char *s_default_document_root = "./webui";
+static const char *s_default_listening_port = "8860";
 static char **s_argv = { NULL };
 
 static void set_options(char *argv[]);
@@ -161,6 +98,7 @@ static void show_usage_and_exit(void) {
 }
 
 #define EV_HANDLER NULL
+extern int ev_auth_handler(struct mg_connection *conn, enum mg_event ev);
 
 static char *sdup(const char *str) {
   char *p;
@@ -213,8 +151,12 @@ static void process_command_line_arguments(char *argv[], char **options) {
   fp = fopen(s_config_file, "r");
 
   // If config file was set in command line and open failed, die
-  if (cmd_line_opts_start == 2 && fp == NULL) {
-    die("Cannot open config file %s: %s", s_config_file, strerror(errno));
+  //if (cmd_line_opts_start == 2 && fp == NULL) {
+  if (fp == NULL) {
+    //die("Cannot open config file %s: %s", s_config_file, strerror(errno));
+    abs_path("httpd.conf", s_config_file, sizeof(s_config_file));
+    //retry
+    fp = fopen(s_config_file, "r");
   }
 
   // Load config file settings first
@@ -402,7 +344,7 @@ int modify_passwords_file(const char *fname, const char *domain,
 
 static void start_mongoose(int argc, char *argv[]) {
   s_argv = argv;
-  if ((server = mg_create_server(NULL, EV_HANDLER)) == NULL) {
+  if ((server = mg_create_server(NULL, ev_auth_handler)) == NULL) {
     die("%s", "Failed to start Mongoose.");
   }
 
