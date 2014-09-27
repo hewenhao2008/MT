@@ -513,7 +513,7 @@ static int sms_response(struct mg_connection *conn, void *param) {
 	
 	cmd_item = cJSON_GetObjectItem(root, "Cmd");
 	data_root = cJSON_GetObjectItem(root, "Data");
-	if (!cmd_item || cmd_item->type != cJSON_String || strncmp(cmd_item->valuestring, s_cmd_aplogin, strlen(s_cmd_aplogin))) 
+	if (!cmd_item || cmd_item->type != cJSON_String || strncmp(cmd_item->valuestring, s_cmd_smslogin, strlen(s_cmd_smslogin))) 
 		return -1;
 	if (!data_root || data_root->type != cJSON_Object)
 		return -1;
