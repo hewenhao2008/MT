@@ -2,25 +2,36 @@
 
 static char s_passwd_fname[PATH_MAX];
 
+static int do_auth(struct mg_connection *conn)
+{
+  int result = MG_FALSE; // Not authorized
+  FILE *fp;
+
+  // To populate passwords file, do
+  // mongoose -A my_passwords.txt mydomain.com admin admin
+  abs_path("passwd", s_passwd_fname, sizeof(s_passwd_fname));
+  if ((fp = fopen(s_passwd_fname, "r")) != NULL) {
+    result = mg_authorize_digest(conn, fp);
+    fclose(fp);
+    //fprintf(stderr, "%s: auth result: %d\n", __FUNCTION__, result);
+  }else{
+    fprintf(stderr, "%s: open passwd[%s] file failed.\n", __FUNCTION__, s_passwd_fname);
+  }
+  
+  return result;
+}
+
 int ev_auth_handler(struct mg_connection *conn, enum mg_event ev) {
 
-  if (ev == MG_AUTH) {
-    int result = MG_FALSE; // Not authorized
-    FILE *fp;
 
-    // To populate passwords file, do
-    // mongoose -A my_passwords.txt mydomain.com admin admin
-    abs_path("passwd", s_passwd_fname, sizeof(s_passwd_fname));
-    if ((fp = fopen(s_passwd_fname, "r")) != NULL) {
-      result = mg_authorize_digest(conn, fp);
-      fclose(fp);
-      //fprintf(stderr, "%s: auth result: %d\n", __FUNCTION__, result);
-    }else{
-      fprintf(stderr, "%s: open passwd[%s] file failed.\n", __FUNCTION__, s_passwd_fname);
-    }
+  switch(ev){
+    case MG_AUTH:
+      return do_auth(conn);
+    break;
 
-
-    return result;
+    default:
+      fprintf(stderr, "%s: message %d\n", __FUNCTION__, ev);
+    break;
   }
 
   return MG_FALSE;

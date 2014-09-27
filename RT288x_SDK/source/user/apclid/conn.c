@@ -51,6 +51,12 @@ enum {
 	MSG_KEEPALIVE 	= 1 << 2,
 };
 
+enum {
+	CONN_VERSION_BASE = 0,
+	CONN_VERSION_BCM,
+	CONN_VERSION_MTK,
+};
+
 #define RESET_SOCK(sock) do {	\
 	close(sock);				\
 	sock = -1;					\
@@ -313,7 +319,7 @@ static int recv_message(int sock, uint32_t *msg_type, char **data)
 		return ret; //time out
 	}
 	*msg_type = hdr.msg_type;
-	if(hdr.version == 0) {
+	if(hdr.version == CONN_VERSION_BASE) {
 		//get mac, 特殊调用未加密
 		struct message_header hdr0;
 		ret = recv_n(sock, &hdr0, sizeof(hdr0), TIMEOUT_RECV_HEAD);
@@ -376,7 +382,7 @@ static int recv_message(int sock, uint32_t *msg_type, char **data)
 		return -1;
 	}
 
-	if(hdr.version != 1) {
+	if(hdr.version != CONN_VERSION_MTK) {
 		LOG(LOG_ERR, "version[%hu]\n", hdr.version);
 		free(buf);
 		return -1;
@@ -439,7 +445,7 @@ static int send_message(int sock, uint32_t msg_type, const char *data, size_t da
 	msghdr = (struct message_header1 *)(msgbuf + sizeof(*hdr));
 
 	hdr->msg_type = msg_type;
-	hdr->version = 1;
+	hdr->version = CONN_VERSION_MTK;
 
 	//加密数据
 	msgdata = msgbuf + sizeof(*hdr) + sizeof(*msghdr);

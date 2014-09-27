@@ -194,6 +194,32 @@ static NDIS_STATUS rtmp_ee_flash_reset(
 }
 
 #ifdef LINUX
+
+//ROY: void mac addr the same 
+static BOOLEAN RandomMacAddrs(RTMP_ADAPTER *pAd)
+{
+	USHORT  Addr45;
+	
+	//wlan mac addr
+	rtmp_ee_flash_read(pAd, 0x08, &Addr45);
+	Addr45 = Addr45 & 0xff;
+	Addr45 = Addr45 | (RandomByte(pAd)&0xff) << 8;
+	rtmp_ee_flash_write(pAd, 0x08, Addr45);
+
+	//eth2->lan mac
+	rtmp_ee_flash_read(pAd, 0x2c, &Addr45);
+	if(Addr45 == 0x7720) {
+		Addr45 = RandomByte2(pAd)<<8;
+		Addr45 += RandomByte(pAd);
+		rtmp_ee_flash_write(pAd, 0x2c, &Addr45);
+		//eth2->wan mac
+		Addr45 += 0x10;
+		rtmp_ee_flash_write(pAd, 0x32, &Addr45);
+	}
+	
+	DBGPRINT(RT_DEBUG_ERROR, ("The EEPROM flash load default\n"));
+}
+
 /* 0 -- Show ee buffer */
 /* 1 -- force reset to default */
 /* 2 -- Change ee settings */
@@ -231,15 +257,7 @@ int	Set_EECMD_Proc(
 				}
 			
 				/* Random number for the last bytes of MAC address*/
-				{
-					USHORT  Addr45;
-
-					rtmp_ee_flash_read(pAd, 0x08, &Addr45);
-					Addr45 = Addr45 & 0xff;
-					Addr45 = Addr45 | (RandomByte(pAd)&0xf8) << 8;
-					DBGPRINT(RT_DEBUG_OFF, ("Addr45 = %4x\n", Addr45));
-					rtmp_ee_flash_write(pAd, 0x08, Addr45);
-				}
+				RandomMacAddrs(pAd);
 			
 				if ((rtmp_ee_flash_read(pAd, 0, &i) != 0x2880) && (rtmp_ee_flash_read(pAd, 0, &i) != 0x2860))
 				{
@@ -307,16 +325,7 @@ static NDIS_STATUS rtmp_ee_flash_init(PRTMP_ADAPTER pAd, PUCHAR start)
 		}
 
 		/* Random number for the last bytes of MAC address*/
-		{
-			USHORT  Addr45;
-			
-			rtmp_ee_flash_read(pAd, 0x08, &Addr45);
-			Addr45 = Addr45 & 0xff;
-			Addr45 = Addr45 | (RandomByte(pAd)&0xf8) << 8;
-			
-			rtmp_ee_flash_write(pAd, 0x08, Addr45);
-			DBGPRINT(RT_DEBUG_ERROR, ("The EEPROM in Flash is wrong, use default\n"));
-		}
+		RandomMacAddrs(pAd);
 
 		if (validFlashEepromID(pAd) == FALSE)
 		{

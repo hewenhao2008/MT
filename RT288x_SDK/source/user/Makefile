@@ -32,7 +32,7 @@ dir_n =
 dir_  =
 
 
-dir_y	+= goahead
+dir_y	+= mongoose
 dir_y	+= rt2880_app
 dir_y 	+= wireless_tools
 dir_y	+= apclid

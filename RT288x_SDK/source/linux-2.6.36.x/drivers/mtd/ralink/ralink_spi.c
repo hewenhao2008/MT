@@ -39,7 +39,7 @@ extern u32 get_surfboard_sysclk(void) ;
 #endif
 
 static struct mtd_partition rt2880_partitions[] = {
-	{
+		{
                 name:           "ALL",
                 size:           MTDPART_SIZ_FULL,
                 offset:         0,
@@ -77,10 +77,10 @@ static struct mtd_partition rt2880_partitions[] = {
                 name:           "Kernel",
                 size:           MTD_KERN_PART_SIZE,
                 offset:         MTDPART_OFS_APPEND,
-        }, {
-                name:           "UGW",
-                size:           MTD_UGW_PART_SIZE,  /* 512K */
-                offset:         MTDPART_OFS_APPEND
+        // }, {
+        //         name:           "UGW",
+        //         size:           MTD_UGW_PART_SIZE,  /* 512K */
+        //         offset:         MTDPART_OFS_APPEND
 #endif
 #ifdef CONFIG_DUAL_IMAGE
         }, {
@@ -97,7 +97,13 @@ static struct mtd_partition rt2880_partitions[] = {
         }
 };
 
-
+static struct mtd_partition ugw_partitions[] = {
+	{
+        name:           "UGW",
+        size:           MTD_UGW_PART_SIZE,
+        offset:         MTDPART_OFS_APPEND,
+    },
+};
 
 /******************************************************************************
  * SPI FLASH elementray definition and function
@@ -1459,6 +1465,9 @@ static struct mtd_info *raspi_probe(struct map_info *map)
 	return add_mtd_partitions(&flash->mtd, rt2880_partitions, ARRAY_SIZE(rt2880_partitions));
 #else
 	add_mtd_partitions(&flash->mtd, rt2880_partitions, ARRAY_SIZE(rt2880_partitions));
+	//overlay offset
+	ugw_partitions[0].offset = flash->mtd.size - MTD_UGW_PART_SIZE;
+	add_mtd_partitions(&flash->mtd, ugw_partitions, ARRAY_SIZE(ugw_partitions));
 	return &flash->mtd;
 #endif
 }

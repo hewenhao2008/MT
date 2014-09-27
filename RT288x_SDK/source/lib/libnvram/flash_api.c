@@ -58,52 +58,14 @@ int mtd_open(const char *name, int flags)
 	return -1;
 }
 
-int flash_read_mac(char *buf)
-{
-	int fd, ret;
-
-	if (!buf)
-		return -1;
-	fd = mtd_open("Factory", O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "Could not open mtd device\n");
-		return -1;
-	}
-#if ! defined (NO_WIFI_SOC)
-	lseek(fd, 0x2E, SEEK_SET);
-#else
-	lseek(fd, 0xE006, SEEK_SET);
-#endif
-	ret = read(fd, buf, 6);
-	close(fd);
-	return ret;
-}
-
-int flash_read_NicConf(char *buf)
-{
-	int fd, ret;
-
-	if (!buf)
-		return -1;
-	fd = mtd_open("Factory", O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "Could not open mtd device\n");
-		return -1;
-	}
-	lseek(fd, 0x34, SEEK_SET);
-	ret = read(fd, buf, 6);
-	close(fd);
-	return ret;
-}
-
-int flash_read(char *buf, off_t from, size_t len)
+int mtdpart_read(const char *name, char *buf, off_t from, size_t len)
 {
 	int fd, ret;
 	struct mtd_info_user info;
 
-	fd = mtd_open("Config", O_RDONLY);
+	fd = mtd_open(name, O_RDONLY);
 	if (fd < 0) {
-		fprintf(stderr, "Could not open mtd device\n");
+		fprintf(stderr, "Could not open mtd device[%s]\n", name);
 		return -1;
 	}
 
@@ -120,28 +82,43 @@ int flash_read(char *buf, off_t from, size_t len)
 
 	lseek(fd, from, SEEK_SET);
 	ret = read(fd, buf, len);
-	if (ret == -1) {
-		fprintf(stderr, "Reading from mtd failed\n");
-		close(fd);
-		return -1;
-	}
-
 	close(fd);
+
 	return ret;
+}
+
+int flash_read_mac(char *buf)
+{
+#if ! defined (NO_WIFI_SOC)
+	off_t from = 0x2E;
+#else
+	off_t from = 0xE006;
+#endif
+	return mtdpart_read("Factory", buf, from, 6);
+}
+
+int flash_read_NicConf(char *buf)
+{
+	return mtdpart_read("Factory", buf, 0x34, 6);
+}
+
+int flash_read(char *buf, off_t from, size_t len)
+{
+	return mtdpart_read("Config", buf, from, len);
 }
 
 #define min(x,y) ({ typeof(x) _x = (x); typeof(y) _y = (y); (void) (&_x == &_y); _x < _y ? _x : _y; })
 
-int flash_write(char *buf, off_t to, size_t len)
+int mtdpart_write(const char *name, char *buf, off_t to, size_t len)
 {
 	int fd, ret = 0;
 	char *bak = NULL;
 	struct mtd_info_user info;
 	struct erase_info_user ei;
 
-	fd = mtd_open("Config", O_RDWR | O_SYNC);
+	fd = mtd_open(name, O_RDWR | O_SYNC);
 	if (fd < 0) {
-		fprintf(stderr, "Could not open mtd device\n");
+		fprintf(stderr, "Could not open mtd device[%s]\n", name);
 		return -1;
 	}
 
@@ -231,6 +208,11 @@ int flash_write(char *buf, off_t to, size_t len)
 
 	close(fd);
 	return ret;
+}
+
+int flash_write(char *buf, off_t to, size_t len)
+{
+	return mtdpart_write("Config", buf, to, len);
 }
 
 unsigned int flush_mtd_size(char *part)

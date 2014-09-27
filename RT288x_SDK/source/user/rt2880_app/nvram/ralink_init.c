@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include "nvram.h"
@@ -709,7 +710,7 @@ int renew_nvram(int mode, char *fname)
 	FILE *fp;
 #define BUFSZ 1024
 	unsigned char buf[BUFSZ], *p;
-	unsigned char wan_mac[32];
+	unsigned char wan_mac[32], et0mac[32];
 	int found = 0, need_commit = 0;
 
 	if (NULL == (fp = fopen(fname, "ro"))) {
@@ -755,6 +756,25 @@ int renew_nvram(int mode, char *fname)
 	flash_read_mac(buf);
 	sprintf(wan_mac,"%0X:%0X:%0X:%0X:%0X:%0X\n",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5]);
 	nvram_bufset(RT2860_NVRAM, "WAN_MAC_ADDR", wan_mac);
+
+	//genmacaddr
+	// if(mtdpart_read("Factory", buf, 0x28, 6) > 0) {
+	// 	//判断是不是默认mac?
+	// 	if(buf[0]==0x00 && buf[1]==0x0c && buf[2]==0x43 &&
+	// 		buf[3]==0x76 && buf[4]==0x20 && buf[5]==0x77) {
+	// 		//gen new mac
+	// 		int ts = random();
+
+	// 		buf[1] = buf[3];
+	// 		buf[2] = buf[4];
+	// 		*(int*)(&buf[3]) = ts;
+	// 		if(mtdpart_write("Factory", buf, 0x28, 6)<=0){
+	// 			fprintf(stderr, "write mac: %s\n", strerror(errno));
+	// 		}
+	// 	}
+	// 	sprintf(et0mac,"%0x:%0x:%0x:%0x:%0x:%0x",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5]);
+	// 	nvram_bufset(RT2860_NVRAM, "et0macaddr", et0mac);
+	// }
 
 	need_commit = 1;
 

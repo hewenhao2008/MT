@@ -25,7 +25,7 @@ static int exit_flag;
 static char server_name[50];        // Set by init_server_name()
 static char s_config_file[PATH_MAX];  // Set by process_command_line_arguments
 static struct mg_server *server;    // Set by start_mongoose()
-static const char *s_default_document_root = "./webui";
+static const char *s_default_document_root = "/ugw/webui";
 static const char *s_default_listening_port = "8860";
 static char **s_argv = { NULL };
 

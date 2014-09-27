@@ -1,13 +1,14 @@
 #!/bin/sh
 
 #init system
-#1. 将mac地址改成能识别的设备
+#1. 将mac地址改成能识别的设备 ===> 改到nvram_daemon复位操作里面了.
 MacOri=`ip link show dev eth2 | grep ether | awk '{print $2}'`
-MacNew="${MacOri:0:2}:76:20:${MacOri:3:5}:${MacOri:15}"
-ip link set dev eth2 down
-ip link set dev eth2 address ${MacNew}
-ip link set dev eth2 up
-nvram set et0macaddr=${MacNew}
+#MacNew="${MacOri:0:2}:76:20:${MacOri:3:5}:${MacOri:15}"
+#ip link set dev eth2 down
+#ip link set dev eth2 address ${MacNew}
+#ip link set dev eth2 up
+#nvram set et0macaddr=${MacNew}
+nvram set et0macaddr=${MacOri}
 
 #startup networks
 ugw_networks.sh

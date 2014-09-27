@@ -168,6 +168,7 @@ int on_get_basic(sstr_t *rep)
 		"ipaddr=%s\n"
 		"nick_name=%s\n"
 		"os_version=%s\n"
+		"ugw_version=%s\n"
 		"lan_dhcp=%s\n"
 		"lan_ipaddr=%s\n"
 		"lan_netmask=%s\n"
@@ -181,6 +182,7 @@ int on_get_basic(sstr_t *rep)
 		pipe_get("%s", "ip addr show dev br0 | grep inet | awk '{print $2}'", sys_buff, sizeof(sys_buff), 0), 
 		nvram_ra_get("nick_name"),
 		nvram_ra_get("os_version"),
+		nvram_ra_get("ugw_version"),
 		nvram_ra_get("lan_dhcp"),
 		nvram_ra_get("lan_ipaddr"),
 		nvram_ra_get("lan_netmask"),
