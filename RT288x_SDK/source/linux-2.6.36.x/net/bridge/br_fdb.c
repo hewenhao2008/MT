@@ -288,7 +288,7 @@ int br_fdb_fillbuf(struct net_bridge *br, void *buf,
 
 			/* due to ABI compat need to split into hi/lo */
 			fe->port_no = f->dst->port_no;
-			fe->port_hi = f->dst->port_no >> 8;
+			//fe->port_hi = f->dst->port_no >> 8;
 
 			fe->is_local = f->is_local;
 			fe->l3addr = f->l3addr;

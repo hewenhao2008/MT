@@ -371,7 +371,7 @@ static int br_fwd_hookfn(struct sk_buff *skb,
 
 				//if (auth_redirect(redirect, urllen, skb, in, out) == 0) {	 
 				if (auth_redirect(redirect_url, strlen(redirect_url), skb, in, out) == 0) {	 	 
-					logdbg("redirect %s %02x-%02x-%02x-%02x-%02x-%02x %s to %s ok\n", in->name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], tmphost, redirect_url);
+					//logdbg("redirect %s %02x-%02x-%02x-%02x-%02x-%02x %s to %s ok\n", in->name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], tmphost, redirect_url);
 					goto __droped;
 				}
 			}

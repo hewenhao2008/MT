@@ -104,6 +104,38 @@ start()
 	fi
 }
 
+reset()
+{
+	LOG "system hw reset deep..."
+
+	ifconfig ra0 down
+	BssidNum=4
+	num=1
+	while [ $num -lt $BssidNum ]; do
+		LOG "stop ra$num..."
+
+		ifconfig ra$num down
+		num=`expr $num + 1`
+	done
+
+	ifconfig eth2 down
+	ifconfig br0 down
+	brctl delbr br0
+
+	rmmod rt2860v2_ap
+	rmmod raeth
+	rmmod rt_rdm
+
+	#reload modules
+	LOG "reload modules up..."
+	insmod ${MODPATH}/rt_rdm.ko
+	insmod ${MODPATH}/raeth.ko
+	insmod ${MODPATH}/rt2860v2_ap.ko
+
+	#gennery start system.
+	start
+}
+
 #只允许同时执行一个.
 F_PID="/tmp/ugw_networks.pid"
 echo $$ $F_PID
@@ -126,6 +158,9 @@ case $# in
 			;;
 			start)
 				start
+			;;
+			reset)
+				reset
 			;;
 			*)
 				start

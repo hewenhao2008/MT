@@ -73,10 +73,10 @@ char* api_get_user_addrs(unsigned char *ea)
 			lseek(fd, i * sizeof(struct __fdb_entry), SEEK_SET);
 			if (read(fd, &fe, sizeof(struct __fdb_entry)) > 0) {
 				//debug
-				// APLOG(LOG_ERR, "%d:%d\t%.2x:%.2x:%.2x:%.2x:%.2x:%.2x %u.%u.%u.%u\n", i, (int)buff_cur, 
-				// 	fe.mac_addr[0],fe.mac_addr[1],fe.mac_addr[2],
-				//     fe.mac_addr[3],fe.mac_addr[4],fe.mac_addr[5],
-				//     NIPQUAD(fe.l3addr));
+				fprintf(stderr, "%d:%d\t%.2x:%.2x:%.2x:%.2x:%.2x:%.2x %u.%u.%u.%u\n", i, (int)buff_cur, 
+					fe.mac_addr[0],fe.mac_addr[1],fe.mac_addr[2],
+				    fe.mac_addr[3],fe.mac_addr[4],fe.mac_addr[5],
+				    NIPQUAD(fe.l3addr));
 				//xxx
 				if (fe.l3addr == 0) {
 					continue;

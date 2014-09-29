@@ -196,6 +196,7 @@ static NDIS_STATUS rtmp_ee_flash_reset(
 #ifdef LINUX
 
 //ROY: void mac addr the same 
+extern unsigned int ra_timer_counter(int timerX);
 static BOOLEAN RandomMacAddrs(RTMP_ADAPTER *pAd)
 {
 	USHORT  Addr45;
@@ -203,18 +204,21 @@ static BOOLEAN RandomMacAddrs(RTMP_ADAPTER *pAd)
 	//wlan mac addr
 	rtmp_ee_flash_read(pAd, 0x08, &Addr45);
 	Addr45 = Addr45 & 0xff;
-	Addr45 = Addr45 | (RandomByte(pAd)&0xff) << 8;
+	Addr45 = Addr45 | (((RandomByte(pAd)&0xff)*4) << 8);
 	rtmp_ee_flash_write(pAd, 0x08, Addr45);
 
 	//eth2->lan mac
 	rtmp_ee_flash_read(pAd, 0x2c, &Addr45);
 	if(Addr45 == 0x7720) {
-		Addr45 = RandomByte2(pAd)<<8;
-		Addr45 += RandomByte(pAd);
-		rtmp_ee_flash_write(pAd, 0x2c, &Addr45);
+		Addr45 = ra_timer_counter(1)<<8 ^ ra_timer_counter(0);
+		printk("ROY: timer1: %x\n", Addr45);
+		Addr45 += ra_timer_counter(0)<<8 ^ ra_timer_counter(1);
+		printk("ROY: timer0: %x\n", Addr45);
+
+		rtmp_ee_flash_write(pAd, 0x2c, Addr45);
 		//eth2->wan mac
 		Addr45 += 0x10;
-		rtmp_ee_flash_write(pAd, 0x32, &Addr45);
+		rtmp_ee_flash_write(pAd, 0x32, Addr45);
 	}
 	
 	DBGPRINT(RT_DEBUG_ERROR, ("The EEPROM flash load default\n"));
