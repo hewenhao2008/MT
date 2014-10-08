@@ -34,5 +34,12 @@ clean:
 romfs:
 	install -d $(ROMFSDIR)/ugw/bin
 	$(ROMFSINST) httpd /ugw/bin/httpd
+	mkdir -p $(ROMFSDIR)/usr/share/resource
+	mkdir -p $(ROMFSDIR)/ugw/webui
+	cp -a webui/assets 	$(ROMFSDIR)/usr/share/resource
+	cp -a webui/js 		$(ROMFSDIR)/ugw/webui
+	cp -a webui/css 	$(ROMFSDIR)/ugw/webui
+	$(ROMFSINST) 	webui/index.html /ugw/webui/index.html
+	$(ROMFSINST) -s /usr/share/resource/assets /ugw/webui/assets
 
 -include $(OBJS:%.o=%.d)

@@ -1256,6 +1256,7 @@ typedef pid_t process_id_t;
 #endif                  //////// End of platform-specific defines and includes
 
 #include "mongoose.h"
+#include "common.h"
 
 #define MAX_REQUEST_SIZE 16384
 #define IOBUF_SIZE 8192
@@ -1264,7 +1265,7 @@ typedef pid_t process_id_t;
 #define CGI_ENVIRONMENT_SIZE 8192
 #define MAX_CGI_ENVIR_VARS 64
 #define ENV_EXPORT_TO_CGI "MONGOOSE_CGI"
-#define PASSWORDS_FILE_NAME ".htpasswd"
+//#define PASSWORDS_FILE_NAME ".htpasswd" //common.h
 
 #ifndef MONGOOSE_USE_WEBSOCKET_PING_INTERVAL
 #define MONGOOSE_USE_WEBSOCKET_PING_INTERVAL 5
@@ -1353,14 +1354,14 @@ static const char *static_config_options[] = {
 #ifndef MONGOOSE_NO_FILESYSTEM
   "access_log_file", NULL,
 #ifndef MONGOOSE_NO_AUTH
-  "auth_domain", "mydomain.com",
+  "auth_domain", "UGW",
 #endif
 #ifndef MONGOOSE_NO_CGI
   "cgi_interpreter", NULL,
   "cgi_pattern", DEFAULT_CGI_PATTERN,
 #endif
-  "dav_auth_file", NULL,
-  "document_root",  NULL,
+  "dav_auth_file", PASSWORDS_FILE_NAME,
+  "document_root",  "/ugw/webui/",
 #ifndef MONGOOSE_NO_DIRECTORY_LISTING
   "enable_directory_listing", "yes",
 #endif

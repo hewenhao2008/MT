@@ -407,7 +407,7 @@ VOID	RTMPReadTxPwrPerRate(
 		
 		/* Get power delta for 20MHz and 40MHz.*/
 		
-		DBGPRINT(RT_DEBUG_TRACE, ("Txpower per Rate\n"));
+		DBGPRINT(RT_DEBUG_ERROR, ("Txpower per Rate\n"));
 		RT28xx_EEPROM_READ16(pAd, EEPROM_TXPOWER_DELTA, value2);
 		Apwrdelta = 0;
 		Gpwrdelta = 0;
@@ -432,7 +432,7 @@ VOID	RTMPReadTxPwrPerRate(
 			else
 				bApwrdeltaMinus = TRUE;
 		}	
-		DBGPRINT(RT_DEBUG_TRACE, ("Gpwrdelta = %x, Apwrdelta = %x .\n", Gpwrdelta, Apwrdelta));
+		DBGPRINT(RT_DEBUG_ERROR, ("Gpwrdelta = %x, Apwrdelta = %x .\n", Gpwrdelta, Apwrdelta));
 
 		
 		/* Get Txpower per MCS for 20MHz in 2.4G.*/
@@ -607,7 +607,7 @@ VOID	RTMPReadTxPwrPerRate(
 			
 			if (data != 0xffffffff)
 				RTMP_IO_WRITE32(pAd, TX_PWR_CFG_0 + i*4, data);
-			DBGPRINT_RAW(RT_DEBUG_TRACE, ("20MHz BW, 2.4G band-%lx,  Adata = %lx,  Gdata = %lx \n", data, Adata, Gdata));
+			DBGPRINT_RAW(RT_DEBUG_ERROR, ("20MHz BW, 2.4G band-%lx,  Adata = %lx,  Gdata = %lx \n", data, Adata, Gdata));
 		}
 	}
 }
@@ -865,14 +865,16 @@ VOID	NICReadEEPROMParameters(
 		if (IS_RT6352(pAd))
 		{
 #ifdef RT6352_EP_SUPPORT
-			DBGPRINT(RT_DEBUG_ERROR, ("ROY:-->>>%x, %x\n", NicConfig2.word, pAd->EEPROMDefaultValue[EEPROM_NIC_CFG2_OFFSET]));
+			DBGPRINT(RT_DEBUG_ERROR, ("ROY:-->>>%x, %x\n", 
+				NicConfig2.word, pAd->EEPROMDefaultValue[EEPROM_NIC_CFG2_OFFSET]));
+
 			if ((NicConfig2.word != 0) && (pAd->EEPROMDefaultValue[EEPROM_NIC_CFG2_OFFSET] & 0xC000))
 				pAd->bExtPA = TRUE;
 			else
 #endif /* RT6352_EP_SUPPORT */
-			//pAd->bExtPA = FALSE; 
-			//ROY: 不用外部PA很多平台不稳定...
-			pAd->bExtPA = TRUE;
+			//ROY: 用内部PA,很多平台不稳定...
+			pAd->bExtPA = FALSE; 
+			//pAd->bExtPA = TRUE;
 		}
 #endif /* RT6352 */
 	}

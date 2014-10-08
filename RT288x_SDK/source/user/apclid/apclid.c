@@ -163,6 +163,9 @@ int on_get_basic(sstr_t *rep)
 	extern sstr_t str_ac_addr;
 	char *ac_addr = str_ac_addr.data ? str_ac_addr.data : "x.x.x.x";
 
+	//设置灯塔:云端刷新信号
+	lighthouse_set_cloud_ok();
+
 	//format results.
 	*rep = sstr_fmt(
 		"ipaddr=%s\n"

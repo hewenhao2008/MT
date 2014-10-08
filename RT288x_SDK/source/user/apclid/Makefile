@@ -11,10 +11,11 @@ CFLAGS = -O2 -Wall -g
 endif
 
 CFLAGS	+= -I$(ROOTDIR)/lib/libnvram
+CFLAGS	+= -I$(ROOTDIR)/lib/libugw
 CFLAGS	+= -I$(ROOTDIR)/user/wireless_tools
 
 LDFLAGS += -L$(ROOTDIR)/user/wireless_tools
-LDFLAGS	+= -lnvram -liw -lm
+LDFLAGS	+= -lnvram -liw -lm -lugw
 
 # If you want to debug daemon, add following line
 CFLAGS +=  -DDBG 
@@ -35,6 +36,7 @@ romfs:
 	install -d $(ROMFSDIR)/ugw/bin
 	$(ROMFSINST) apclid /ugw/bin/apclid
 	cd $(ROMFSDIR)/ugw/bin && ln -sf apclid wlconf; \
-		ln -sf apclid press_any_key;
+		ln -sf apclid press_any_key; \
+		ln -sf apclid lighthouse;
 
 -include $(OBJS:%.o=%.d)

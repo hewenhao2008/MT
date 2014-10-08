@@ -754,7 +754,7 @@ int renew_nvram(int mode, char *fname)
 	//Get wan port mac address, please refer to eeprom format doc
 	//0x30000=user configure, 0x32000=rt2860 parameters, 0x40000=RF parameter
 	flash_read_mac(buf);
-	sprintf(wan_mac,"%0X:%0X:%0X:%0X:%0X:%0X\n",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5]);
+	sprintf(wan_mac,"%0X:%0X:%0X:%0X:%0X:%0X",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5]);
 	nvram_bufset(RT2860_NVRAM, "WAN_MAC_ADDR", wan_mac);
 
 	//genmacaddr

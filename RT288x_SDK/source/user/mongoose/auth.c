@@ -9,11 +9,11 @@ static int do_auth(struct mg_connection *conn)
 
   // To populate passwords file, do
   // mongoose -A my_passwords.txt mydomain.com admin admin
-  abs_path("passwd", s_passwd_fname, sizeof(s_passwd_fname));
+  abs_path(PASSWORDS_FILE_NAME, s_passwd_fname, sizeof(s_passwd_fname));
   if ((fp = fopen(s_passwd_fname, "r")) != NULL) {
     result = mg_authorize_digest(conn, fp);
     fclose(fp);
-    //fprintf(stderr, "%s: auth result: %d\n", __FUNCTION__, result);
+    fprintf(stderr, "%s: auth result: %d\n", __FUNCTION__, result);
   }else{
     fprintf(stderr, "%s: open passwd[%s] file failed.\n", __FUNCTION__, s_passwd_fname);
   }

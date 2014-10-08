@@ -39,6 +39,7 @@ dir_y	+= apclid
 dir_y 	+= lua
 dir_y	+= mtd_write
 dir_y	+= bridge-utils
+dir_y	+= goahead
 
 # dir_$(CONFIG_USER_802_1X)		    += 802.1x
 # dir_$(CONFIG_USER_ACCEL_PPTP)		    += accel-pptp

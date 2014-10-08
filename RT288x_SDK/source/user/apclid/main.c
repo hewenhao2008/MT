@@ -5,11 +5,15 @@
 int ac_addr_invalid = 0;
 extern int wlconf_main(int argc, char *argv[]);
 extern int press_any_key_main(int argc, char *argv[]);
+extern int lighthouse_main(int argc, char *argv[]);
 
 static void signal_handler(int sig)
 {
-	syslog(LOG_INFO, "apclid exiting...\n");
+	syslog(LOG_INFO, "apclid exiting sig:%d...\n", sig);
 	closelog();
+
+	//灯塔信号: 找到AC.
+	lighthouse_set_lose();
 	exit(0);
 }
 
@@ -28,12 +32,20 @@ int main(char argc, char *argv[])
 		return press_any_key_main(argc, argv);
 	}
 
+	if(strstr(argv[0], "lighthouse")!=NULL) {
+		logdbg("start lighthouse ...\n");
+		return lighthouse_main(argc, argv);
+	}
+
 	if(strstr(argv[0], "apclid")==NULL) {
 		logerr("unknown par[%s]\n", argv[0]);
 		return 0;
 	}
 
 	openlog("apclid", 0, 0);
+	signal(SIGTERM, signal_handler);
+	signal(SIGKILL, signal_handler);
+	signal(SIGINT, signal_handler);
 
 	if (argc>1 && strncmp(argv[1], "dbg", 3)==0) {
 		//debug mode
@@ -55,12 +67,16 @@ int main(char argc, char *argv[])
 		nvram_ra_unset("ap_alert");
 		nvram_ra_unset("ac_connected");
 
+		//设置灯塔:丢失信号
+		lighthouse_set_lose();
 
 		//第一次, 等5min才转DHCP.
 		int esp;
 		do {
 			//优先从配置读取ac地址.
 			start_ap_client();
+			//连接中断.
+			lighthouse_set_lose();
 
 			esp = (time(NULL)-start_ts);
 			logerr("connect failed, try %d secs\n", esp);

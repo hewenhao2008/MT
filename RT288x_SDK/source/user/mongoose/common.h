@@ -60,6 +60,7 @@ typedef struct stat file_stat_t;
 
 #define MAX_OPTIONS 100
 #define MAX_CONF_FILE_LINE_SIZE (8 * 1024)
+#define PASSWORDS_FILE_NAME ".htpasswd"
 
 #ifndef MVER
 #define MVER MONGOOSE_VERSION

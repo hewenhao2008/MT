@@ -49,7 +49,7 @@ include Rules.mk
 
 #DIRS = ldso libc
 DIRS =
-DIRS += libnvram
+DIRS += libnvram libugw
 
 
 #ifeq ($(strip $(HAVE_DOT_CONFIG)),y)
@@ -62,6 +62,7 @@ all: subdirs shared finished
 
 shared: subdirs
 	@$(MAKE) -C libnvram shared
+	$(MAKE) -C libugw shared
 
 finished: shared
 	$(SECHO)
@@ -169,60 +170,6 @@ install_dev:
 	fi ; \
 	tar -chf - include --exclude .svn --exclude CVS $$extra_exclude \
 		| tar -xf - -C $(PREFIX)$(DEVEL_PREFIX)
-ifneq ($(strip $(UCLIBC_HAS_FLOATS)),y)
-	# Remove floating point related headers since float support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/complex.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/fpu_control.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/ieee754.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/math.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/tgmath.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_WCHAR)),y)
-	# Remove wide char headers since wide char support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/wctype.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/wchar.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_LOCALE)),y)
-	# Remove iconv header since locale support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/iconv.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_GLIBC_CUSTOM_PRINTF)),y)
-	# Remove printf header since custom print specifier support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/printf.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_XLOCALE)),y)
-	# Remove xlocale header since extended locale support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/xlocale.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_GETTEXT_AWARENESS)),y)
-	# Remove libintl header since gettext support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/libintl.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_REGEX)),y)
-	# Remove regex headers since regex support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/regex.h
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/regexp.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_WORDEXP)),y)
-	# Remove wordexp header since wordexp support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/wordexp.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_FTW)),y)
-	# Remove ftw header since ftw support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/ftw.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_GLOB)),y)
-	# Remove glob header since glob support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/glob.h
-endif
-ifneq ($(strip $(UCLIBC_HAS_GNU_GETOPT)),y)
-	# Remove getopt header since gnu getopt support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/getopt.h
-endif
-ifneq ($(strip $(HAS_SHADOW)),y)
-	# Remove getopt header since shadow password support is disabled.
-	$(RM) $(PREFIX)$(DEVEL_PREFIX)include/shadow.h
-endif
 	-@for i in `find  $(PREFIX)$(DEVEL_PREFIX) -type d` ; do \
 	    chmod 755 $$i; chmod 644 $$i/*.h > /dev/null 2>&1; \
 	done;
@@ -257,20 +204,7 @@ install_runtime:
 	$(INSTALL) -m 644 lib/lib*-$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL).so \
 		$(PREFIX)$(RUNTIME_PREFIX)lib
 	cp -dRf lib/*.so* $(PREFIX)$(RUNTIME_PREFIX)lib
-	@if [ -x lib/ld-uClibc-$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL).so ] ; then \
-	    set -e; \
-		$(SHELL_SET_X); \
-	    $(INSTALL) -m 755 lib/ld-uClibc-$(MAJOR_VERSION).$(MINOR_VERSION).$(SUBLEVEL).so \
-	    		$(PREFIX)$(RUNTIME_PREFIX)lib; \
-	fi;
-	utils/liboptim.sh $(CROSS) ; \
-	if [ -e liboptim/libc.so.0 ]; then cp liboptim/libc.so.0 $(PREFIX)$(RUNTIME_PREFIX)lib/libuClibc-0.9.28.so; fi ; \
-	if [ -e liboptim/libiw.so.29 ]; then cp liboptim/libiw.so.29 $(PREFIX)$(RUNTIME_PREFIX)lib/libiw.so.29; fi ; \
-	for i in `find liboptim/ -name lib[a-zA-Z]*.so.0 | sed -e 's/liboptim\///'` ; do \
-		if [ "$$i" == libc.so.0 ]; then continue; fi ; \
-		cp liboptim/$$i $(PREFIX)$(RUNTIME_PREFIX)lib/`echo $$i | sed -e 's/.so.0/-0.9.28.so/'` ; \
-	done;
-
+	
 .PHONY: utils
 utils:
 	$(MAKE) CROSS="$(CROSS)" CC="$(CC)" -C utils

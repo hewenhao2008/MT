@@ -25,7 +25,7 @@ int press_any_key_main(int argc, char *argv[])
 	}
 
 	//wait console
-	fprintf(stderr, "Press any key to stop...\n");
+	fprintf(stderr, "ROY: press any key to emergency stop ...\n");
 	if (waitfor(fd, 3) <= 0) {
 		return 1;
 	}

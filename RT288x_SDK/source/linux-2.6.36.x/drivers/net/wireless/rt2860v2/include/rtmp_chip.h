@@ -599,6 +599,7 @@ typedef union _EEPROM_NIC_CINFIG2_STRUC {
 		USHORT AntDiversity:1;	/* Antenna diversity */
 		USHORT AntOpt:1;	/* Fix Antenna Option: 0:Main; 1: Aux */
 		USHORT bInternalTxALC:1;	/* Internal Tx ALC */
+		//15:14 - C: 00:interal PA,TX0,1, 01,10,11.
 		USHORT CoexBit:1;
 		USHORT DACTestBit:1;	/* control if driver should patch the DAC issue */
 	} field;

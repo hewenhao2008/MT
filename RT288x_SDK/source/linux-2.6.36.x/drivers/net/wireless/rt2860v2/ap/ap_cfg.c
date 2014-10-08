@@ -6553,7 +6553,7 @@ INT Set_AutoChannelSel_Proc(
 		DBGPRINT(RT_DEBUG_ERROR, ("Set_AutoChannelSel_Proc Alg isn't defined\n"));
 		return FALSE;
 	}
-	DBGPRINT(RT_DEBUG_TRACE, ("Set_AutoChannelSel_Proc Alg=%d \n", pAd->ApCfg.AutoChannelAlg));
+	DBGPRINT(RT_DEBUG_ERROR, ("Set_AutoChannelSel_Proc Alg=%d \n", pAd->ApCfg.AutoChannelAlg));
 	if (Ssid.SsidLength == 0)
 		ApSiteSurvey(pAd, &Ssid, SCAN_PASSIVE, TRUE);
 	else

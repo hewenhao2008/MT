@@ -717,6 +717,11 @@ void start_ap_client()
 	int sock = connect_ac();
 	time_t last_active_time = time(NULL);
 
+	if(sock > 0) {
+		//灯塔信号: 找到AC.
+		lighthouse_set_ac_ok();
+	}
+
 	for (;;) {
 		if (sock < 0) {
 			LOG(LOG_ERR, "reconnect[%d] to ac in 1 sec...\n", try_counter);
@@ -731,9 +736,14 @@ void start_ap_client()
 				}
 				continue;
 			}
+
+			//灯塔信号: 找到AC.
+			lighthouse_set_ac_ok();
+
 			try_counter = 0;
 			last_active_time = time(NULL);
 		}
+
 
 		uint32_t msg_type = 0;
 		char *data = NULL;
