@@ -18,6 +18,9 @@ stop()
 	killall authv
 	killall lua
 	killall apclid
+
+	#rmmod
+	rmmod auth
 }
 
 start()

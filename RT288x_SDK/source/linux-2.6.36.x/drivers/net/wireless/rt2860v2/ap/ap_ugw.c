@@ -85,9 +85,8 @@ static INT	Ugw_ApInfo_Proc(
 	char *msg = ugw_io_buffer;
 	int sta_count = 0, assoc = 1;
 	//int channel = pAd->CommonCfg.Channel;
-	int noise = 0, txpower = 0;
+	int txpower = 0;
 	//Channel:pAd->CommonCfg.Channel
-	//noise: 
 	//sta num
 	char *sub_req = (argc>0 && argv[0]?argv[0]:"channel");
 
@@ -106,7 +105,19 @@ static INT	Ugw_ApInfo_Proc(
 		}
 		sprintf(msg, "%d", sta_count);
 	}else if(!strcmp(sub_req, "noise")) {
-		sprintf(msg, "%d", noise);
+		uint64_t retry, failed, total, noise;
+		retry = pAd->WlanCounters.RetryCount.QuadPart;
+		failed = pAd->WlanCounters.FailedCount.QuadPart;
+		total = pAd->WlanCounters.TransmittedFragmentCount.QuadPart;
+
+		DBGPRINT(RT_DEBUG_ERROR, ("retry: %llu, fail: %llu, tx: %llu\n", retry, failed, total));
+
+		total = (retry + failed + total);
+
+		noise = (100*(retry + failed));//do_div((100*(retry + failed)), (retry + failed + total));
+		do_div(noise, total);
+
+		sprintf(msg, "%u%%", (uint)noise);
 	}else if(!strcmp(sub_req, "txpower")) {
 		sprintf(msg, "%d", txpower);
 	}else{

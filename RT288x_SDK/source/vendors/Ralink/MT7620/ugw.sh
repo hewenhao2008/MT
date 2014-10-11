@@ -30,7 +30,7 @@ start-stop-daemon -S -q -p /var/run/dropbear.pid --exec /usr/sbin/dropbear -- -p
 
 
 #insmod start auth, flowcontrol
-insmod /lib/modules/auth.ko
+#insmod /lib/modules/auth.ko
 
 #start watchdog && exit.
 ugw_daemons.sh &

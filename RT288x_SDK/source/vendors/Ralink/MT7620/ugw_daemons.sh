@@ -14,8 +14,17 @@ StartProcess()
 	esac
 }
 
-#DAEMONS="syslogd klogd nvram_daemon goahead apclid dropbear synctime.sh"
+
+#UGW_DAEMONS="syslogd klogd nvram_daemon goahead apclid dropbear synctime.sh authv httpauth"
 UGW_DAEMONS="syslogd klogd nvram_daemon apclid dropbear synctime.sh authv httpauth"
+if [ x`nvram get UGWAuthEnable` == x"1" ]; then
+	insmod /lib/modules/auth.ko
+else
+	#rmmod auth
+	UGW_DAEMONS="syslogd klogd nvram_daemon apclid dropbear synctime.sh"
+fi
+
+#放狗
 while true;
 do
 	# 遛狗
