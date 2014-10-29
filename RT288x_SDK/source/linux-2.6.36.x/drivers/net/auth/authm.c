@@ -36,19 +36,19 @@ static inline unsigned char *mac_source(struct sk_buff *skb) {
 	return ((struct ethhdr *)skb_mac_header(skb))->h_source;
 }
 
-#ifndef nf_bridge_encap_header_len
-static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
-{
-	switch (skb->protocol) {
-	case __constant_htons(ETH_P_8021Q):
-		return VLAN_HLEN;
-	case __constant_htons(ETH_P_PPP_SES):
-		return PPPOE_SES_HLEN;
-	default:
-		return 0;
-	}
-}
-#endif
+// #ifndef nf_bridge_encap_header_len
+// static inline unsigned int nf_bridge_encap_header_len(const struct sk_buff *skb)
+// {
+// 	switch (skb->protocol) {
+// 	case __constant_htons(ETH_P_8021Q):
+// 		return VLAN_HLEN;
+// 	case __constant_htons(ETH_P_PPP_SES):
+// 		return PPPOE_SES_HLEN;
+// 	default:
+// 		return 0;
+// 	}
+// }
+// #endif
 
 #ifdef CONFIG_SYSCTL
 static int brnf_filter_vlan_tagged __read_mostly = 1;

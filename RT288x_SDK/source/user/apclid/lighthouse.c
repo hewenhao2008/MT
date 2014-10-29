@@ -35,6 +35,17 @@ int lighthouse_set_lose(void)
 		ra_gpio_led_infinity, 0, 0);
 }
 
+int lighthouse_init(void)
+{
+	char *gpio_led = nvram_ra_get("GpioLed");
+	if(gpio_led && strlen(gpio_led)>0) {
+		lighthouse_led_gpio = atoi(gpio_led);
+	}
+
+	logdbg("led gpio: %d\n", lighthouse_led_gpio);
+	return 0;
+}
+
 static int reset_handler(void)
 {
 	//set gpio direction to input
@@ -57,11 +68,26 @@ static int reset_handler(void)
 	gpio_dis_irq();
 }
 
+static void usage() 
+{
+	fprintf(stderr, "lighthouse\n"
+		"lighthouse led pin\n"
+		"lighthouse reset pin\n");
+}
+
 int lighthouse_main(int argc, char *argv[])
 {
 	if(argc<2){
 		logdbg("start reset pin handler...\n");
 		return reset_handler();
+	}
+
+	if(strcmp(argv[1], "led") == 0) {
+		lighthouse_led_gpio = atoi(argv[2]);
+	}else if(strcmp(argv[1], "reset") == 0) {
+
+	}else{
+		usage();
 	}
 
 	return 0;

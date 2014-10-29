@@ -98,9 +98,14 @@ static INT	Ugw_ApInfo_Proc(
 		int i;
 		for (i=0; i<MAX_LEN_OF_MAC_TABLE; i++) {
 			PMAC_TABLE_ENTRY pEntry = &pAd->MacTab.Content[i];
-			if (IS_ENTRY_CLIENT(pEntry) && 
-				((assoc==0 && (pEntry->Sst == SST_ASSOC)) || (pEntry->Sst == SST_AUTH))) {
-				sta_count ++;
+			if (IS_ENTRY_CLIENT(pEntry)){
+				if(assoc==0){
+					if((pEntry->Sst == SST_ASSOC) || (pEntry->Sst == SST_AUTH)){
+						sta_count ++;
+					}
+				} else {
+					sta_count ++;
+				}
 			}
 		}
 		sprintf(msg, "%d", sta_count);
@@ -117,7 +122,7 @@ static INT	Ugw_ApInfo_Proc(
 		noise = (100*(retry + failed));//do_div((100*(retry + failed)), (retry + failed + total));
 		do_div(noise, total);
 
-		sprintf(msg, "%u%%", (uint)noise);
+		sprintf(msg, "%u", (uint)noise);
 	}else if(!strcmp(sub_req, "txpower")) {
 		sprintf(msg, "%d", txpower);
 	}else{

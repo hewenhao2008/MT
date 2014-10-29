@@ -57,14 +57,14 @@ int br_dev_queue_push_xmit(struct sk_buff *skb)
 	return 0;
 }
 
-EXPORT_SYMBOL(br_dev_queue_push_xmit);
-
 int br_forward_finish(struct sk_buff *skb)
 {
 	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING, skb, NULL, skb->dev,
 		       br_dev_queue_push_xmit);
 
 }
+
+EXPORT_SYMBOL(br_forward_finish);
 
 static void __br_deliver(const struct net_bridge_port *to, struct sk_buff *skb)
 {

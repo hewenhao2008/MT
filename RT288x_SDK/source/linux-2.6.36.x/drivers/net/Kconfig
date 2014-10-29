@@ -63,6 +63,12 @@ config ET_AUTH
 	---help---
 	  UGW system ether portal auth driver utils.
 
+config SUQ
+	tristate "ether user Qos support"
+	depends on INET
+	---help---
+	  UGW system user Qos utils.
+
 config BONDING
 	tristate "Bonding driver support"
 	depends on INET

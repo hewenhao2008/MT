@@ -163,7 +163,7 @@ int rt28xx_init(
 	if (WaitForAsicReady(pAd) != TRUE)
 		goto err1;
 
-	DBGPRINT(RT_DEBUG_TRACE, ("MAC[Ver:Rev=0x%08x]\n", pAd->MACVersion));
+	DBGPRINT(RT_DEBUG_ERROR, ("MACVersion[0x%08x]\n", pAd->MACVersion));
 		
 
 	if (MAX_LEN_OF_MAC_TABLE > MAX_AVAILABLE_CLIENT_WCID(pAd))

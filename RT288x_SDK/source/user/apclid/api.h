@@ -20,6 +20,7 @@ int api_get_noise(char *ifname, int *noise);
 int api_get_txpwr(char *ifname, int *pwr);
 
 //lighthouse
+int lighthouse_init(void);
 int lighthouse_set_ac_ok(void);
 int lighthouse_set_cloud_ok(void);
 int lighthouse_set_lose(void);

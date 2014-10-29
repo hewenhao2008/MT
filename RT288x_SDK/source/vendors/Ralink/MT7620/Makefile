@@ -49,6 +49,7 @@ romfs:
 	$(ROMFSINST) /ugw/scripts/synctime.sh
 	$(ROMFSINST) /ugw/scripts/test_gpio.sh
 	$(ROMFSINST) /ugw/scripts/online_upgrade.sh
+	$(ROMFSINST) /ugw/scripts/tcfg.sh
 	$(ROMFSINST) /sbin/nvram
 	#$(ROMFSINST) /usr/share/udhcpc/default.script
 

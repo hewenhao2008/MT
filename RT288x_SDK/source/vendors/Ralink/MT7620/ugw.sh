@@ -10,6 +10,12 @@ MacOri=`ip link show dev eth2 | grep ether | awk '{print $2}'`
 #nvram set et0macaddr=${MacNew}
 nvram set et0macaddr=${MacOri}
 
+#insmod start auth, flowcontrol
+#insmod /lib/modules/auth.ko
+insmod /lib/modules/llc.ko
+insmod /lib/modules/stp.ko
+insmod /lib/modules/bridge.ko
+
 #startup networks
 ugw_networks.sh
 
@@ -28,9 +34,6 @@ echo -n "Starting dropbear sshd: "
 start-stop-daemon -S -q -p /var/run/dropbear.pid --exec /usr/sbin/dropbear -- -p 12580
 [ $? == 0 ] && echo "OK" || echo "FAIL"
 
-
-#insmod start auth, flowcontrol
-#insmod /lib/modules/auth.ko
 
 #start watchdog && exit.
 ugw_daemons.sh &

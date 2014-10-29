@@ -13,7 +13,19 @@ SyncTime()
 AutoChannelSel()
 {
 	#iwpriv ra0 set SiteSurvey=1; //noneed this
-	iwpriv ra0 set AutoChannelSel=2;
+	Channel=`nvram get Channel`
+	if [ x${Channel} != x"0" ]; then
+		iwpriv ra0 set Channel=${Channel}
+		return
+	fi
+
+	#switch channel
+	RandHex=`cat /proc/sys/kernel/random/uuid | awk -F- '{print toupper($1)}'`
+	CHRandom=`echo "ibase=16;$RandHex" | bc`
+	Channel=`expr $CHRandom % 14`
+	iwpriv ra0 set Channel=$Channel;
+
+	logger "AutoChannelSel $Channel"
 }
 
 while true; do
@@ -23,9 +35,14 @@ while true; do
 		SyncTime && logger "sync time finished." 
 	fi
 
+	#30min
+	if [ `expr $Counter % 30` -eq 0 ]; then
+		tcfg.sh && logger "apply tc config."
+	fi
+
 	#5min
 	Random=`expr $Rand10 + $Counter`
-	if [ `expr $Random % 15` -eq 0 ]; then
+	if [ `expr $Random % 5` -eq 0 ]; then
 		AutoChannelSel && logger "auto channel selected $Random."
 	fi
 

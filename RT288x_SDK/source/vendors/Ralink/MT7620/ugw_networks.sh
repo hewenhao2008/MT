@@ -13,6 +13,15 @@ LOG()
 	echo $1 >> $F_LOG
 }
 
+raX_post_conf()
+{
+	#开启射频
+	iwpriv ra0 set RadioOn=`nvram get RadioOn`
+
+	#功率
+	iwpriv ra0 set TxPower=`nvram get TxPower`
+}
+
 stop()
 {
 	LOG "stop networks..."
@@ -64,8 +73,8 @@ start()
 	ifconfig ra0 0.0.0.0
 	ifconfig eth2 0.0.0.0
 	
-	#开启射频
-	iwpriv ra0 set RadioOn=1
+	#conf raX conf
+	raX_post_conf
 	
 	LOG "create bridge devices..."
 	#配置桥接

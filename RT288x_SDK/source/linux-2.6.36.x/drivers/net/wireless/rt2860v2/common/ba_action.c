@@ -10,8 +10,9 @@
 #define ORI_BA_SESSION_TIMEOUT	(2000)	/* ms*/
 #define REC_BA_SESSION_IDLE_TIMEOUT	(1000)	/* ms*/
 
-#define REORDERING_PACKET_TIMEOUT		((100 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
+#define REORDERING_PACKET_TIMEOUT		((200 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
 #define MAX_REORDERING_PACKET_TIMEOUT	((3000 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
+
 
 #define RESET_RCV_SEQ		(0xFFFF)
 
@@ -469,7 +470,7 @@ void ba_flush_reordering_timeout_mpdus(
 		 &&(pBAEntry->list.qlen > 1)
 		)
 	{
-		DBGPRINT(RT_DEBUG_TRACE,("timeout[%d] (%08lx-%08lx = %d > %d): %x, flush all!\n ", pBAEntry->list.qlen, Now32, (pBAEntry->LastIndSeqAtTimer), 
+		DBGPRINT(RT_DEBUG_WARN,("timeout[%d] (%08lx-%08lx = %d > %d): %x, flush all!\n ", pBAEntry->list.qlen, Now32, (pBAEntry->LastIndSeqAtTimer), 
 			   (int)((long) Now32 - (long)(pBAEntry->LastIndSeqAtTimer)), MAX_REORDERING_PACKET_TIMEOUT,
 			   pBAEntry->LastIndSeq));
 		ba_refresh_reordering_mpdus(pAd, pBAEntry);
@@ -477,8 +478,7 @@ void ba_flush_reordering_timeout_mpdus(
 	}
 	else
 	if (RTMP_TIME_AFTER((unsigned long)Now32, (unsigned long)(pBAEntry->LastIndSeqAtTimer+(REORDERING_PACKET_TIMEOUT)))
-		&& (pBAEntry->list.qlen > 0)
-	   )
+		&& (pBAEntry->list.qlen > 0))
 		{
 /*
 		DBGPRINT(RT_DEBUG_OFF, ("timeout[%d] (%lx-%lx = %d > %d): %x, ", pBAEntry->list.qlen, Now32, (pBAEntry->LastIndSeqAtTimer),
@@ -487,17 +487,17 @@ void ba_flush_reordering_timeout_mpdus(
 */
     		
 		/* force LastIndSeq to shift to LastIndSeq+1*/
-    		Sequence = (pBAEntry->LastIndSeq+1) & MAXSEQ;
-    		ba_indicate_reordering_mpdus_le_seq(pAd, pBAEntry, Sequence);
-    		pBAEntry->LastIndSeqAtTimer = Now32;
-			pBAEntry->LastIndSeq = Sequence;
-    		
-    		/* indicate in-order mpdus*/
-    		Sequence = ba_indicate_reordering_mpdus_in_order(pAd, pBAEntry, Sequence);
-    		if (Sequence != RESET_RCV_SEQ)
-    		{
-    			pBAEntry->LastIndSeq = Sequence;
-    		}
+    	Sequence = (pBAEntry->LastIndSeq+1) & MAXSEQ;
+    	ba_indicate_reordering_mpdus_le_seq(pAd, pBAEntry, Sequence);
+    	pBAEntry->LastIndSeqAtTimer = Now32;
+		pBAEntry->LastIndSeq = Sequence;
+    	
+    	/* indicate in-order mpdus*/
+    	Sequence = ba_indicate_reordering_mpdus_in_order(pAd, pBAEntry, Sequence);
+    	if (Sequence != RESET_RCV_SEQ)
+    	{
+    		pBAEntry->LastIndSeq = Sequence;
+    	}
 
 		DBGPRINT(RT_DEBUG_OFF, ("%x, flush one!\n", pBAEntry->LastIndSeq));
 

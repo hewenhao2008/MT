@@ -73,7 +73,7 @@ dir_y	+= goahead
 dir_$(CONFIG_USER_HELLO_WORLD)		    += hello_world
 #--
 
-all: config
+all: config wireless_tools_only
 	$(MAKE) -j$(HOST_NCPU) $(sort $(dir_y) $(dir_v) $(dir_p)) || exit $$?
 
 #

@@ -57,6 +57,7 @@ int main(char argc, char *argv[])
 	}
 
 	init_handlers();
+	lighthouse_init();
 
 	logdbg("apclid starting...\n");
 
@@ -79,13 +80,18 @@ int main(char argc, char *argv[])
 			lighthouse_set_lose();
 
 			esp = (time(NULL)-start_ts);
+			if(esp < 0) {
+				//防止时间同步后, 越界.
+				start_ts = time(NULL);
+			}
 			logerr("connect failed, try %d secs\n", esp);
-		} while (esp < 60);
+		} while (esp < 60 && esp > 0);
 
 		//超时, 连不上, 切换dhcp, 并且从广播获取AC地址.
-		if (!nvram_ra_match("ap_standalone", "1")) {
-			//5min, & not found ac. 
-			ac_addr_invalid = 1; //广播获取AC地址
+		if (!nvram_ra_match("ap_standalone", "1") || (time(NULL) - start_ts >= 600)) {
+			//5-10, min, not found ac. 
+			ac_addr_invalid ++; //广播获取AC地址
+			ac_addr_invalid %= 3; //每个N次, 再尝试配置地址, 防止一直连不上.
 
 			//udhcpc -i br0 -p /var/run/udhcpc-br0.pid -s /tmp/ldhclnt
 			syslog(LOG_INFO, "auto changed to DHCP...\n");

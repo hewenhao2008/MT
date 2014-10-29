@@ -387,6 +387,9 @@ int gen_config(int mode)
 		tx_rate[strlen(tx_rate) - 1] = '\0';
 		fprintf(fp, "TxRate=%s\n", tx_rate);
 
+		//ROY: max sta num conf
+		FPRINT_NUM(MaxStaNum);
+
 		FPRINT_NUM(Channel);
 		FPRINT_NUM(BasicRate);
 		FPRINT_NUM(BeaconPeriod);

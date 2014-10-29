@@ -204,7 +204,7 @@ NDIS_STATUS MiniportMMRequest(
 			if (bUseDataQ)
 			{
 				retryCnt--;
-				DBGPRINT(RT_DEBUG_TRACE, ("retryCnt %d\n", retryCnt));
+				DBGPRINT(RT_DEBUG_WARN, ("retryCnt %d\n", retryCnt));
 				if (retryCnt == 0)
 				{
 					DBGPRINT(RT_DEBUG_ERROR, ("Qidx(%d), not enough space in DataRing, MgmtRingFullCount=%ld!\n",

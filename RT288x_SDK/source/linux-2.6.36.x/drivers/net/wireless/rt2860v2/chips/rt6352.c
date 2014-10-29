@@ -2135,7 +2135,7 @@ redo:
 #ifdef ADJUST_POWER_CONSUMPTION_SUPPORT
 			if((index==2) && (agc_loop_cnt < 10))
 			{	
-				DBGPRINT( RT_DEBUG_ERROR, 
+				DBGPRINT( RT_DEBUG_WARN, 
 					      ("BBPR49 %x BBPTXgain0 %x, BBPTXgain1 %x, loop cnt %d \n", BBPR49, BBPTXGAIN[0], BBPTXGAIN[1], agc_loop_cnt));
 				agc_loop_cnt = agc_loop_cnt + 1;
 				tssi0_linear = (INT32)BBPR49;
@@ -2172,7 +2172,7 @@ redo:
 
 			if(index==2)
 			{			
-				DBGPRINT(RT_DEBUG_ERROR, ("BBPTXgain0 %x, BBPTXgain1 %x, loop cnt %d \n", BBPTXGAIN[0], BBPTXGAIN[1], agc_loop_cnt));
+				DBGPRINT(RT_DEBUG_WARN, ("BBPTXgain0 %x, BBPTXgain1 %x, loop cnt %d \n", BBPTXGAIN[0], BBPTXGAIN[1], agc_loop_cnt));
 			}
 #endif /* ADJUST_POWER_CONSUMPTION_SUPPORT */
 
@@ -3993,7 +3993,7 @@ VOID RT6352_RTMPReadTxPwrPerRate(
 		if (data != 0xffffffff)
 			RTMP_IO_WRITE32(pAd, TX_PWR_CFG_0 + i*4, data);
 
-		DBGPRINT_RAW(RT_DEBUG_TRACE, ("20MHz BW, 2.4G band-%lx,  Gdata = %lx \n", data, Gdata));
+		DBGPRINT_RAW(RT_DEBUG_WARN, ("20MHz BW, 2.4G band-%lx,  Gdata = %lx \n", data, Gdata));
 	}
 
 	/* Extra set MAC registers to compensate Tx power if any */
@@ -4023,10 +4023,11 @@ static VOID RT6352_AsicExtraPowerOverMAC(
 	ExtraPwrOverTxPwrCfg8 |= (ExtraPwrOverMAC & 0x0000FF00) >> 8; /* Get Tx power for HT MCS 15 */
 	RTMP_IO_WRITE32(pAd, TX_PWR_CFG_8, ExtraPwrOverTxPwrCfg8);
 		
-	DBGPRINT(RT_DEBUG_INFO, ("Offset =0x13D8, TxPwr = 0x%08X, ", (UINT)ExtraPwrOverTxPwrCfg8));
-	
-	DBGPRINT(RT_DEBUG_INFO, ("Offset = 0x13D4, TxPwr = 0x%08X, Offset = 0x13DC, TxPwr = 0x%08X\n", 
-		(UINT)ExtraPwrOverTxPwrCfg7, 
+	DBGPRINT(RT_DEBUG_WARN, ("ROY: \n\tOffset = 0x13D4, TxPwr = 0x%08X\n"
+		"\tOffset = 0x13D8, TxPwr = 0x%08X\n"
+		"\tOffset = 0x13DC, TxPwr = 0x%08X\n",
+		(UINT)ExtraPwrOverTxPwrCfg7,
+		(UINT)ExtraPwrOverTxPwrCfg8, 
 		(UINT)ExtraPwrOverTxPwrCfg9));
 }
 
@@ -4704,14 +4705,14 @@ VOID RT6352_AsicAdjustTxPower(
 	
 				Diff = TotalDeltaPower;
 			if (Diff > 31)
-				Diff = 31;
+				Diff = 31; //ROY: hahaha
 			else if(Diff < -31)
 				Diff = -31;
 	
 			MacValue |= (Diff & 0x3F);
 			RTMP_IO_WRITE32(pAd, TX_ALG_CFG_1, MacValue); 
 
-			DBGPRINT(RT_DEBUG_TRACE, ("TotalDeltaPower=%d, Mac 0x13B4 is 0x%08x\n", TotalDeltaPower, MacValue));
+			DBGPRINT(RT_DEBUG_WARN, ("ROY: TotalDeltaPower=%d, Mac 0x13B4 is 0x%08x\n", TotalDeltaPower, MacValue));
 		}
 
 		/* Extra set MAC registers to compensate Tx power if any */
@@ -5390,8 +5391,10 @@ VOID RT6352_Init(
 #ifdef RTMP_INTERNAL_TX_ALC
 	pChipCap->TxAlcTxPowerUpperBound_2G = 61;
 	pChipCap->TxPowerTuningTable_2G = NULL /* RT6352_TxPowerTuningTable */;
-	pChipOps->InitDesiredTSSITable = RT6352_InitDesiredTSSITable;
 	pChipOps->AsicTxAlcGetAutoAgcOffset = NULL /*RT6352_AsicTxAlcGetAutoAgcOffset*/;
+	//pChipCap->TxPowerTuningTable_2G = RT6352_TxPowerTuningTable;
+	//pChipOps->AsicTxAlcGetAutoAgcOffset = RT6352_AsicTxAlcGetAutoAgcOffset;
+	pChipOps->InitDesiredTSSITable = RT6352_InitDesiredTSSITable;
 #endif /* RTMP_INTERNAL_TX_ALC */
 
 	pChipCap->FlgIsHwWapiSup = TRUE;

@@ -1347,6 +1347,14 @@ static struct {
 };
 
 
+static void dump_proc_set(void)
+{
+	for (PRTMP_PRIVATE_SET_PROC = RTMP_PRIVATE_SUPPORT_PROC; PRTMP_PRIVATE_SET_PROC->name; PRTMP_PRIVATE_SET_PROC++)
+	{
+		DBGPRINT(RT_DEBUG_WARN, ("%s\n", PRTMP_PRIVATE_SET_PROC->name));
+	}
+}
+
 INT RTMPAPPrivIoctlSet(
 	IN RTMP_ADAPTER *pAd, 
 	IN RTMP_IOCTL_INPUT_STRUCT *pIoctlCmdStr)
@@ -1389,6 +1397,7 @@ INT RTMPAPPrivIoctlSet(
 		{  /*Not found argument */
 			Status = -EINVAL;
 			DBGPRINT(RT_DEBUG_TRACE, ("IOCTL::(iwpriv) Command not Support [%s=%s]\n", this_char, value));
+			dump_proc_set();
 			break;
 		}	
 	}
@@ -1396,6 +1405,14 @@ INT RTMPAPPrivIoctlSet(
 	return Status;
 }
 
+
+static void dump_proc_show(void)
+{
+	for (PRTMP_PRIVATE_SHOW_PROC = RTMP_PRIVATE_SHOW_SUPPORT_PROC; PRTMP_PRIVATE_SHOW_PROC->name; PRTMP_PRIVATE_SHOW_PROC++)
+	{
+		DBGPRINT(RT_DEBUG_WARN, ("%s\n", PRTMP_PRIVATE_SHOW_PROC->name));
+	}
+}
 
 INT RTMPAPPrivIoctlShow(
 	IN RTMP_ADAPTER *pAd, 
@@ -1432,6 +1449,7 @@ INT RTMPAPPrivIoctlShow(
 					DBGPRINT(RT_DEBUG_TRACE, ("%s\n", PRTMP_PRIVATE_SHOW_PROC->name));
 			}
 #endif /* RTMP_RBUS_SUPPORT */
+			dump_proc_show();
 			DBGPRINT(RT_DEBUG_TRACE, ("IOCTL::(iwpriv) Command not Support [%s=%s]\n", this_char, value));
 			break;
 		}	

@@ -400,9 +400,13 @@ extern RTMP_USB_CONFIG *pRtmpUsbConfig;
 #define MGMT_RING_SIZE          32
 #define RX_RING_SIZE            64
 #else
-#define TX_RING_SIZE            64 /*64*/
-#define MGMT_RING_SIZE          128
-#define RX_RING_SIZE            128 /*64 */
+//#error "MAC_PCI_ROY"
+//#define TX_RING_SIZE            64 /*64*/
+//#define MGMT_RING_SIZE          128
+//#define RX_RING_SIZE            128 /*64 */
+#define TX_RING_SIZE            64
+#define MGMT_RING_SIZE          32
+#define RX_RING_SIZE           	128
 #endif
 #define MAX_TX_PROCESS          TX_RING_SIZE /*8 */
 #define MAX_DMA_DONE_PROCESS    TX_RING_SIZE
