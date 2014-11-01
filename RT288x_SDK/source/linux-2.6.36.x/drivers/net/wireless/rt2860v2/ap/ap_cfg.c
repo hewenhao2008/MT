@@ -237,6 +237,34 @@ INT Set_AP_PMKCachePeriod_Proc(
     IN  PRTMP_ADAPTER   pAdapter, 
     IN  PSTRING          arg);
 
+INT Set_AP_PACKET_FILTER_Proc(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_PROBE_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_AUTH_FAIL_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_AUTH_NO_RSP_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
+INT Set_AP_KickStaRssiLow_Proc(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg);
+
 INT Set_AP_DefaultKeyID_Proc(
     IN  PRTMP_ADAPTER   pAdapter, 
     IN  PSTRING          arg);
@@ -652,70 +680,6 @@ INT	Set_PowerSaveLifeTime_Proc(
 	IN	PSTRING			arg);
 #endif /* CONFIG_AP_SUPPORT */
 
-#ifdef P2P_SUPPORT
-INT Set_P2p_OpMode_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Enable_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Ssid_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Bssid_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_AuthMode_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_EncrypType_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_DefaultKeyID_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_WPAPSK_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Key1_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Key2_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Key3_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_Key4_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN PSTRING arg);
-
-INT Set_P2pCli_TxMode_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN  PSTRING arg);
-
-INT Set_P2pCli_TxMcs_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN  PSTRING arg);
-	
-#ifdef WSC_AP_SUPPORT
-INT Set_P2pCli_WscSsid_Proc(
-	IN PRTMP_ADAPTER	pAd,
-	IN	PSTRING arg);
-#endif /* WSC_AP_SUPPORT */
-#endif /* P2P_SUPPORT */
-
 INT Set_MacWatchDog_Proc(
 	IN RTMP_ADAPTER	*pAd,
 	IN PSTRING arg);
@@ -855,6 +819,15 @@ static struct {
 #ifdef SPECIFIC_TX_POWER_SUPPORT
 	{"PktPwr",						Set_AP_PKT_PWR},
 #endif /* SPECIFIC_TX_POWER_SUPPORT */
+#ifdef ROY_FILTER_UTILS
+	{"AuthRspFail",                 Set_AP_AUTH_FAIL_RSSI_THRESHOLD},
+	{"AuthRspRssi",                 Set_AP_AUTH_NO_RSP_RSSI_THRESHOLD},
+	{"AssocReqRssiThres",           Set_AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD},
+	{"AssocRspIgnor",               Set_AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD},
+	{"KickStaRssiLow",				Set_AP_KickStaRssiLow_Proc},
+	{"ProbeRspRssi",                Set_AP_PROBE_RSSI_THRESHOLD},
+	{"FilterUnused",				Set_AP_PACKET_FILTER_Proc},
+#endif /* ROY_FILTER_UTILS */
 #ifdef AP_SCAN_SUPPORT
 	{"SiteSurvey",					Set_SiteSurvey_Proc},
 	{"AutoChannelSel",				Set_AutoChannelSel_Proc},
@@ -1221,50 +1194,6 @@ static struct {
 #endif /* MBSS_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
 
-#ifdef P2P_SUPPORT
-	{"P2pCliEnable",				Set_P2pCli_Enable_Proc},
-	{"P2pCliSsid",					Set_P2pCli_Ssid_Proc},
-	{"P2pCliBssid",				Set_P2pCli_Bssid_Proc},
-	{"P2pCliAuthMode",				Set_P2pCli_AuthMode_Proc},
-	{"P2pCliEncrypType",			Set_P2pCli_EncrypType_Proc},
-	{"P2pCliDefaultKeyID",			Set_P2pCli_DefaultKeyID_Proc},	
-	{"P2pCliWPAPSK",				Set_P2pCli_WPAPSK_Proc},
-	{"P2pCliKey1",					Set_P2pCli_Key1_Proc},
-	{"P2pCliKey2",					Set_P2pCli_Key2_Proc},
-	{"P2pCliKey3",					Set_P2pCli_Key3_Proc},
-	{"P2pCliKey4",					Set_P2pCli_Key4_Proc},
-	{"P2pCliTxMode",				Set_P2pCli_TxMode_Proc},
-	{"P2pCliTxMcs",				Set_P2pCli_TxMcs_Proc},	
-#ifdef WSC_AP_SUPPORT	
-	{"P2pCliWscSsid",				Set_P2pCli_WscSsid_Proc},
-#endif /* WSC_AP_SUPPORT */
-	{"P2pOpMode",				Set_P2p_OpMode_Proc},
-	{"p2pEnable",						Set_P2P_Enable},
-	{"p2pLisCh",						Set_P2P_Listen_Channel},
-	{"p2pOpCh", 					Set_P2P_Operation_Channel},
-	{"p2pGoInt",						Set_P2P_GO_Intent},
-	{"p2pDevName",					Set_P2P_Device_Name},
-	{"p2pWscMode",					Set_P2P_WSC_Mode},
-	{"p2pWscConf",					Set_P2P_WSC_ConfMethod},
-	{"p2pNoACnt",					Set_P2P_NoA_Count},
-	{"p2pNoADuration",				Set_P2P_NoA_Duration},
-	{"p2pNoAInv",					Set_P2P_NoA_Interval},
-	{"p2pExtLst",					Set_P2P_Extend_Listen},
-	{"p2pExtLstPrd",				Set_P2P_Extend_Listen_Periodic},
-	{"p2pExtLstInv",				Set_P2P_Extend_Listen_Interval},
-	{"p2pIntraBss", 				Set_P2P_Intra_Bss},
-	{"p2pScan", 					Set_P2P_Scan},
-	{"p2pProv", 					Set_P2P_Provision_Proc},
-	{"p2pInv",						Set_P2P_Invite_Proc},
-	{"p2pDevDisc",					Set_P2P_Device_Discoverability_Proc},
-	{"p2pLink", 					Set_P2P_Connect_GoIndex_Proc},
-	{"p2pCfg",						Set_P2P_Print_Cfg},
-	{"p2pTab",						Set_P2P_Print_GroupTable_Proc},
-	{"p2pPerTab",						Set_P2P_Print_PersistentTable_Proc},
-	{"p2pStat", 					Set_P2P_State_Proc},
-	{"p2pReset", 					Set_P2P_Reset_Proc},
-	{"p2pDefConfMthd", 					Set_P2P_Default_Config_Method_Proc},
-#endif /* P2P_SUPPORT */
 
 	{"VcoPeriod",					Set_VcoPeriod_Proc},
 
@@ -1990,18 +1919,13 @@ INT RTMPAPSetInformation(
 	            {
 	                int enabled = 0;
 	                Status = copy_from_user(&enabled, wrq->u.data.pointer, wrq->u.data.length);
-	                if (enabled == 1)
-	                {
-	                	NdisAcquireSpinLock(&pAd->MacTabLock);
-	                    pMacEntry->PortSecured = WPA_802_1X_PORT_NOT_SECURED;
-				NdisReleaseSpinLock(&pAd->MacTabLock);
-	                }
+
+			NdisAcquireSpinLock(&pAd->MacTabLock);
+			if (enabled == 1)
+				pMacEntry->PortSecured = WPA_802_1X_PORT_NOT_SECURED;
 			else
-			{
-				NdisAcquireSpinLock(&pAd->MacTabLock);
-	                    pMacEntry->PortSecured = WPA_802_1X_PORT_SECURED;
-				NdisReleaseSpinLock(&pAd->MacTabLock);
-			}
+				pMacEntry->PortSecured = WPA_802_1X_PORT_SECURED;
+			NdisReleaseSpinLock(&pAd->MacTabLock);
 	                DBGPRINT(RT_DEBUG_TRACE, ("Set ApCLi::OID_802_11_DROP_UNENCRYPTED (=%d)\n", enabled));
 	            }
 	            break;
@@ -2037,317 +1961,7 @@ INT RTMPAPSetInformation(
 #endif/*APCLI_WPA_SUPPLICANT_SUPPORT*/
 #endif/*APCLI_SUPPORT*/
 
-    #ifdef P2P_SUPPORT
-
-		case OID_802_11_P2P_MODE:
-
-			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_P2P_MODE \n"));
-			printk("wrq->u.data.length =%d sizeof(UCHAR)=%d\n",wrq->u.data.length,sizeof(UCHAR));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				UCHAR OpMode=1;
-				Status = copy_from_user(&OpMode, wrq->u.data.pointer, wrq->u.data.length);
-				if (OpMode == OPMODE_AP)
-				{
-					if (P2P_CLI_ON(pAd))
-						P2P_CliStop(pAd);
-
-					if ((!P2P_GO_ON(pAd)) || (P2P_GO_ON(pAd)))
-					{
-						P2PCfgInit(pAd);
-						P2P_GoStartUp(pAd, MAIN_MBSSID);
-					}
-				}
-				else if (OpMode == OPMODE_APSTA)
-				{
-					if (P2P_GO_ON(pAd))
-						P2P_GoStop(pAd);
-
-					if ((!P2P_CLI_ON(pAd)) || (P2P_CLI_ON(pAd)))
-					{
-						P2PCfgInit(pAd);
-						P2P_CliStartUp(pAd);
-						AsicEnableBssSync(pAd);
-					}
-				}
-				else
-				{
-					if (P2P_CLI_ON(pAd))
-						P2P_CliStop(pAd);
-					else if (P2P_GO_ON(pAd))
-					{
-						P2P_GoStop(pAd);
-						if (INFRA_ON(pAd))
-							AsicEnableBssSync(pAd);
-					}
-					P2PCfgInit(pAd);
-				}
-
-				DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2p_OpMode_Proc::(OpMode = %d)\n", pObj->ioctl_if, OpMode));
-
-					
-			}
-			break;
-/*
-		case OID_802_11_P2P_CLEAN_TABLE:
-
-			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_P2P_CLEAN_TABLE \n"));
-			{
-				P2pGroupTabInit(pAd);
-			}
-			break;
-*/
-		case OID_802_11_P2P_DEVICE_NAME:			
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_DEVICE_NAME \n"));
-			if (wrq->u.data.length > 32)
-				Status = -EINVAL;
-			else
-			{
-				UCHAR DeviceName[MAX_LEN_OF_SSID] = {0};
-
-				NdisZeroMemory(DeviceName, sizeof(DeviceName));
-				Status = copy_from_user(&DeviceName, wrq->u.data.pointer, wrq->u.data.length);
-				DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_DEVICE_NAME DeviceName=%s\n",DeviceName));
-				{
-
-					pAd->P2pCfg.DeviceNameLen = wrq->u.data.length;
-					NdisZeroMemory(pAd->P2pCfg.DeviceName, 32);
-					NdisMoveMemory(pAd->P2pCfg.DeviceName, DeviceName, pAd->P2pCfg.DeviceNameLen);
-
-					DBGPRINT(RT_DEBUG_ERROR, ("%s:: Device Name = %s.\n", __FUNCTION__, pAd->P2pCfg.DeviceName));
-				}
-
-			}
-			break;
-
-		case OID_802_11_P2P_LISTEN_CHANNEL:			
-			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_P2P_LISTEN_CHANNEL \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				/*UCHAR __buf[4]; */
-				UCHAR listen_ch;
-				Status = copy_from_user(&listen_ch, wrq->u.data.pointer, wrq->u.data.length);
-				/*sprintf(__buf, "%d", listen_ch);*/
-				DBGPRINT(RT_DEBUG_ERROR, ("%s:: listen_ch = %d.\n", __FUNCTION__, listen_ch));
-
-				{
-					/*
-					POS_COOKIE			pObj;
-					UINT32 channel;
-
-					pObj = (POS_COOKIE) pAd->OS_Cookie;
-					if (pObj->ioctl_if_type != INT_P2P)
-						return 0;
-
-					channel = (UCHAR) simple_strtol(arg, 0, 10);
-					*/
-					/* check if this channel is valid */
-					if (ChannelSanity(pAd, listen_ch) == TRUE)
-					{
-						pAd->P2pCfg.ListenChannel = listen_ch;
-					}
-					else
-					{
-						DBGPRINT(RT_DEBUG_ERROR, ("Listen Channel out of range, using default.\n"));
-						pAd->P2pCfg.ListenChannel = 1;
-					}
-
-					DBGPRINT(RT_DEBUG_ERROR, ("%s:: Listen Channel = %d.\n", __FUNCTION__, pAd->P2pCfg.ListenChannel));
-				}
-			}
-			break;
-
-		case OID_802_11_P2P_OPERATION_CHANNEL:			
-			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_P2P_OPERATION_CHANNEL \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				UCHAR op_ch;
-				Status = copy_from_user(&op_ch, wrq->u.data.pointer, wrq->u.data.length);
-
-					/* check if this channel is valid */
-					if (ChannelSanity(pAd, op_ch) == TRUE)
-					{
-						pAd->P2pCfg.GroupChannel = op_ch;
-					}
-					else
-					{
-						DBGPRINT(RT_DEBUG_ERROR, ("Opertation Channel out of range, using default.\n"));
-						pAd->P2pCfg.GroupChannel = 1;
-					}
-
-					DBGPRINT(RT_DEBUG_ERROR, ("%s:: Op Channel = %d.\n", __FUNCTION__, pAd->P2pCfg.GroupChannel));
-					
-			}
-			break;
-
-		case OID_802_11_P2P_GO_INT:			
-			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_P2P_GO_INT \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				UCHAR intent;
-				Status = copy_from_user(&intent, wrq->u.data.pointer, wrq->u.data.length);
-
-					/* check if this channel is valid */
-			
-				if (intent <= 15)
-					pAd->P2pCfg.GoIntentIdx = intent;		
-				else
-				{
-					DBGPRINT(RT_DEBUG_ERROR, ("GO Intent out of range 0 ~ 15, using default.\n"));
-					pAd->P2pCfg.GoIntentIdx = 0;
-				}
-
-				DBGPRINT(RT_DEBUG_ERROR, ("%s:: GO Intent = %d.\n", __FUNCTION__, pAd->P2pCfg.GoIntentIdx));
-		
-			}
-			break;
-
-		case OID_802_11_P2P_SCAN:		
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_SCAN \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-
-				UCHAR bScan;
-				Status = copy_from_user(&bScan, wrq->u.data.pointer, wrq->u.data.length);
-
-	
-				if (bScan)
-				{
-					pAd->StaCfg.bAutoReconnect = FALSE;
-					P2pScan(pAd);
-				}
-				else
-				{
-					pAd->StaCfg.bAutoReconnect = TRUE;
-					P2pStopScan(pAd);
-				}
-			}
-			break;			
-
-
-		case OID_P2P_WSC_PIN_CODE:	
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_P2P_WSC_PIN_CODE wrq->u.data.length=%d\n",wrq->u.data.length));
-            if (wrq->u.data.length != 8) /* PIN Code Length is 8 */
-                Status = -EINVAL;
-            else
-            {
-                CHAR PinCode[9] = {0};
-                Status = copy_from_user(&PinCode[0], wrq->u.data.pointer, wrq->u.data.length);
-                if (Status == 0)
-                {
-                    if (Set_AP_WscPinCode_Proc(pAd, (PSTRING) &PinCode[0]) == FALSE)
-                        Status = -EINVAL;
-                }
-            }
-            break;
-
-		case OID_802_11_P2P_WscMode:			
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_WscMode \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				UCHAR p2pWscMode;
-				Status = copy_from_user(&p2pWscMode, wrq->u.data.pointer, wrq->u.data.length);
-
-					/* check if this channel is valid */
-			
-				if (p2pWscMode <= 2 && p2pWscMode >= 1)
-					pAd->P2pCfg.WscMode= p2pWscMode;
-				else
-				{
-					DBGPRINT(RT_DEBUG_ERROR, ("WscMode is invalid, using default.\n"));
-					pAd->P2pCfg.WscMode = WSC_PIN_MODE; /* PIN */
-				}
-
-				DBGPRINT(RT_DEBUG_ERROR, ("%s:: WscMode = %s.\n", __FUNCTION__, (p2pWscMode == 1) ? "PIN" : "PBC"));
-			}
-			break;
-
-		case OID_802_11_P2P_WscConf:			
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_WscConf \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-				UCHAR method;
-				Status = copy_from_user(&method, wrq->u.data.pointer, wrq->u.data.length);
-
-				if (pAd->P2pCfg.WscMode == WSC_PIN_MODE)
-				{
-					if (method == 1)
-					{
-						/* Display PIN */
-						pAd->P2pCfg.Dpid = DEV_PASS_ID_REG;
-						pAd->P2pCfg.ConfigMethod =  WSC_CONFMET_DISPLAY;
-						DBGPRINT(RT_DEBUG_ERROR, ("    *************************************************\n"));
-						DBGPRINT(RT_DEBUG_ERROR, ("    *                                               *\n"));
-						DBGPRINT(RT_DEBUG_ERROR, ("    *       PIN Code = %08u                     *\n", pAd->ApCfg.ApCliTab[0].WscControl.WscEnrolleePinCode));
-						DBGPRINT(RT_DEBUG_ERROR, ("    *                                               *\n"));
-						DBGPRINT(RT_DEBUG_ERROR, ("    *************************************************\n"));
-
-					}
-					else if (method == 2)
-					{
-						/* Enter PIN */
-						pAd->P2pCfg.Dpid = DEV_PASS_ID_USER;
-						pAd->P2pCfg.ConfigMethod =  WSC_CONFMET_KEYPAD;
-					}
-				}
-				else if (pAd->P2pCfg.WscMode == WSC_PBC_MODE)
-				{
-					if (method == 3)
-					{
-						pAd->P2pCfg.Dpid = DEV_PASS_ID_PBC;
-						pAd->P2pCfg.ConfigMethod = WSC_CONFMET_PBC;
-					}
-				}
-
-				DBGPRINT(RT_DEBUG_ERROR, ("%s:: Config Method = %s.\n", __FUNCTION__, decodeConfigMethod(pAd->P2pCfg.ConfigMethod)));
-			}
-			break;
-
-		case OID_802_11_P2P_Link:		
-			DBGPRINT(RT_DEBUG_ERROR, ("Set::OID_802_11_P2P_Link \n"));
-			if (wrq->u.data.length != sizeof(UCHAR))
-				Status = -EINVAL;
-			else
-			{
-
-				UCHAR p2pindex;
-				PUCHAR	pAddr;
-				Status = copy_from_user(&p2pindex, wrq->u.data.pointer, wrq->u.data.length);
-
-				DBGPRINT(RT_DEBUG_ERROR, ("%s:: TabIdx[%d]\n", __FUNCTION__, p2pindex));
-				if (p2pindex < pAd->P2pTable.ClientNumber)
-				{
-					/*P2PPrintP2PEntry(pAd, P2pTabIdx); */
-					/*pAd->P2pCfg.ConnectingIndex = 0; */
-					/*if (pAd->P2pTable.Client[P2pTabIdx].P2pClientState == P2PSTATE_DISCOVERY) */
-					/*	pAd->P2pTable.Client[P2pTabIdx].P2pClientState = P2PSTATE_CONNECT_COMMAND; */
-					/*COPY_MAC_ADDR(pAd->P2pCfg.ConnectingMAC, pAd->P2pTable.Client[P2pTabIdx].addr); */
-					/*pAd->P2pTable.Client[P2pTabIdx].StateCount = 10; */
-					/*pAd->P2pTable.Client[P2pTabIdx].bValid = TRUE; */
-					/*P2pConnect(pAd); */
-					pAddr = &pAd->P2pTable.Client[p2pindex].addr[0];
-					P2pConnectPrepare(pAd, pAddr, P2PSTATE_CONNECT_COMMAND);
-			    }
-			    else
-			        DBGPRINT(RT_DEBUG_ERROR, ("Table Idx out of range!\n"));
-			}
-			break;
-#endif /* P2P_SUPPORT */
-
+    
     	case OID_802_11_DEAUTHENTICATION:
 			DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_DEAUTHENTICATION\n"));
 			if (wrq->u.data.length != sizeof(MLME_DEAUTH_REQ_STRUCT))
@@ -2359,6 +1973,13 @@ INT RTMPAPSetInformation(
 				MLME_QUEUE_ELEM 		*Elem; /* = (MLME_QUEUE_ELEM *) kmalloc(sizeof(MLME_QUEUE_ELEM), MEM_ALLOC_FLAG); */
 				os_alloc_mem(pAd, (UCHAR **)&Elem, sizeof(MLME_QUEUE_ELEM));
 
+				if(Elem == NULL)
+				{
+					Status = -ENOMEM;
+					DBGPRINT(RT_DEBUG_TRACE, ("Set::OID_802_11_DEAUTHENTICATION, Failed!!\n"));
+					break;
+				}
+
 #ifdef APCLI_SUPPORT
 #ifdef APCLI_WPA_SUPPLICANT_SUPPORT
 				if (pObj->ioctl_if_type == INT_APCLI)
@@ -2368,7 +1989,10 @@ INT RTMPAPSetInformation(
 					pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
 					pCurrState = &pAd->ApCfg.ApCliTab[ifIndex].CtrlCurrState;
 					if (ifIndex >= MAX_APCLI_NUM)
+					{
+						os_free_mem(NULL, Elem);
 						return FALSE;
+					}
 					
 					os_alloc_mem(pAd, (UCHAR **)&pInfo, sizeof(MLME_DEAUTH_REQ_STRUCT));
 					Status = copy_from_user(pInfo, wrq->u.data.pointer, wrq->u.data.length);
@@ -2399,6 +2023,7 @@ INT RTMPAPSetInformation(
 					if(pInfo)
 						os_free_mem(NULL, pInfo);
 
+					os_free_mem(NULL, Elem);
 				}
 				else 
 #endif /* APCLI_WPA_SUPPLICANT_SUPPORT */
@@ -3574,7 +3199,7 @@ INT RTMPAPQueryInformation(
 	RTMP_IOCTL_INPUT_STRUCT	*wrq = (RTMP_IOCTL_INPUT_STRUCT *) rq;
     INT	Status = NDIS_STATUS_SUCCESS;
     POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
-    STRING	driverVersion[8];
+    STRING	driverVersion[16];
 
 #if defined(DBG) || defined(WSC_AP_SUPPORT)
 	UCHAR	apidx = pObj->ioctl_if;
@@ -3625,15 +3250,6 @@ INT RTMPAPQueryInformation(
 	NDIS_802_11_STATISTICS	*pStatistics;
 
 
-#ifdef P2P_SUPPORT
-	/*RT_P2P_UI_TABLE UI_table;*/
-	PRT_P2P_UI_TABLE pUI_table;
-	PRT_P2P_TABLE			pP2pTable;
-	PRT_P2P_CLIENT_ENTRY   pPAdCli, pUICli;
-	PRT_P2P_CONFIG	pP2PCtrl; /* = &pAd->P2pCfg; */
-	UCHAR tmp[24];
-	UCHAR i;
-#endif /* P2P_SUPPORT */
 
 
    INT IEEE8021X = 0;
@@ -3878,107 +3494,12 @@ INT RTMPAPQueryInformation(
 #endif/*APCLI_WPA_SUPPLICANT_SUPPORT*/
 #endif/*APCLI_SUPPORT*/
 
-#ifdef P2P_SUPPORT
-		case OID_802_11_P2P_Connected_MAC:			
-			wrq->u.data.length = MAC_ADDR_LEN;
-			Status = copy_to_user(wrq->u.data.pointer, &pAd->P2pCfg.ConnectingMAC, wrq->u.data.length);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_Connected_MAC\n"));
-			break;
-			
-		case OID_802_11_P2P_MODE:			
-			wrq->u.data.length = sizeof(char);
-			Status = copy_to_user(wrq->u.data.pointer, &pAd->P2pCfg.Rule, wrq->u.data.length);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_MODE (Len=%d, Rule=%s)\n", sizeof(char),pAd->P2pCfg.Rule));
-			break;
-
-		case OID_802_11_P2P_DEVICE_NAME:			
-			wrq->u.data.length = pAd->P2pCfg.DeviceNameLen;
-			Status = copy_to_user(wrq->u.data.pointer, pAd->P2pCfg.DeviceName, pAd->P2pCfg.DeviceNameLen);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_DEVICE_NAME (Len=%d, DeviceName=%s)\n", pAd->P2pCfg.DeviceNameLen,pAd->P2pCfg.DeviceName));
-			break;
-
-		case OID_802_11_P2P_LISTEN_CHANNEL:			
-			wrq->u.data.length = sizeof(char);
-			Status = copy_to_user(wrq->u.data.pointer, &pAd->P2pCfg.ListenChannel, wrq->u.data.length);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_LISTEN_CHANNEL (Len=%d, Listen_Ch=%d)\n", sizeof(char),pAd->P2pCfg.ListenChannel));
-			break;
-
-		case OID_802_11_P2P_OPERATION_CHANNEL:			
-			wrq->u.data.length = sizeof(char);
-			Status = copy_to_user(wrq->u.data.pointer, &pAd->P2pCfg.GroupChannel, wrq->u.data.length);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_OPERATION_CHANNEL (Len=%d, Op_Ch=%d)\n", sizeof(char),pAd->P2pCfg.GroupOpChannel));
-			break;
-
-
-		case OID_802_11_P2P_MAC_ADDR:			
-			wrq->u.data.length = 6;
-			Status = copy_to_user(wrq->u.data.pointer, pAd->P2pCfg.Bssid, wrq->u.data.length);
-			/*DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_MAC_ADDR (Len=%d, Rule=%s)\n", sizeof(char),pAd->P2pCfg.GroupOpChannel)); */
-			break;
-
-		case OID_802_11_P2P_CTRL_STATUS:			
-			wrq->u.data.length = 24;
-			pP2PCtrl = &pAd->P2pCfg;
-			NdisZeroMemory(tmp, 24);
-			sprintf(tmp,"%s",decodeCtrlState(pP2PCtrl->CtrlCurrentState));
-			Status = copy_to_user(wrq->u.data.pointer, tmp, 24);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_MODE (Len=%d, DeviceName=%s)\n", pAd->P2pCfg.DeviceNameLen,pAd->P2pCfg.DeviceName));
-			break;
-
-		case OID_802_11_P2P_DISC_STATUS:			
-			wrq->u.data.length = 24;
-			pP2PCtrl = &pAd->P2pCfg;
-			NdisZeroMemory(tmp, 24);
-			sprintf(tmp,"%s",decodeDiscoveryState(pP2PCtrl->DiscCurrentState));
-			Status = copy_to_user(wrq->u.data.pointer, tmp, 24);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_MODE (Len=%d, DeviceName=%s)\n", pAd->P2pCfg.DeviceNameLen,pAd->P2pCfg.DeviceName));
-			break;
-
-		case OID_802_11_P2P_GOFORM_STATUS:			
-			wrq->u.data.length = 24;
-			pP2PCtrl = &pAd->P2pCfg;
-			NdisZeroMemory(tmp, 24);
-			sprintf(tmp,"%s",decodeGroupFormationState(pP2PCtrl->GoFormCurrentState));
-			Status = copy_to_user(wrq->u.data.pointer, tmp, 24);
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_MODE (Len=%d, DeviceName=%s)\n", pAd->P2pCfg.DeviceNameLen,pAd->P2pCfg.DeviceName));
-			break;
-			
-		case OID_802_11_P2P_SCAN_LIST:			
-
-			os_alloc_mem(NULL, (UCHAR **)&pUI_table, sizeof(RT_P2P_UI_TABLE));
-			pP2pTable = &pAd->P2pTable;
-			/*NdisZeroMemory(&UI_table, sizeof(UI_table));*/
-			/*pUI_table = &UI_table;*/
-			NdisZeroMemory(pUI_table, sizeof(RT_P2P_UI_TABLE));
-			pUI_table->ClientNumber = pAd->P2pTable.ClientNumber;
-			for (i=0; i < pAd->P2pTable.ClientNumber; i++)
-			{
-				pPAdCli = &pP2pTable->Client[i];
-				pUICli = &pUI_table->Client[i];
- 				NdisMoveMemory(pUICli, pPAdCli, sizeof(RT_P2P_CLIENT_ENTRY));
-			}
-			printk("Query::OID_802_11_P2P_SCAN_LIST\n");
-			Status = copy_to_user(wrq->u.data.pointer, pUI_table, sizeof(RT_P2P_UI_TABLE));
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::OID_802_11_P2P_SCAN_LIST (Len=%d, Rule=%s)\n", sizeof(char),pAd->P2pCfg.GroupOpChannel));
-			break;
-			
-		case OID_P2P_WSC_PIN_CODE:
-			wrq->u.data.length = sizeof(UINT);
-			WscPinCode = pAd->ApCfg.ApCliTab[0].WscControl.WscEnrolleePinCode;
-			
-			if (copy_to_user(wrq->u.data.pointer, &WscPinCode, wrq->u.data.length))
-			{
-				Status = -EFAULT;
-			}
-			DBGPRINT(RT_DEBUG_TRACE, ("Query::RT_OID_WSC_PIN_CODE (=%d)\n", WscPinCode));
-			break;		
-#endif /* P2P_SUPPORT */
 
 		case RT_OID_VERSION_INFO:
 			DBGPRINT(RT_DEBUG_TRACE, ("Query::RT_OID_VERSION_INFO \n"));
-			wrq->u.data.length = 8*sizeof(CHAR);
+			wrq->u.data.length = strlen(AP_DRIVER_VERSION);
 			snprintf(&driverVersion[0], sizeof(driverVersion), "%s", AP_DRIVER_VERSION);
-			driverVersion[7] = '\0';
+			driverVersion[wrq->u.data.length] = '\0';
 			if (copy_to_user(wrq->u.data.pointer, &driverVersion, wrq->u.data.length))
 			{
 				Status = -EFAULT;
@@ -4029,23 +3550,6 @@ INT RTMPAPQueryInformation(
 			}
 			else
 #endif /* APCLI_SUPPORT */
-#ifdef P2P_SUPPORT
-		    if (pObj->ioctl_if_type == INT_P2P)
-		    {
-		    	if (P2P_CLI_ON(pAd))
-		    	{
-				INT ApCliIdx = pObj->ioctl_if;
-				APCLI_MR_APIDX_SANITY_CHECK(ApCliIdx);
-				WscStatus = pAd->ApCfg.ApCliTab[ApCliIdx].WscControl.WscStatus;
-		    	}
-				else
-				{
-				WscStatus = pAd->ApCfg.MBSSID[apidx].WscControl.WscStatus;
-				}
-		        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfMode_Proc:: This command is from p2p interface now.\n", apidx));
-		    }
-			else
-#endif /* P2P_SUPPORT */
 			{
 				WscStatus = pAd->ApCfg.MBSSID[apidx].WscControl.WscStatus;
 			}
@@ -4061,21 +3565,6 @@ INT RTMPAPQueryInformation(
 			DBGPRINT(RT_DEBUG_TRACE, ("Query::RT_OID_WSC_PIN_CODE \n"));
 			wrq->u.data.length = sizeof(UINT);
 			/*WscPinCode = GenerateWpsPinCode(pAd, FALSE, apidx); */
-#ifdef P2P_SUPPORT
-		    if (pObj->ioctl_if_type == INT_P2P)
-		    {
-		    	if (P2P_CLI_ON(pAd))
-		    	{
-					pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-		    	}
-				else
-				{
-					pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-				}
-		        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfMode_Proc:: This command is from p2p interface now.\n", apidx));
-		    }
-			else
-#endif /* P2P_SUPPORT */
 			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
 			
 			WscPinCode = pWscControl->WscEnrolleePinCode;
@@ -4100,21 +3589,6 @@ INT RTMPAPQueryInformation(
 		case RT_OID_WSC_UUID:
 			DBGPRINT(RT_DEBUG_TRACE, ("Query::RT_OID_WSC_QUERY_UUID \n"));
 			wrq->u.data.length = UUID_LEN_STR;
-#ifdef P2P_SUPPORT
-		    if (pObj->ioctl_if_type == INT_P2P)
-		    {
-		    	if (P2P_CLI_ON(pAd))
-		    	{
-					pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-		    	}
-				else
-				{
-					pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-				}
-		        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfMode_Proc:: This command is from p2p interface now.\n", apidx));
-		    }
-			else
-#endif /* P2P_SUPPORT */
 			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
 			if (copy_to_user(wrq->u.data.pointer, &pWscControl->Wsc_Uuid_Str[0], UUID_LEN_STR))
 			{
@@ -4165,21 +3639,6 @@ INT RTMPAPQueryInformation(
 				DBGPRINT(RT_DEBUG_TRACE, ("RT_OID_802_11_WSC_QUERY_PROFILE fail!\n"));
 				break;
 			}
-#ifdef P2P_SUPPORT
-		    if (pObj->ioctl_if_type == INT_P2P)
-		    {
-		    	if (P2P_CLI_ON(pAd))
-		    	{
-					pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-		    	}
-				else
-				{
-					pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-				}
-		        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfMode_Proc:: This command is from p2p interface now.\n", apidx));
-		    }
-			else
-#endif /* P2P_SUPPORT */
 			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
 
 			RTMPZeroMemory(pProfile, sizeof(WSC_PROFILE));
@@ -4261,6 +3720,7 @@ INT RTMPAPQueryInformation(
 			DBGPRINT(RT_DEBUG_TRACE, ("Query::Get Radius setting(%d)\n", sizeof(DOT1X_CMM_CONF)));
 				RTMPIoctlQueryRadiusConf(pAd, wrq);	
 			break;
+
 #endif /* DOT1X_SUPPORT */			
 
 		case RT_OID_802_11_MAC_ADDRESS:
@@ -4978,61 +4438,50 @@ INT Set_CountryString_Proc(
     ==========================================================================
 */
 INT	Set_AP_SSID_Proc(
-	IN	PRTMP_ADAPTER	pAdapter, 
+	IN	PRTMP_ADAPTER	pAd, 
 	IN	PSTRING			arg)
 {
 	INT   success = FALSE;
-	POS_COOKIE pObj = (POS_COOKIE) pAdapter->OS_Cookie;
+	POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+	MULTISSID_STRUCT *mbss;
 
-	if(strlen(arg) <= MAX_LEN_OF_SSID)
+	if(((pObj->ioctl_if < HW_BEACON_MAX_NUM)) && (strlen(arg) <= MAX_LEN_OF_SSID))
 	{
-		NdisZeroMemory(pAdapter->ApCfg.MBSSID[pObj->ioctl_if].Ssid, MAX_LEN_OF_SSID);
-		NdisMoveMemory(pAdapter->ApCfg.MBSSID[pObj->ioctl_if].Ssid, arg, strlen(arg));
-		pAdapter->ApCfg.MBSSID[pObj->ioctl_if].SsidLen = (UCHAR)strlen(arg);
+		mbss = &pAd->ApCfg.MBSSID[pObj->ioctl_if];
+	
+		NdisZeroMemory(mbss->Ssid, MAX_LEN_OF_SSID);
+		NdisMoveMemory(mbss->Ssid, arg, strlen(arg));
+		mbss->SsidLen = (UCHAR)strlen(arg);
 		success = TRUE;
 
-
-#ifdef P2P_SUPPORT
-		if (pObj->ioctl_if_type == INT_P2P)
-		{
-			if (P2P_GO_ON(pAdapter))
-			{
-				P2P_GoStop(pAdapter);
-				P2P_GoStartUp(pAdapter, MAIN_MBSSID);
-				DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_SSID_Proc::(Len=%d,Ssid=%s)\n", pObj->ioctl_if,
-					pAdapter->ApCfg.MBSSID[pObj->ioctl_if].SsidLen, pAdapter->ApCfg.MBSSID[pObj->ioctl_if].Ssid));
-			}
-		}
-		else
-#endif /* P2P_SUPPORT */
 		{
 			/* If in detection mode, need to stop detect first. */
-			if (pAdapter->CommonCfg.bIEEE80211H == FALSE)
+			if (pAd->CommonCfg.bIEEE80211H == FALSE)
 			{
-				APStop(pAdapter);
-				APStartUp(pAdapter);
+				APStop(pAd);
+				APStartUp(pAd);
 			}
 			else
 			{
 				/* each mode has different restart method */
-				if (pAdapter->Dot11_H.RDMode == RD_SILENCE_MODE)
+				if (pAd->Dot11_H.RDMode == RD_SILENCE_MODE)
 				{
-					APStop(pAdapter);
-					APStartUp(pAdapter);
+					APStop(pAd);
+					APStartUp(pAd);
 				}
-				else if (pAdapter->Dot11_H.RDMode == RD_SWITCHING_MODE)
+				else if (pAd->Dot11_H.RDMode == RD_SWITCHING_MODE)
 				{
 				}
-				else if (pAdapter->Dot11_H.RDMode == RD_NORMAL_MODE)
+				else if (pAd->Dot11_H.RDMode == RD_NORMAL_MODE)
 				{
-					APStop(pAdapter);
-					APStartUp(pAdapter);
-					AsicEnableBssSync(pAdapter);
+					APStop(pAd);
+					APStartUp(pAd);
+					AsicEnableBssSync(pAd);
 				}
 			}
 
 			DBGPRINT(RT_DEBUG_TRACE, ("I/F(ra%d) Set_SSID_Proc::(Len=%d,Ssid=%s)\n", pObj->ioctl_if,
-				pAdapter->ApCfg.MBSSID[pObj->ioctl_if].SsidLen, pAdapter->ApCfg.MBSSID[pObj->ioctl_if].Ssid));
+				mbss->SsidLen, mbss->Ssid));
 		}
 	}
 	else
@@ -5744,6 +5193,245 @@ INT	Set_AP_PMKCachePeriod_Proc(
 	return TRUE;
 }
 
+#ifdef ROY_FILTER_UTILS
+INT     Set_AP_PACKET_FILTER_Proc(
+        IN  PRTMP_ADAPTER    pAd,
+        IN  PSTRING          arg)
+{
+		POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+		UCHAR apidx = pObj->ioctl_if;
+		CHAR  val; 
+		val = simple_strtol(arg, 0, 10);
+	
+        if (val == FILTER_NONE)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_PACKET_FILTER\n"));
+        }
+        else if (val >= FILTER_TOTAL || val < FILTER_NONE)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_PACKET_FILTER Value Error.\n"));
+                return FALSE;
+        }
+
+		pAd->ApCfg.MBSSID[apidx].FilterUnusedPacket = val;
+		
+		return TRUE;
+}
+
+INT     Set_AP_PROBE_RSSI_THRESHOLD(
+        IN  PRTMP_ADAPTER    pAd,
+        IN  PSTRING          arg)
+{
+        POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+        UCHAR           apidx = pObj->ioctl_if;
+        UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_PROBE_RSSI_THRESHOLD\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_PROBE_RSSI_THRESHOLD Value Error.\n"));
+                return FALSE;
+        }
+
+        pAd->ApCfg.MBSSID[apidx].ProbeRspRssiThreshold = rssi;
+        DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_PROBE_RSSI_THRESHOLD=%d\n",
+                                  pAd->ApCfg.MBSSID[apidx].ProbeRspRssiThreshold));
+
+        for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].ProbeRspRssiThreshold ));
+        }
+
+        return TRUE;
+}
+
+INT     Set_AP_AUTH_FAIL_RSSI_THRESHOLD(
+        IN  PRTMP_ADAPTER    pAd,
+        IN  PSTRING          arg)
+{
+        POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+        UCHAR           apidx = pObj->ioctl_if;
+        UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_AUTH_FAIL_RSSI_THRESHOLD\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_AUTH_FAIL_RSSI_THRESHOLD Value Error.\n"));
+                return FALSE;
+        }
+
+        pAd->ApCfg.MBSSID[apidx].AuthFailRssiThreshold = rssi;
+        DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_AUTH_RSSI_THRESHOLD=%d\n",
+                                  pAd->ApCfg.MBSSID[apidx].AuthFailRssiThreshold));
+
+        for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+        {
+        	DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].AuthFailRssiThreshold ));
+        }
+
+        return TRUE;
+}
+
+INT     Set_AP_AUTH_NO_RSP_RSSI_THRESHOLD(
+        IN  PRTMP_ADAPTER    pAd,
+        IN  PSTRING          arg)
+{
+        POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+        UCHAR           apidx = pObj->ioctl_if;
+        UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_AUTH_NO_RSP_RSSI_THRESHOLD\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_AUTH_NO_RSP_RSSI_THRESHOLD Value Error.\n"));
+                return FALSE;
+        }
+
+        pAd->ApCfg.MBSSID[apidx].AuthNoRspRssiThreshold = rssi;
+        DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_AUTH_NO_RSP_RSSI_THRESHOLD=%d\n",
+                                  pAd->ApCfg.MBSSID[apidx].AuthNoRspRssiThreshold));
+
+        for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].AuthNoRspRssiThreshold ));
+        }
+
+        return TRUE;
+}
+
+
+/*
+    ==========================================================================
+    Description:
+        Set AssocReq RSSI Threshold to reject STA with weak signal.
+    Return:
+        TRUE if all parameters are OK, FALSE otherwise
+    ==========================================================================
+*/
+INT Set_AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg)
+{
+	POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+	UCHAR           apidx = pObj->ioctl_if;
+	UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD Value Error.\n"));
+                return FALSE;
+        }
+
+        pAd->ApCfg.MBSSID[apidx].AssocReqFailRssiThreshold = rssi;
+        DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_ASSOC_REQ_FAIL_RSSI_THRESHOLD=%d\n", 
+                                  pAd->ApCfg.MBSSID[apidx].AssocReqFailRssiThreshold ));
+
+	for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+	{
+		DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].AssocReqFailRssiThreshold ));	
+	}
+	
+        return TRUE;
+}
+
+
+INT Set_AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg)
+{
+        POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+        UCHAR           apidx = pObj->ioctl_if;
+        UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD Value Error.\n"));
+                return FALSE;
+        }
+
+
+        pAd->ApCfg.MBSSID[apidx].AssocReqNoRspRssiThreshold = rssi;
+        DBGPRINT(RT_DEBUG_TRACE, ("Set_AP_ASSOC_REQ_NO_RSP_RSSI_THRESHOLD=%d\n",
+                                  pAd->ApCfg.MBSSID[apidx].AssocReqNoRspRssiThreshold ));
+
+        for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].AssocReqNoRspRssiThreshold ));
+        }
+
+        return TRUE;
+}
+
+/*
+    ==========================================================================
+    Description:
+        Set lower limit for AP kicking out a STA.
+    Return:
+        TRUE if all parameters are OK, FALSE otherwise
+    ==========================================================================
+*/
+INT Set_AP_KickStaRssiLow_Proc(
+    IN  PRTMP_ADAPTER    pAd,
+    IN  PSTRING          arg)
+{
+        POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
+        UCHAR           apidx = pObj->ioctl_if;
+        UINT j;
+        CHAR rssi;
+        rssi = simple_strtol(arg, 0, 10);
+
+        if (rssi == 0)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("Disable RssiLowForStaKickOut Function\n"));
+        }
+        else if (rssi > 0 || rssi < -100)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("RssiLowForStaKickOut Value Error.\n"));
+                return FALSE;
+        }
+
+
+        pAd->ApCfg.MBSSID[apidx].RssiLowForStaKickOut = rssi;
+
+        DBGPRINT(RT_DEBUG_TRACE, ("RssiLowForStaKickOut=%d\n", 
+                                  pAd->ApCfg.MBSSID[apidx].RssiLowForStaKickOut));
+
+        for(j = BSS0; j < pAd->ApCfg.BssidNum; j++)
+        {
+                DBGPRINT(RT_DEBUG_TRACE, ("%d. ==> %d\n", j, pAd->ApCfg.MBSSID[j].RssiLowForStaKickOut ));
+        }
+
+        return TRUE;
+}
+#endif /* ROY_FILTER_UTILS */
+
 /* 
     ==========================================================================
     Description:
@@ -6338,6 +6026,10 @@ INT	Set_ACLClearAll_Proc(
 	{
 		DBGPRINT(RT_DEBUG_WARN, ("The Access Control List is empty!\n"));
 		DBGPRINT(RT_DEBUG_WARN, ("No need to clear the Access Control List!\n"));
+
+		if (pacl != NULL)
+			os_free_mem(NULL, pacl);
+
 		return TRUE;
 	}
 
@@ -6769,8 +6461,7 @@ INT	Show_StaSecurityInfo_Proc(
 		if (pEntry && IS_ENTRY_CLIENT(pEntry) && pEntry->Sst == SST_ASSOC)
 		{
 			printk("%02X:%02X:%02X:%02X:%02X:%02X  ",
-				pEntry->Addr[0], pEntry->Addr[1], pEntry->Addr[2],
-				pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5]);
+				PRINT_MAC(pEntry->Addr));
 			printk("%-4d", (int)pEntry->Aid);
 			printk("%-4d", (int)pEntry->apidx);
 			printk("%-15s", GetAuthMode(pEntry->AuthMode));
@@ -6819,8 +6510,7 @@ INT	Show_BaTable_Proc(
 			strcpy(tmpBuf, "STA");
 	
 		printk("%02X:%02X:%02X:%02X:%02X:%02X (Aid = %d) (%s) -\n",
-			pEntry->Addr[0], pEntry->Addr[1], pEntry->Addr[2],
-			pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5], pEntry->Aid, tmpBuf);
+			PRINT_MAC(pEntry->Addr), pEntry->Aid, tmpBuf);
 		
 		printk("[Recipient]\n");
 		for (j=0; j < NUM_OF_TID; j++)
@@ -7370,10 +7060,7 @@ INT	Show_Sat_Proc(
 		pEntry = &pAd->MacTab.Content[i];
 		if (IS_ENTRY_CLIENT(pEntry) && (pEntry->Sst == SST_ASSOC))
 		{
-
-			printk("\n%02X:%02X:%02X:%02X:%02X:%02X - ",
-				   pEntry->Addr[0], pEntry->Addr[1], pEntry->Addr[2],
-				   pEntry->Addr[3], pEntry->Addr[4], pEntry->Addr[5]);
+			printk("\n%02x:%02x:%02x:%02x:%02x:%02x - ", PRINT_MAC(pEntry->Addr));
 			printk("%-4d\n", (int)pEntry->Aid);
 
 			for (j=maxMcs; j>=0; j--)
@@ -8917,9 +8604,6 @@ VOID RTMPIoctlStatistics(
 #ifdef WSC_AP_SUPPORT
     UCHAR idx = 0;
 #endif /* WSC_AP_SUPPORT */
-#ifdef P2P_SUPPORT
-	POS_COOKIE pObj = (POS_COOKIE) pAd->OS_Cookie;
-#endif /* P2P_SUPPORT */
 	ULONG txCount = 0;
 	UINT32 rxCount = 0;
 #ifdef ENHANCED_STAT_DISPLAY
@@ -9053,20 +8737,6 @@ VOID RTMPIoctlStatistics(
 
 #ifdef WSC_AP_SUPPORT
 	sprintf(msg+strlen(msg), "WPS Information:\n");
-#ifdef P2P_SUPPORT
-	if (pObj->ioctl_if_type == INT_P2P)
-	{
-		if (pAd->ApCfg.ApCliTab[0].WscControl.WscEnrolleePinCodeLen == 8)
-			sprintf(msg+strlen(msg), "P2P Client PinCode               %08u\n", 
-								pAd->ApCfg.ApCliTab[0].WscControl.WscEnrolleePinCode);
-		else
-			sprintf(msg+strlen(msg), "P2P Client PinCode               %04u\n", 
-								pAd->ApCfg.ApCliTab[0].WscControl.WscEnrolleePinCode);
-		sprintf(msg+strlen(msg), "P2P Client WPS Profile Count     = %d\n", 
-								pAd->ApCfg.ApCliTab[0].WscControl.WscProfile.ProfileCnt);
-	}
-	else
-#endif /* P2P_SUPPORT */
 	{
 	for (idx = 0; idx < pAd->ApCfg.BssidNum; idx++)
 		{
@@ -10009,23 +9679,6 @@ INT	 Set_AP_WscConfMode_Proc(
     }
     else
 #endif /* APCLI_SUPPORT */
-#ifdef P2P_SUPPORT
-    if (pObj->ioctl_if_type == INT_P2P)
-    {
-		if (P2P_CLI_ON(pAd))
-		{
-			bFromApCli = TRUE;
-			pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-		}
-		else
-		{
-			bFromApCli = FALSE;
-			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-		}
-        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfMode_Proc:: This command is from p2p interface now.\n", apidx));
-    }
-    else
-#endif /* P2P_SUPPORT */
     {
         bFromApCli = FALSE;
         pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
@@ -10087,13 +9740,7 @@ INT	 Set_AP_WscConfMode_Proc(
     }
 
 	DBGPRINT(RT_DEBUG_TRACE, ("IF(%02X:%02X:%02X:%02X:%02X:%02X) Set_WscConfMode_Proc::(WscConfMode(0~7)=%d)\n", 
-                            mac_addr[0], 
-                            mac_addr[1], 
-                            mac_addr[2], 
-                            mac_addr[3], 
-                            mac_addr[4], 
-                            mac_addr[5], 
-                            pWscControl->WscConfMode));
+                            PRINT_MAC(mac_addr), pWscControl->WscConfMode));
 	return TRUE;
 }
 
@@ -10136,17 +9783,6 @@ INT	Set_AP_WscConfStatus_Proc(
 #endif /* WSC_V2_SUPPORT */
 #endif /* CONFIG_AP_SUPPORT */
 
-#ifdef P2P_SUPPORT
-    if (pObj->ioctl_if_type == INT_P2P)
-    {
-    	if (P2P_CLI_ON(pAd))
-    	{
-    		DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfStatus_Proc:: P2P Client doesn't need this command.\n", apidx));
-			return FALSE;
-    	}
-        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscConfStatus_Proc:: This command is from p2p interface now.\n", apidx));
-    }
-#endif /* P2P_SUPPORT */
 
 	IsAPConfigured = (UCHAR)simple_strtol(arg, 0, 10);
 	IsSelectedRegistrar = pAd->ApCfg.MBSSID[apidx].WscControl.WscSelReg;
@@ -10171,12 +9807,7 @@ INT	Set_AP_WscConfStatus_Proc(
 	}
 
 	DBGPRINT(RT_DEBUG_TRACE, ("IF(%02X:%02X:%02X:%02X:%02X:%02X) Set_WscConfStatus_Proc::(WscConfStatus=%d)\n", 
-                               pAd->ApCfg.MBSSID[apidx].Bssid[0],
-                               pAd->ApCfg.MBSSID[apidx].Bssid[1],
-                               pAd->ApCfg.MBSSID[apidx].Bssid[2],
-                               pAd->ApCfg.MBSSID[apidx].Bssid[3],
-                               pAd->ApCfg.MBSSID[apidx].Bssid[4],
-                               pAd->ApCfg.MBSSID[apidx].Bssid[5],
+				PRINT_MAC(pAd->ApCfg.MBSSID[apidx].Bssid),
                                pAd->ApCfg.MBSSID[apidx].WscControl.WscConfStatus));
 
 	return TRUE;
@@ -10209,23 +9840,6 @@ INT	Set_AP_WscMode_Proc(
     }
     else
 #endif /* APCLI_SUPPORT */
-#ifdef P2P_SUPPORT
-    if (pObj->ioctl_if_type == INT_P2P)
-    {
-    	if (P2P_CLI_ON(pAd))
-    	{
-			bFromApCli = TRUE;
-			pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-    	}
-		else
-		{
-			bFromApCli = FALSE;
-			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-		}
-        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscMode_Proc:: This command is from p2p interface now.\n", apidx));
-    }
-    else
-#endif /* P2P_SUPPORT */
     {
         bFromApCli = FALSE;
         pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
@@ -10260,13 +9874,7 @@ INT	Set_AP_WscMode_Proc(
         memcpy(mac_addr, pAd->ApCfg.MBSSID[apidx].Bssid, MAC_ADDR_LEN);
     }
 	DBGPRINT(RT_DEBUG_TRACE, ("IF(%02X:%02X:%02X:%02X:%02X:%02X) Set_WscMode_Proc::(WscMode=%d)\n", 
-                                mac_addr[0],
-                                mac_addr[1],
-                                mac_addr[2],
-                                mac_addr[3],
-                                mac_addr[4],
-                                mac_addr[5],
-                                pWscControl->WscMode));
+					PRINT_MAC(mac_addr), pWscControl->WscMode));
 
 	return TRUE;
 }
@@ -10329,23 +9937,6 @@ INT	Set_AP_WscGetConf_Proc(
     }
     else
 #endif /* APCLI_SUPPORT */
-#ifdef P2P_SUPPORT
-    if (pObj->ioctl_if_type == INT_P2P)
-    {
-    	if (P2P_CLI_ON(pAd))
-    	{
-        	bFromApCli = TRUE;
-			pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-    	}
-		else
-		{
-			bFromApCli = FALSE;
-			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-		}
-        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_AP_WscGetConf_Proc:: This command is from p2p interface now.\n", apidx));
-    }
-    else
-#endif /* P2P_SUPPORT */
     {
         bFromApCli = FALSE;
         pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
@@ -10384,10 +9975,6 @@ INT	Set_AP_WscGetConf_Proc(
 	{
 		WscMode = DEV_PASS_ID_PBC;
 	}
-#ifdef P2P_SUPPORT
-	if (pAd->P2pCfg.Dpid != DEV_PASS_ID_NOSPEC)
-		WscMode = pAd->P2pCfg.Dpid;
-#endif /* P2P_SUPPORT */
 	WscInitRegistrarPair(pAd, pWscControl, apidx);
     /* Enrollee 192 random bytes for DH key generation */
 	for (idx = 0; idx < 192; idx++)
@@ -10476,13 +10063,7 @@ INT	Set_AP_WscGetConf_Proc(
 #endif /* WSC_LED_SUPPORT */
 
 	DBGPRINT(RT_DEBUG_TRACE, ("IF(%02X:%02X:%02X:%02X:%02X:%02X) Set_WscGetConf_Proc trigger WSC state machine, wscGetConfMode=%d\n", 
-                                mac_addr[0],
-                                mac_addr[1],
-                                mac_addr[2],
-                                mac_addr[3],
-                                mac_addr[4],
-                                mac_addr[5],
-                                wscGetConfMode));
+				PRINT_MAC(mac_addr), wscGetConfMode));
 
 	return TRUE;
 }
@@ -10516,23 +10097,6 @@ INT	Set_AP_WscPinCode_Proc(
     }
     else
 #endif /* APCLI_SUPPORT */
-#ifdef P2P_SUPPORT
-    if (pObj->ioctl_if_type == INT_P2P)
-    {
-    	if (P2P_CLI_ON(pAd))
-    	{
-			bFromApCli = TRUE;
-			pWscControl = &pAd->ApCfg.ApCliTab[apidx].WscControl;
-    	}
-		else
-		{
-			bFromApCli = FALSE;
-			pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
-		}
-        DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_WscMode_Proc:: This command is from p2p interface now.\n", apidx));
-    }
-    else
-#endif /* P2P_SUPPORT */
     {
         bFromApCli = FALSE;
         pWscControl = &pAd->ApCfg.MBSSID[apidx].WscControl;
@@ -10596,13 +10160,7 @@ INT	Set_AP_WscPinCode_Proc(
         memcpy(mac_addr, pAd->ApCfg.MBSSID[apidx].Bssid, MAC_ADDR_LEN);
     }
 	DBGPRINT(RT_DEBUG_TRACE, ("IF(%02X:%02X:%02X:%02X:%02X:%02X) Set_WscPinCode_Proc::(PinCode=%d)\n", 
-                                mac_addr[0],
-                                mac_addr[1],
-                                mac_addr[2],
-                                mac_addr[3],
-                                mac_addr[4],
-                                mac_addr[5],
-                                pWscControl->WscPinCode));
+					PRINT_MAC(mac_addr), pWscControl->WscPinCode));
 
 	return TRUE;
 }
@@ -10729,9 +10287,11 @@ VOID RTMPIoctlWscProfile(
 	PSTRING msg;
 	POS_COOKIE  pObj = (POS_COOKIE) pAd->OS_Cookie;
 	UCHAR	    apidx = pObj->ioctl_if;
+	MULTISSID_STRUCT *pMbss;
 
+	pMbss = &pAd->ApCfg.MBSSID[apidx];
 #ifdef HOSTAPD_SUPPORT
-	if (pAd->ApCfg.MBSSID[apidx].Hostapd == TRUE)
+	if (pMbss->Hostapd == TRUE)
 	{
 		DBGPRINT(RT_DEBUG_TRACE, ("WPS is control by hostapd now.\n"));
 		return;
@@ -10740,41 +10300,40 @@ VOID RTMPIoctlWscProfile(
 
 
 	memset(&Profile, 0x00, sizeof(WSC_CONFIGURED_VALUE));
-	Profile.WscConfigured = pAd->ApCfg.MBSSID[apidx].WscControl.WscConfStatus;
+	Profile.WscConfigured = pMbss->WscControl.WscConfStatus;
 	NdisZeroMemory(Profile.WscSsid, 32 + 1);
-	NdisMoveMemory(Profile.WscSsid, pAd->ApCfg.MBSSID[apidx].Ssid, 
-								    pAd->ApCfg.MBSSID[apidx].SsidLen);
-	Profile.WscSsid[pAd->ApCfg.MBSSID[apidx].SsidLen] = '\0';
-	if (pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK)
+	NdisMoveMemory(Profile.WscSsid, pMbss->Ssid, pMbss->SsidLen);
+	Profile.WscSsid[pMbss->SsidLen] = '\0';
+	if (pMbss->AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK)
 		Profile.WscAuthMode = WSC_AUTHTYPE_WPAPSK | WSC_AUTHTYPE_WPA2PSK;
 	else
-		Profile.WscAuthMode = WscGetAuthType(pAd->ApCfg.MBSSID[apidx].AuthMode);
-	if (pAd->ApCfg.MBSSID[apidx].WepStatus == Ndis802_11Encryption4Enabled)
+		Profile.WscAuthMode = WscGetAuthType(pMbss->AuthMode);
+	if (pMbss->WepStatus == Ndis802_11Encryption4Enabled)
 		Profile.WscEncrypType = WSC_ENCRTYPE_TKIP |WSC_ENCRTYPE_AES;
 	else
-		Profile.WscEncrypType = WscGetEncryType(pAd->ApCfg.MBSSID[apidx].WepStatus);
+		Profile.WscEncrypType = WscGetEncryType(pMbss->WepStatus);
 	NdisZeroMemory(Profile.WscWPAKey, 64 + 1);
 
 	if (Profile.WscEncrypType == 2)
 	{
-		Profile.DefaultKeyIdx = pAd->ApCfg.MBSSID[apidx].DefaultKeyId + 1;
+		Profile.DefaultKeyIdx = pMbss->DefaultKeyId + 1;
 		{
 			int i;
-			for (i=0; i<pAd->SharedKey[apidx][pAd->ApCfg.MBSSID[apidx].DefaultKeyId].KeyLen; i++)
+			for (i=0; i<pAd->SharedKey[apidx][pMbss->DefaultKeyId].KeyLen; i++)
 			{
 				snprintf((PSTRING) Profile.WscWPAKey, sizeof(Profile.WscWPAKey),
 						"%s%02x", Profile.WscWPAKey,
-									pAd->SharedKey[apidx][pAd->ApCfg.MBSSID[apidx].DefaultKeyId].Key[i]);
+									pAd->SharedKey[apidx][pMbss->DefaultKeyId].Key[i]);
 			}
-			Profile.WscWPAKey[(pAd->SharedKey[apidx][pAd->ApCfg.MBSSID[apidx].DefaultKeyId].KeyLen)*2] = '\0';
+			Profile.WscWPAKey[(pAd->SharedKey[apidx][pMbss->DefaultKeyId].KeyLen)*2] = '\0';
 		}
 	}
 	else if (Profile.WscEncrypType >= 4)
 	{
 		Profile.DefaultKeyIdx = 2;
-		NdisMoveMemory(Profile.WscWPAKey, pAd->ApCfg.MBSSID[apidx].WscControl.WpaPsk, 
-						pAd->ApCfg.MBSSID[apidx].WscControl.WpaPskLen);
-		Profile.WscWPAKey[pAd->ApCfg.MBSSID[apidx].WscControl.WpaPskLen] = '\0';
+		NdisMoveMemory(Profile.WscWPAKey, pMbss->WscControl.WpaPsk, 
+						pMbss->WscControl.WpaPskLen);
+		Profile.WscWPAKey[pMbss->WscControl.WpaPskLen] = '\0';
 	}
 	else
 	{
@@ -10815,11 +10374,11 @@ VOID RTMPIoctlWscProfile(
 	else
 		sprintf(msg+strlen(msg),"%-12s", "Yes");
 	sprintf(msg+strlen(msg), "%-33s", Profile.WscSsid);
-	if (pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK)
+	if (pMbss->AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK)
 		sprintf(msg+strlen(msg), "%-12s", "WPAPSKWPA2PSK");
 	else
 		sprintf(msg+strlen(msg), "%-12s", WscGetAuthTypeStr(Profile.WscAuthMode));
-	if (pAd->ApCfg.MBSSID[apidx].WepStatus == Ndis802_11Encryption4Enabled)
+	if (pMbss->WepStatus == Ndis802_11Encryption4Enabled)
 		sprintf(msg+strlen(msg), "%-12s", "TKIPAES");
 	else
 		sprintf(msg+strlen(msg), "%-12s", WscGetEncryTypeStr(Profile.WscEncrypType));
@@ -12899,7 +12458,7 @@ INT RTMP_AP_IoctlHandle(
 			{
 				memcpy(pBssidDest, pBssidStr, ETH_ALEN);
 				DBGPRINT(RT_DEBUG_TRACE, ("IOCTL::SIOCGIWAP(=%02x:%02x:%02x:%02x:%02x:%02x)\n",
-					pBssidStr[0],pBssidStr[1],pBssidStr[2], pBssidStr[3],pBssidStr[4],pBssidStr[5]));
+						PRINT_MAC(pBssidStr)));
 			}
 			else
 			{
@@ -12953,611 +12512,7 @@ INT RTMP_AP_IoctlHandle(
 	return Status;
 }
 
-#ifdef P2P_SUPPORT
-INT Set_P2p_OpMode_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{
-	UINT OpMode;
-	POS_COOKIE pObj;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-	
-	OpMode = simple_strtol(arg, 0, 16);
 
-	
-	if (OpMode == OPMODE_AP)
-	{
-		if (P2P_CLI_ON(pAd))
-			P2P_CliStop(pAd);
-
-		if ((!P2P_GO_ON(pAd)) || (P2P_GO_ON(pAd)))
-		{
-			P2PCfgInit(pAd);
-			P2P_GoStartUp(pAd, MAIN_MBSSID);
-		}
-	}
-	else if (OpMode == OPMODE_APSTA)
-	{
-		if (P2P_GO_ON(pAd))
-			P2P_GoStop(pAd);
-
-		if ((!P2P_CLI_ON(pAd)) || (P2P_CLI_ON(pAd)))
-		{
-			P2PCfgInit(pAd);
-			P2P_CliStartUp(pAd);
-			AsicEnableBssSync(pAd);
-		}
-	}
-	else
-	{
-		if (P2P_CLI_ON(pAd))
-			P2P_CliStop(pAd);
-		else if (P2P_GO_ON(pAd))
-		{
-			P2P_GoStop(pAd);
-			if (INFRA_ON(pAd))
-				AsicEnableBssSync(pAd);
-		}
-		P2PCfgInit(pAd);
-	}
-
-	DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2p_OpMode_Proc::(OpMode = %d)\n", pObj->ioctl_if, OpMode));
-
-	return TRUE;
-}
-
-INT Set_P2pCli_Enable_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{
-	UINT Enable;
-	POS_COOKIE pObj;
-	UCHAR ifIndex;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	
-	Enable = simple_strtol(arg, 0, 16);
-
-	pAd->ApCfg.ApCliTab[ifIndex].Enable = (Enable > 0) ? TRUE : FALSE;
-
-	DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_Enable_Proc::(enable = %d)\n", ifIndex, pAd->ApCfg.ApCliTab[ifIndex].Enable));
-	
-	ApCliIfDown(pAd);
-
-	return TRUE;
-}
-
-
-INT Set_P2pCli_Ssid_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{
-	POS_COOKIE pObj;
-	UCHAR ifIndex;
-	BOOLEAN apcliEn;
-	INT success = FALSE;
-	/*UCHAR keyMaterial[40]; */
-	UCHAR PskKey[100];
-
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	
-	if(strlen(arg) <= MAX_LEN_OF_SSID)
-	{
-		apcliEn = pAd->ApCfg.ApCliTab[ifIndex].Enable;
-
-		/* bring apcli interface down first */
-		if(apcliEn == TRUE )
-		{
-			pAd->ApCfg.ApCliTab[ifIndex].Enable = FALSE;
-			ApCliIfDown(pAd);
-		}
-
-		NdisZeroMemory(pAd->ApCfg.ApCliTab[ifIndex].CfgSsid, MAX_LEN_OF_SSID);
-		NdisMoveMemory(pAd->ApCfg.ApCliTab[ifIndex].CfgSsid, arg, strlen(arg));
-		pAd->ApCfg.ApCliTab[ifIndex].CfgSsidLen = (UCHAR)strlen(arg);
-
-		NdisZeroMemory(pAd->ApCfg.ApCliTab[ifIndex].WscControl.WscSsid.Ssid, MAX_LEN_OF_SSID);
-		NdisMoveMemory(pAd->ApCfg.ApCliTab[ifIndex].WscControl.WscSsid.Ssid, arg, strlen(arg));
-		pAd->ApCfg.ApCliTab[ifIndex].WscControl.WscSsid.SsidLength = (UCHAR)strlen(arg);
-
-		success = TRUE;
-
-		/* Upadte PMK and restart WPAPSK state machine for ApCli link */
-		if (((pAd->ApCfg.ApCliTab[ifIndex].AuthMode == Ndis802_11AuthModeWPAPSK) ||
-				(pAd->ApCfg.ApCliTab[ifIndex].AuthMode == Ndis802_11AuthModeWPA2PSK)) && 
-					pAd->ApCfg.ApCliTab[ifIndex].PSKLen > 0)
-		{
-			NdisZeroMemory(PskKey, 100);
-			NdisMoveMemory(PskKey, pAd->ApCfg.ApCliTab[ifIndex].PSK, pAd->ApCfg.ApCliTab[ifIndex].PSKLen);
-
-			RT_CfgSetWPAPSKKey(pAd, (PSTRING)PskKey, 
-									pAd->ApCfg.ApCliTab[ifIndex].PSKLen,
-									(PUCHAR)pAd->ApCfg.ApCliTab[ifIndex].CfgSsid, 
-									pAd->ApCfg.ApCliTab[ifIndex].CfgSsidLen, 
-									pAd->ApCfg.ApCliTab[ifIndex].PMK);
-		}
-
-		DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_Ssid_Proc::(Len=%d,Ssid=%s)\n", ifIndex,
-			pAd->ApCfg.ApCliTab[ifIndex].CfgSsidLen, pAd->ApCfg.ApCliTab[ifIndex].CfgSsid));
-
-		pAd->ApCfg.ApCliTab[ifIndex].Enable = apcliEn;
-	}
-	else
-		success = FALSE;
-
-	return success;
-}
-
-
-INT Set_P2pCli_Bssid_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{
-	INT i;
-	PSTRING value;
-	UCHAR ifIndex;
-	BOOLEAN apcliEn;
-	POS_COOKIE pObj;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	
-	apcliEn = pAd->ApCfg.ApCliTab[ifIndex].Enable;
-
-	/* bring apcli interface down first */
-	if(apcliEn == TRUE )
-	{
-		pAd->ApCfg.ApCliTab[ifIndex].Enable = FALSE;
-		ApCliIfDown(pAd);
-	}
-
-	NdisZeroMemory(pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid, MAC_ADDR_LEN);
-
-	if(strlen(arg) == 17)  /* Mac address acceptable format 01:02:03:04:05:06 length 17 */
-	{
-		for (i=0, value = rstrtok(arg,":"); value; value = rstrtok(NULL,":"), i++) 
-		{
-			if((strlen(value) != 2) || (!isxdigit(*value)) || (!isxdigit(*(value+1))) ) 
-				return FALSE;  /* Invalid */
-
-			AtoH(value, &pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[i], 1);
-		}
-
-		if(i != 6)
-			return FALSE;  /* Invalid */
-	}
-
-	DBGPRINT(RT_DEBUG_TRACE, ("Set_P2pCli_Bssid_Proc (%2X:%2X:%2X:%2X:%2X:%2X)\n",
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[0],
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[1],
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[2],
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[3],
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[4],
-		pAd->ApCfg.ApCliTab[ifIndex].CfgApCliBssid[5]));
-
-	pAd->ApCfg.ApCliTab[ifIndex].Enable = apcliEn;
-
-	return TRUE;
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set ApCli-IF Authentication mode
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_AuthMode_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	ULONG       i;
-	POS_COOKIE 	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	UCHAR 		ifIndex;
-
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-
-	if ((strncmp(arg, "WEPAUTO", 7) == 0) || (strncmp(arg, "wepauto", 7) == 0))
-		pAd->ApCfg.ApCliTab[ifIndex].AuthMode = Ndis802_11AuthModeAutoSwitch;
-	else if ((strncmp(arg, "SHARED", 6) == 0) || (strncmp(arg, "shared", 6) == 0))
-		pAd->ApCfg.ApCliTab[ifIndex].AuthMode = Ndis802_11AuthModeShared;
-	else if ((strncmp(arg, "WPAPSK", 6) == 0) || (strncmp(arg, "wpapsk", 6) == 0))
-		pAd->ApCfg.ApCliTab[ifIndex].AuthMode = Ndis802_11AuthModeWPAPSK;
-	else if ((strncmp(arg, "WPA2PSK", 7) == 0) || (strncmp(arg, "wpa2psk", 7) == 0))
-		pAd->ApCfg.ApCliTab[ifIndex].AuthMode = Ndis802_11AuthModeWPA2PSK;
-	else
-		pAd->ApCfg.ApCliTab[ifIndex].AuthMode = Ndis802_11AuthModeOpen;
-
-	for (i=0; i<MAX_LEN_OF_MAC_TABLE; i++)
-	{
-		if (IS_ENTRY_APCLI(&pAd->MacTab.Content[i]))
-		{
-			pAd->MacTab.Content[i].PortSecured  = WPA_802_1X_PORT_NOT_SECURED;
-		}
-	}
-		
-    RTMPMakeRSNIE(pAd, pAd->ApCfg.ApCliTab[ifIndex].AuthMode, pAd->ApCfg.ApCliTab[ifIndex].WepStatus, (ifIndex + MIN_NET_DEVICE_FOR_APCLI));
-
-	pAd->ApCfg.ApCliTab[ifIndex].DefaultKeyId  = 0;
-
-	if(pAd->ApCfg.ApCliTab[ifIndex].AuthMode >= Ndis802_11AuthModeWPA)
-		pAd->ApCfg.ApCliTab[ifIndex].DefaultKeyId = 1;
-
-	DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_AuthMode_Proc::(AuthMode=%d)\n", ifIndex, pAd->ApCfg.ApCliTab[ifIndex].AuthMode));		
-	return TRUE;
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set ApCli-IF Encryption Type
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_EncrypType_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	POS_COOKIE 	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	UCHAR 		ifIndex;
-	PAPCLI_STRUCT   pApCliEntry = NULL;
-
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	pApCliEntry->WepStatus = Ndis802_11WEPDisabled; 
-	if ((strncmp(arg, "WEP", 3) == 0) || (strncmp(arg, "wep", 3) == 0))
-    {
-		if (pApCliEntry->AuthMode < Ndis802_11AuthModeWPA)
-			pApCliEntry->WepStatus = Ndis802_11WEPEnabled;				  
-	}
-	else if ((strncmp(arg, "TKIP", 4) == 0) || (strncmp(arg, "tkip", 4) == 0))
-	{
-		if (pApCliEntry->AuthMode >= Ndis802_11AuthModeWPA)
-			pApCliEntry->WepStatus = Ndis802_11Encryption2Enabled;                       
-    }
-	else if ((strncmp(arg, "AES", 3) == 0) || (strncmp(arg, "aes", 3) == 0))
-	{
-		if (pApCliEntry->AuthMode >= Ndis802_11AuthModeWPA)
-			pApCliEntry->WepStatus = Ndis802_11Encryption3Enabled;                            
-	}    
-	else
-	{
-		pApCliEntry->WepStatus = Ndis802_11WEPDisabled;                 
-	}
-
-	pApCliEntry->PairCipher     = pApCliEntry->WepStatus;
-	pApCliEntry->GroupCipher    = pApCliEntry->WepStatus;
-	pApCliEntry->bMixCipher		= FALSE;
-
-	if (pApCliEntry->WepStatus >= Ndis802_11Encryption2Enabled)
-		pApCliEntry->DefaultKeyId = 1;
-
-	RTMPMakeRSNIE(pAd, pApCliEntry->AuthMode, pApCliEntry->WepStatus, (ifIndex + MIN_NET_DEVICE_FOR_APCLI));
-	DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_EncrypType_Proc::(EncrypType=%d)\n", ifIndex, pApCliEntry->WepStatus));
-
-	return TRUE;
-}
-
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set Default Key ID
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_DefaultKeyID_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	ULONG 			KeyIdx;
-	POS_COOKIE 		pObj = (POS_COOKIE) pAd->OS_Cookie;
-	UCHAR 			ifIndex;
-	PAPCLI_STRUCT   pApCliEntry = NULL;
-
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	KeyIdx = simple_strtol(arg, 0, 10);
-	if((KeyIdx >= 1 ) && (KeyIdx <= 4))
-		pApCliEntry->DefaultKeyId = (UCHAR) (KeyIdx - 1 );
-	else
-		return FALSE;  /* Invalid argument  */
-	
-	DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_DefaultKeyID_Proc::(DefaultKeyID(0~3)=%d)\n", ifIndex, pApCliEntry->DefaultKeyId));
-
-	return TRUE;
-}
-
-/* 
-    ==========================================================================
-    Description:
-        Set WPA PSK key for ApCli link
-
-    Arguments:
-        pAdapter            Pointer to our adapter
-        arg                 WPA pre-shared key string
-
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_WPAPSK_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	UCHAR ifIndex;
-	POS_COOKIE pObj;
-	PAPCLI_STRUCT   pApCliEntry = NULL;
-	INT retval;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-	
-	DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_WPAPSK_Proc::(WPAPSK=%s)\n", ifIndex, arg));
-
-	retval = RT_CfgSetWPAPSKKey(pAd, arg, strlen(arg), (PUCHAR)pApCliEntry->CfgSsid, pApCliEntry->CfgSsidLen, pApCliEntry->PMK);
-	if (retval == FALSE)
-		return FALSE;
-	
-	NdisMoveMemory(pApCliEntry->PSK, arg, strlen(arg));
-	pApCliEntry->PSKLen = strlen(arg);
-
-	return TRUE;
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set WEP KEY1 for ApCli-IF
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_Key1_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	POS_COOKIE 		pObj = (POS_COOKIE) pAd->OS_Cookie;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	UCHAR			ifIndex;
-	INT				retVal;
-	
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	retVal = RT_CfgSetWepKey(pAd, arg, &pApCliEntry->SharedKey[0], 0);
-	if(retVal == TRUE)
-		DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_Key1_Proc::(Key1=%s) success!\n", ifIndex, arg));
-	
-	return retVal;
-	
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set WEP KEY2 for ApCli-IF
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_Key2_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	POS_COOKIE 		pObj;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	UCHAR			ifIndex;
-	INT				retVal;
-
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	retVal = RT_CfgSetWepKey(pAd, arg, &pApCliEntry->SharedKey[1], 1);
-	if(retVal == TRUE)
-		DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_Key2_Proc::(Key2=%s) success!\n", ifIndex, arg));
-	
-	return retVal;
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set WEP KEY3 for ApCli-IF
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_Key3_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	POS_COOKIE 		pObj;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	UCHAR			ifIndex;
-	INT				retVal;
-
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	retVal = RT_CfgSetWepKey(pAd, arg, &pApCliEntry->SharedKey[2], 2);
-	if(retVal == TRUE)
-		DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_Key3_Proc::(Key3=%s) success!\n", ifIndex, arg));
-	
-	return retVal;
-}
-
-
-/* 
-    ==========================================================================
-    Description:
-        Set WEP KEY4 for ApCli-IF
-    Return:
-        TRUE if all parameters are OK, FALSE otherwise
-    ==========================================================================
-*/
-INT	Set_P2pCli_Key4_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-	POS_COOKIE 		pObj;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	UCHAR			ifIndex;
-	INT				retVal;
-
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	retVal = RT_CfgSetWepKey(pAd, arg, &pApCliEntry->SharedKey[3], 3);
-	if(retVal == TRUE)
-		DBGPRINT(RT_DEBUG_TRACE, ("IF(p2p%d) Set_P2pCli_Key4_Proc::(Key4=%s) success!\n", ifIndex, arg));
-	
-	return retVal;
-}
-
-INT Set_P2pCli_TxMode_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{	
-	POS_COOKIE 		pObj;	
-	UCHAR 			ifIndex;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	pApCliEntry->DesiredTransmitSetting.field.FixedTxMode = 
-								RT_CfgSetFixedTxPhyMode(arg);
-	DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_TxMode_Proc = %d\n", ifIndex,
-									pApCliEntry->DesiredTransmitSetting.field.FixedTxMode));
-
-	return TRUE;
-}
-
-INT Set_P2pCli_TxMcs_Proc(
-	IN  PRTMP_ADAPTER pAd, 
-	IN  PSTRING arg)
-{
-	POS_COOKIE 		pObj;
-	UCHAR 			ifIndex;
-	PAPCLI_STRUCT	pApCliEntry = NULL;
-	
-	pObj = (POS_COOKIE) pAd->OS_Cookie;
-	if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-
-	ifIndex = pObj->ioctl_if;
-	pApCliEntry = &pAd->ApCfg.ApCliTab[ifIndex];
-
-	pApCliEntry->DesiredTransmitSetting.field.MCS = 
-			RT_CfgSetTxMCSProc(arg, &pApCliEntry->bAutoTxRateSwitch);
-
-	if (pApCliEntry->DesiredTransmitSetting.field.MCS == MCS_AUTO)
-	{
-		DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_TxMcs_Proc = AUTO\n", ifIndex));
-	}
-	else
-	{
-		DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_TxMcs_Proc = %d\n", ifIndex, 
-									pApCliEntry->DesiredTransmitSetting.field.MCS));
-	}	
-
-	return TRUE;
-}
-
-#ifdef WSC_AP_SUPPORT
-INT Set_P2pCli_WscSsid_Proc(
-	IN	PRTMP_ADAPTER	pAd, 
-	IN	PSTRING			arg)
-{
-    POS_COOKIE 		pObj = (POS_COOKIE) pAd->OS_Cookie;
-    UCHAR			ifIndex = pObj->ioctl_if;
-	PWSC_CTRL	    pWscControl = &pAd->ApCfg.ApCliTab[ifIndex].WscControl;
-
-    if (pObj->ioctl_if_type != INT_P2P)
-		return FALSE;
-    
-	NdisZeroMemory(&pWscControl->WscSsid, sizeof(NDIS_802_11_SSID));
-
-	if ( (strlen(arg) > 0) && (strlen(arg) <= MAX_LEN_OF_SSID))
-	{
-		NdisMoveMemory(pWscControl->WscSsid.Ssid, arg, strlen(arg));
-		pWscControl->WscSsid.SsidLength = strlen(arg);
-
-		NdisZeroMemory(pAd->ApCfg.ApCliTab[ifIndex].CfgSsid, MAX_LEN_OF_SSID);
-		NdisMoveMemory(pAd->ApCfg.ApCliTab[ifIndex].CfgSsid, arg, strlen(arg));
-		pAd->ApCfg.ApCliTab[ifIndex].CfgSsidLen = (UCHAR)strlen(arg);
-
-		DBGPRINT(RT_DEBUG_TRACE, ("I/F(p2p%d) Set_P2pCli_WscSsid_Proc:: (Select SsidLen=%d,Ssid=%s)\n", ifIndex, 
-				pWscControl->WscSsid.SsidLength, pWscControl->WscSsid.Ssid));
-	}
-	else
-		return FALSE;	/* Invalid argument  */
-
-	return TRUE;	
-
-}
-#endif /* WSC_AP_SUPPORT */
-#endif /* P2P_SUPPORT */
 
 INT Set_MacWatchDog_Proc(
 	IN RTMP_ADAPTER		*pAd,

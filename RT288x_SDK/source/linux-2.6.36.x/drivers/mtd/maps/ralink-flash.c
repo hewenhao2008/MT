@@ -285,6 +285,8 @@ int ra_check_flash_type(void)
 		boot_from = BOOT_FROM_NAND;
 		break;	
 	}	
+    }else if(strcmp(Id,"MT7628")==0) {
+	boot_from = BOOT_FROM_SPI;
     } else {
 	printk("%s: %s is not supported\n",__FUNCTION__, Id);
     }
@@ -294,6 +296,7 @@ int ra_check_flash_type(void)
 
 
 }
+EXPORT_SYMBOL(ra_check_flash_type);
 
 
 #ifdef CONFIG_ROOTFS_IN_FLASH_NO_PADDING

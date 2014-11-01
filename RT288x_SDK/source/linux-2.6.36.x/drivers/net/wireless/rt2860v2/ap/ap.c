@@ -39,6 +39,21 @@ char const *pEventText[EVENT_MAX_EVENT_TYPE] = {
 	"active countermeasures",
 	"has disassociated with invalid PSK password"};
 
+
+UCHAR get_apidx_by_addr(RTMP_ADAPTER *pAd, UCHAR *addr)
+{
+	UCHAR apidx;
+
+	for (apidx=0; apidx<pAd->ApCfg.BssidNum; apidx++)
+	{	
+		if (RTMPEqualMemory(addr, pAd->ApCfg.MBSSID[apidx].Bssid, MAC_ADDR_LEN))
+			break;
+	}
+
+	return apidx;
+}
+
+
 /*
 	==========================================================================
 	Description:
@@ -213,7 +228,7 @@ VOID APStartUp(
 							Bit3~ of MAC address Byte0 is extended multiple BSSID index.
 			 		*/
 #ifdef ENHANCE_NEW_MBSSID_MODE
-					pMbss->Bssid[0] &= (MacMask << 2);
+					pMbss->Bssid[0] &= ((MacMask << 2) + 3);
 #endif /* ENHANCE_NEW_MBSSID_MODE */
 					pMbss->Bssid[0] |= 0x2;
 					pMbss->Bssid[0] += ((apidx - 1) << 2);
@@ -957,6 +972,7 @@ VOID MacTableMaintenance(
 	int lastClient=0;
 #endif /* defined(PRE_ANT_SWITCH) || defined(CFO_TRACK) */
 	UINT32 MaxWcidNum = MAX_LEN_OF_MAC_TABLE;
+	MULTISSID_STRUCT *pMbss;
 
 	for (bss_index = BSS0; bss_index < MAX_MBSSID_NUM(pAd); bss_index++)
 		fAnyStationPortSecured[bss_index] = 0;
@@ -995,38 +1011,6 @@ VOID MacTableMaintenance(
 	{
 		MAC_TABLE_ENTRY *pEntry = &pMacTable->Content[i];
 		BOOLEAN bDisconnectSta = FALSE;
-#ifdef APCLI_SUPPORT
-		if(IS_ENTRY_APCLI(pEntry) && (pEntry->PortSecured == WPA_802_1X_PORT_SECURED))
-		{
-#ifdef MAC_REPEATER_SUPPORT
-			if (pEntry->bReptCli)
-				pEntry->ReptCliIdleCount++;
-
-			if((pEntry->bReptCli) && (pEntry->bReptEthCli) && (pEntry->ReptCliIdleCount >= MAC_TABLE_AGEOUT_TIME))
-			{
-				MlmeEnqueue(pAd, APCLI_CTRL_STATE_MACHINE, APCLI_CTRL_DISCONNECT_REQ, 0, NULL,
-								(64 + (MAX_EXT_MAC_ADDR_SIZE * pEntry->MatchAPCLITabIdx) + pEntry->MatchReptCliIdx));
-				RTMP_MLME_HANDLER(pAd);
-				RTMPRemoveRepeaterEntry(pAd, pEntry->MatchAPCLITabIdx, pEntry->MatchReptCliIdx);
-				continue;
-			}
-#endif /* MAC_REPEATER_SUPPORT */
-
-			if ((pAd->Mlme.OneSecPeriodicRound % 10) == 8)
-			{
-				/* use Null or QoS Null to detect the ACTIVE station*/
-				BOOLEAN ApclibQosNull = FALSE;
-		
-				if (CLIENT_STATUS_TEST_FLAG(pEntry, fCLIENT_STATUS_WMM_CAPABLE))
-					ApclibQosNull = TRUE;
-				
-			       ApCliRTMPSendNullFrame(pAd,pEntry->CurrTxRate, ApclibQosNull, pEntry);
-
-				continue;
-			}
-		}
-#endif /* APCLI_SUPPORT */
-
 		if (!IS_ENTRY_CLIENT(pEntry))
 			continue;
 
@@ -1036,15 +1020,17 @@ VOID MacTableMaintenance(
 		pEntry->NoDataIdleCount ++;  
 		pEntry->StaConnectTime ++;
 
+		pMbss = &pAd->ApCfg.MBSSID[pEntry->apidx];
+
 		/* 0. STA failed to complete association should be removed to save MAC table space. */
 		if ((pEntry->Sst != SST_ASSOC) && (pEntry->NoDataIdleCount >= pEntry->AssocDeadLine))
 		{
-			DBGPRINT(RT_DEBUG_TRACE, ("%02x:%02x:%02x:%02x:%02x:%02x fail to complete ASSOC in %d sec\n",
-					pEntry->Addr[0],pEntry->Addr[1],pEntry->Addr[2],pEntry->Addr[3],
-					pEntry->Addr[4],pEntry->Addr[5],MAC_TABLE_ASSOC_TIMEOUT));
+			DBGPRINT(RT_DEBUG_TRACE,
+					("%02x:%02x:%02x:%02x:%02x:%02x fail to complete ASSOC in %d sec\n",
+					PRINT_MAC(pEntry->Addr), MAC_TABLE_ASSOC_TIMEOUT));
 #ifdef WSC_AP_SUPPORT
-			if (NdisEqualMemory(pEntry->Addr, pAd->ApCfg.MBSSID[pEntry->apidx].WscControl.EntryAddr, MAC_ADDR_LEN))
-				NdisZeroMemory(pAd->ApCfg.MBSSID[pEntry->apidx].WscControl.EntryAddr, MAC_ADDR_LEN);
+			if (NdisEqualMemory(pEntry->Addr, pMbss->WscControl.EntryAddr, MAC_ADDR_LEN))
+				NdisZeroMemory(pMbss->WscControl.EntryAddr, MAC_ADDR_LEN);
 #endif /* WSC_AP_SUPPORT */
 			MacTableDeleteEntry(pAd, pEntry->Aid, pEntry->Addr);
 			continue;
@@ -1101,11 +1087,9 @@ VOID MacTableMaintenance(
 
 		/* detect the station alive status */
 		/* detect the station alive status */
-		if ((pAd->ApCfg.MBSSID[pEntry->apidx].StationKeepAliveTime > 0) &&
-			(pEntry->NoDataIdleCount >= pAd->ApCfg.MBSSID[pEntry->apidx].StationKeepAliveTime))
+		if ((pMbss->StationKeepAliveTime > 0) &&
+			(pEntry->NoDataIdleCount >= pMbss->StationKeepAliveTime))
 		{
-			MULTISSID_STRUCT *pMbss = &pAd->ApCfg.MBSSID[pEntry->apidx];
-
 			/*
 				If no any data success between ap and the station for
 				StationKeepAliveTime, try to detect whether the station is
@@ -1198,8 +1182,7 @@ VOID MacTableMaintenance(
 		{
 			bDisconnectSta = TRUE;
 			DBGPRINT(RT_DEBUG_WARN, ("ageout %02x:%02x:%02x:%02x:%02x:%02x after %d-sec silence\n",
-					pEntry->Addr[0],pEntry->Addr[1],pEntry->Addr[2],pEntry->Addr[3],
-					pEntry->Addr[4],pEntry->Addr[5],pEntry->StaIdleTimeout));
+					PRINT_MAC(pEntry->Addr), pEntry->StaIdleTimeout));
 			ApLogEvent(pAd, pEntry->Addr, EVENT_AGED_OUT);
 		}
 		else if (pEntry->ContinueTxFailCnt >= pAd->ApCfg.EntryLifeCheck)
@@ -1212,8 +1195,7 @@ VOID MacTableMaintenance(
 			{
 				bDisconnectSta = TRUE;
 				DBGPRINT(RT_DEBUG_WARN, ("STA-%02x:%02x:%02x:%02x:%02x:%02x had left (%d %lu)\n",
-					pEntry->Addr[0],pEntry->Addr[1],pEntry->Addr[2],pEntry->Addr[3],
-					pEntry->Addr[4],pEntry->Addr[5],
+					PRINT_MAC(pEntry->Addr),
 					pEntry->ContinueTxFailCnt, pAd->ApCfg.EntryLifeCheck));
 			}
 		}
@@ -1240,8 +1222,8 @@ VOID MacTableMaintenance(
 					continue;
 				}
 				Reason = REASON_DEAUTH_STA_LEAVING;
-				DBGPRINT(RT_DEBUG_WARN, ("Send DEAUTH - Reason = %d frame  TO %x %x %x %x %x %x \n",Reason,pEntry->Addr[0],
-										pEntry->Addr[1],pEntry->Addr[2],pEntry->Addr[3],pEntry->Addr[4],pEntry->Addr[5]));
+				DBGPRINT(RT_DEBUG_WARN, ("Send DEAUTH - Reason = %d frame  TO %x %x %x %x %x %x \n",
+										Reason, PRINT_MAC(pEntry->Addr)));
 				MgtMacHeaderInit(pAd, &DeAuthHdr, SUBTYPE_DEAUTH, 0, pEntry->Addr, 
 #ifdef P2P_SUPPORT
 								pAd->ApCfg.MBSSID[pEntry->apidx].Bssid,
@@ -1253,25 +1235,6 @@ VOID MacTableMaintenance(
 		    	                  END_OF_ARGS);				
 		    	MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
 		    	MlmeFreeMemory(pAd, pOutBuffer);
-
-#ifdef MAC_REPEATER_SUPPORT
-				if ((pAd->ApCfg.bMACRepeaterEn == TRUE) && IS_ENTRY_CLIENT(pEntry))
-				{
-					UCHAR apCliIdx, CliIdx;
-					REPEATER_CLIENT_ENTRY *pReptEntry = NULL;
-
-					pReptEntry = RTMPLookupRepeaterCliEntry(pAd, TRUE, pEntry->Addr);
-					if (pReptEntry && (pReptEntry->CliConnectState != 0))
-					{
-						apCliIdx = pReptEntry->MatchApCliIdx;
-						CliIdx = pReptEntry->MatchLinkIdx;
-						MlmeEnqueue(pAd, APCLI_CTRL_STATE_MACHINE, APCLI_CTRL_DISCONNECT_REQ, 0, NULL,
-										(64 + MAX_EXT_MAC_ADDR_SIZE*apCliIdx + CliIdx));
-						RTMP_MLME_HANDLER(pAd);
-						RTMPRemoveRepeaterEntry(pAd, apCliIdx, CliIdx);
-					}
-				}
-#endif /* MAC_REPEATER_SUPPORT */
 			}
 
 			MacTableDeleteEntry(pAd, pEntry->Aid, pEntry->Addr);
@@ -1284,9 +1247,10 @@ VOID MacTableMaintenance(
 			pEntry->PsQIdleCount ++;  
 			if (pEntry->PsQIdleCount > 2) 
 			{
-				NdisAcquireSpinLock(&pAd->irq_lock);
+				ULONG irq_flags;
+				RTMP_IRQ_LOCK(&pAd->irq_lock, irq_flags);
 				APCleanupPsQueue(pAd, &pEntry->PsQueue);
-				NdisReleaseSpinLock(&pAd->irq_lock);
+				RTMP_IRQ_UNLOCK(&pAd->irq_lock, irq_flags);
 				pEntry->PsQIdleCount = 0;
 				WLAN_MR_TIM_BIT_CLEAR(pAd, pEntry->apidx, pEntry->Aid);
 			}
@@ -1992,80 +1956,59 @@ VOID ApUpdateAccessControlList(
 	ULONG       FrameLen = 0;
 	HEADER_802_11 DisassocHdr;
 	USHORT      Reason;
+	MAC_TABLE_ENTRY *pEntry;
+	MULTISSID_STRUCT *pMbss;
+	BOOLEAN drop;
 
-	
-	/*Apidx = pObj->ioctl_if; */
 	ASSERT(Apidx < MAX_MBSSID_NUM(pAd));
 	if (Apidx >= MAX_MBSSID_NUM(pAd))
 		return;
 	DBGPRINT(RT_DEBUG_TRACE, ("ApUpdateAccessControlList : Apidx = %d\n", Apidx));
 	
     /* ACL is disabled. Do nothing about the MAC table. */
-    if (pAd->ApCfg.MBSSID[Apidx].AccessControlList.Policy == 0)
+	pMbss = &pAd->ApCfg.MBSSID[Apidx];
+	if (pMbss->AccessControlList.Policy == 0)
 		return;
 
 	for (MacIdx=0; MacIdx < MAX_LEN_OF_MAC_TABLE; MacIdx++)
 	{
-		if (!IS_ENTRY_CLIENT(&pAd->MacTab.Content[MacIdx])) 
+		pEntry = &pAd->MacTab.Content[MacIdx];
+		if (!IS_ENTRY_CLIENT(pEntry))
 			continue;
 
 		/* We only need to update associations related to ACL of MBSSID[Apidx]. */
-		if (pAd->MacTab.Content[MacIdx].apidx != Apidx) 
+		if (pEntry->apidx != Apidx) 
 			continue;
     
+		drop = FALSE;
 		Matched = FALSE;
-		 for (AclIdx = 0; AclIdx < pAd->ApCfg.MBSSID[Apidx].AccessControlList.Num; AclIdx++)
+		 for (AclIdx = 0; AclIdx < pMbss->AccessControlList.Num; AclIdx++)
 		{
-			if (MAC_ADDR_EQUAL(&pAd->MacTab.Content[MacIdx].Addr, pAd->ApCfg.MBSSID[Apidx].AccessControlList.Entry[AclIdx].Addr))
+			if (MAC_ADDR_EQUAL(&pEntry->Addr[0], pMbss->AccessControlList.Entry[AclIdx].Addr))
 			{
 				Matched = TRUE;
 				break;
 			}
 		}
 
-		if ((Matched == FALSE) && (pAd->ApCfg.MBSSID[Apidx].AccessControlList.Policy == 1))
+		if ((Matched == FALSE) && (pMbss->AccessControlList.Policy == 1))
 		{
-			DBGPRINT(RT_DEBUG_TRACE, ("Apidx = %d\n", Apidx));
-			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ApCfg.MBSSID[%d].AccessControlList.Policy = %ld\n", Apidx,
-				pAd->ApCfg.MBSSID[Apidx].AccessControlList.Policy));
+			drop = TRUE;
 			DBGPRINT(RT_DEBUG_TRACE, ("STA not on positive ACL. remove it...\n"));
-			
-			/* Before delete the entry from MacTable, send disassociation packet to client. */
-			if (pAd->MacTab.Content[MacIdx].Sst == SST_ASSOC)
+		}
+	       else if ((Matched == TRUE) && (pMbss->AccessControlList.Policy == 2))
 			{
-				/*  send out a DISASSOC frame */
-				NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
-				if (NStatus != NDIS_STATUS_SUCCESS) 
-				{
-					DBGPRINT(RT_DEBUG_TRACE, (" MlmeAllocateMemory fail  ..\n"));
-					return;
+			drop = TRUE;
+			DBGPRINT(RT_DEBUG_TRACE, ("STA on negative ACL. remove it...\n"));
 				}
 
-				Reason = REASON_DECLINED;
-				DBGPRINT(RT_DEBUG_ERROR, ("ASSOC - Send DISASSOC  Reason = %d frame  TO %x %x %x %x %x %x \n",Reason,pAd->MacTab.Content[MacIdx].Addr[0],
-					pAd->MacTab.Content[MacIdx].Addr[1],pAd->MacTab.Content[MacIdx].Addr[2],pAd->MacTab.Content[MacIdx].Addr[3],pAd->MacTab.Content[MacIdx].Addr[4],pAd->MacTab.Content[MacIdx].Addr[5]));
-				MgtMacHeaderInit(pAd, &DisassocHdr, SUBTYPE_DISASSOC, 0, pAd->MacTab.Content[MacIdx].Addr, 
-#ifdef P2P_SUPPORT
-									pAd->ApCfg.MBSSID[pAd->MacTab.Content[MacIdx].apidx].Bssid,
-#endif /* P2P_SUPPORT */
-									pAd->ApCfg.MBSSID[pAd->MacTab.Content[MacIdx].apidx].Bssid);
-				MakeOutgoingFrame(pOutBuffer, &FrameLen, sizeof(HEADER_802_11), &DisassocHdr, 2, &Reason, END_OF_ARGS);
-				MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
-				MlmeFreeMemory(pAd, pOutBuffer);
-
-				RTMPusecDelay(5000);
-			}
-			MacTableDeleteEntry(pAd, pAd->MacTab.Content[MacIdx].Aid, pAd->MacTab.Content[MacIdx].Addr);
-		}
-	       else if ((Matched == TRUE) && (pAd->ApCfg.MBSSID[Apidx].AccessControlList.Policy == 2))
-		{
+		if (drop == TRUE) {
 			DBGPRINT(RT_DEBUG_TRACE, ("Apidx = %d\n", Apidx));
 			DBGPRINT(RT_DEBUG_TRACE, ("pAd->ApCfg.MBSSID[%d].AccessControlList.Policy = %ld\n", Apidx,
-				pAd->ApCfg.MBSSID[Apidx].AccessControlList.Policy));
-			DBGPRINT(RT_DEBUG_TRACE, ("STA on negative ACL. remove it...\n"));
+				pMbss->AccessControlList.Policy));
 			
 			/* Before delete the entry from MacTable, send disassociation packet to client. */
-			if (pAd->MacTab.Content[MacIdx].Sst == SST_ASSOC)
+			if (pEntry->Sst == SST_ASSOC)
 			{
 				/* send out a DISASSOC frame */
 				NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
@@ -2076,20 +2019,21 @@ VOID ApUpdateAccessControlList(
 				}
 
 				Reason = REASON_DECLINED;
-				DBGPRINT(RT_DEBUG_ERROR, ("ASSOC - Send DISASSOC  Reason = %d frame  TO %x %x %x %x %x %x \n",Reason,pAd->MacTab.Content[MacIdx].Addr[0],
-					pAd->MacTab.Content[MacIdx].Addr[1],pAd->MacTab.Content[MacIdx].Addr[2],pAd->MacTab.Content[MacIdx].Addr[3],pAd->MacTab.Content[MacIdx].Addr[4],pAd->MacTab.Content[MacIdx].Addr[5]));
-				MgtMacHeaderInit(pAd, &DisassocHdr, SUBTYPE_DISASSOC, 0, pAd->MacTab.Content[MacIdx].Addr, 
+				DBGPRINT(RT_DEBUG_ERROR, ("ASSOC - Send DISASSOC  Reason = %d frame  TO %x %x %x %x %x %x \n",
+							Reason, PRINT_MAC(pEntry->Addr)));
+				MgtMacHeaderInit(pAd, &DisassocHdr, SUBTYPE_DISASSOC, 0, 
+									pEntry->Addr, 
 #ifdef P2P_SUPPORT
-									pAd->ApCfg.MBSSID[pAd->MacTab.Content[MacIdx].apidx].Bssid,
+									pMbss->Bssid,
 #endif /* P2P_SUPPORT */
-									pAd->ApCfg.MBSSID[pAd->MacTab.Content[MacIdx].apidx].Bssid);
+									pMbss->Bssid);
 				MakeOutgoingFrame(pOutBuffer, &FrameLen, sizeof(HEADER_802_11), &DisassocHdr, 2, &Reason, END_OF_ARGS);
 				MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
 				MlmeFreeMemory(pAd, pOutBuffer);
 
 				RTMPusecDelay(5000);
 			}
-			MacTableDeleteEntry(pAd, pAd->MacTab.Content[MacIdx].Aid, pAd->MacTab.Content[MacIdx].Addr);
+			MacTableDeleteEntry(pAd, pEntry->Aid, pEntry->Addr);
 		}
 	}
 }

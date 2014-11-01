@@ -7,11 +7,16 @@
 #define	MTD_CONFIG_PART_SIZE	0x20000
 #define	MTD_FACTORY_PART_SIZE	0x20000
 #else
-#if defined (CONFIG_MTD_NAND_RALINK) && !defined (CONFIG_RALINK_RT3883) && !defined (CONFIG_RALINK_RT3052)
-/* NAND page size larger than 512Bytes, block size larger than 64K */
-#define MTD_BOOT_PART_SIZE  0x40000
-#define MTD_CONFIG_PART_SIZE    0x20000
-#define MTD_FACTORY_PART_SIZE   0x20000
+#if defined (RECONFIG_PARTITION_SIZE)
+#if !defined (MTD_BOOT_PART_SIZE)
+#error "Please define MTD_BOOT_PART_SIZE"
+#endif
+#if !defined (MTD_CONFIG_PART_SIZE)
+#error "Please define MTD_CONFIG_PART_SIZE"
+#endif
+#if !defined (MTD_FACTORY_PART_SIZE)
+#error "Please define MTD_FACTORY_PART_SIZE"
+#endif
 #else
 #define MTD_BOOT_PART_SIZE	0x30000
 #define	MTD_CONFIG_PART_SIZE	0x10000

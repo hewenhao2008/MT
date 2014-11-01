@@ -188,9 +188,7 @@ static VOID QBSS_LoadAlarm(
 
 				DBGPRINT(RT_DEBUG_TRACE, ("qbss> Alarm! Deauth the station "
 						"%02x:%02x:%02x:%02x:%02x:%02x\n",
-						pEntry->Addr[0], pEntry->Addr[1],
-						pEntry->Addr[2], pEntry->Addr[3],
-						pEntry->Addr[4], pEntry->Addr[5]));			
+						PRINT_MAC(pEntry->Addr)));
 
 				MacTableDeleteEntry(pAd, pEntry->Aid, pEntry->Addr);
 				continue;

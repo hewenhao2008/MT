@@ -432,6 +432,15 @@ void __exit timer_cleanup_module(void)
 
 }
 
+unsigned int ra_timer_counter(unsigned timer)
+{
+    if(timer){
+        return sysRegRead(TMR1VAL);
+    }
+    return sysRegRead(TMR0VAL);
+}
+EXPORT_SYMBOL(ra_timer_counter);
+
 module_init(timer_init_module);
 module_exit(timer_cleanup_module);
 

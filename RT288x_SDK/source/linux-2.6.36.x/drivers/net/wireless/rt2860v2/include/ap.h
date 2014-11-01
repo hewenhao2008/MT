@@ -325,6 +325,8 @@ VOID APAsicRxAntEvalTimeout(
 	IN PRTMP_ADAPTER	pAd);
 
 /* ap.c */
+UCHAR get_apidx_by_addr(PRTMP_ADAPTER pAd, UCHAR *addr);
+
 NDIS_STATUS APInitialize(
     IN  PRTMP_ADAPTER   pAd);
 

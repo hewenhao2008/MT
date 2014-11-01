@@ -423,9 +423,6 @@ VOID MlmeHandler(
 	IN PRTMP_ADAPTER pAd) 
 {
 	MLME_QUEUE_ELEM 	   *Elem = NULL;
-#ifdef APCLI_SUPPORT
-	SHORT apcliIfIndex;
-#endif /* APCLI_SUPPORT */
 
 	/* Only accept MLME and Frame from peer side, no other (control/data) frame should*/
 	/* get into this state machine*/
@@ -467,55 +464,6 @@ VOID MlmeHandler(
 			/* if dequeue success*/
 			switch (Elem->Machine) 
 			{
-				/* STA state machines*/
-#ifdef CONFIG_STA_SUPPORT
-				case ASSOC_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.AssocMachine,
-										Elem, pAd->Mlme.AssocMachine.CurrState);
-					break;
-
-				case AUTH_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.AuthMachine,
-										Elem, pAd->Mlme.AuthMachine.CurrState);
-					break;
-
-				case AUTH_RSP_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.AuthRspMachine,
-										Elem, pAd->Mlme.AuthRspMachine.CurrState);
-					break;
-
-				case SYNC_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.SyncMachine,
-										Elem, pAd->Mlme.SyncMachine.CurrState);
-					break;
-
-				case MLME_CNTL_STATE_MACHINE:
-					MlmeCntlMachinePerformAction(pAd, &pAd->Mlme.CntlMachine, Elem);
-					break;
-
-				case WPA_PSK_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.WpaPskMachine,
-										Elem, pAd->Mlme.WpaPskMachine.CurrState);
-					break;	
-
-#ifdef QOS_DLS_SUPPORT
-				case DLS_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.DlsMachine,
-										Elem, pAd->Mlme.DlsMachine.CurrState);
-					break;
-#endif /* QOS_DLS_SUPPORT */
-
-
-#ifdef DOT11Z_TDLS_SUPPORT
-				case TDLS_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->Mlme.TdlsMachine,
-										Elem, pAd->Mlme.TdlsMachine.CurrState);
-					break;
-#endif /* DOT11Z_TDLS_SUPPORT */
-
-
-#endif /* CONFIG_STA_SUPPORT */						
-
 				case ACTION_STATE_MACHINE:
 					StateMachinePerformAction(pAd, &pAd->Mlme.ActMachine,
 										Elem, pAd->Mlme.ActMachine.CurrState);
@@ -539,100 +487,8 @@ VOID MlmeHandler(
 									Elem, pAd->Mlme.ApSyncMachine.CurrState);
 					break;
 
-#ifdef APCLI_SUPPORT
-				case APCLI_AUTH_STATE_MACHINE:
-					apcliIfIndex = Elem->Priv;
-#ifdef MAC_REPEATER_SUPPORT
-					if (apcliIfIndex >= 64)
-						apcliIfIndex = ((apcliIfIndex - 64) / 16);		
-#endif /* MAC_REPEATER_SUPPORT */
-
-					if(isValidApCliIf(apcliIfIndex))
-					{
-						ULONG AuthCurrState;
-#ifdef MAC_REPEATER_SUPPORT
-						UCHAR CliIdx = 0;
-
-						apcliIfIndex = Elem->Priv;
-
-						if (apcliIfIndex >= 64)
-						{
-							CliIdx = ((apcliIfIndex - 64) % 16);
-							apcliIfIndex = ((apcliIfIndex - 64) / 16);
-
-							AuthCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].RepeaterCli[CliIdx].AuthCurrState;
-						}
-						else
-#endif /* MAC_REPEATER_SUPPORT */
-							AuthCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].AuthCurrState;
-
-						StateMachinePerformAction(pAd, &pAd->Mlme.ApCliAuthMachine,
-								Elem, AuthCurrState);
-					}
-					break;
-
-				case APCLI_ASSOC_STATE_MACHINE:
-					apcliIfIndex = Elem->Priv;
-#ifdef MAC_REPEATER_SUPPORT
-					if (apcliIfIndex >= 64)
-						apcliIfIndex = ((apcliIfIndex - 64) / 16);		
-#endif /* MAC_REPEATER_SUPPORT */
-
-					if(isValidApCliIf(apcliIfIndex))		
-					{
-						ULONG AssocCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].AssocCurrState;
-#ifdef MAC_REPEATER_SUPPORT
-						UCHAR CliIdx = 0;
-
-						apcliIfIndex = Elem->Priv;
-
-						if (apcliIfIndex >= 64)
-						{
-							CliIdx = ((apcliIfIndex - 64) % 16);
-							apcliIfIndex = ((apcliIfIndex - 64) / 16);
-							AssocCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].RepeaterCli[CliIdx].AssocCurrState;
-						}
-#endif /* MAC_REPEATER_SUPPORT */
-						StateMachinePerformAction(pAd, &pAd->Mlme.ApCliAssocMachine,
-								Elem, AssocCurrState);
-					}
-					break;
-
-				case APCLI_SYNC_STATE_MACHINE:
-					apcliIfIndex = Elem->Priv;
-					if(isValidApCliIf(apcliIfIndex))
-						StateMachinePerformAction(pAd, &pAd->Mlme.ApCliSyncMachine, Elem,
-							(pAd->ApCfg.ApCliTab[apcliIfIndex].SyncCurrState));
-					break;
-
-				case APCLI_CTRL_STATE_MACHINE:
-					apcliIfIndex = Elem->Priv;
-#ifdef MAC_REPEATER_SUPPORT
-					if (apcliIfIndex >= 64)
-						apcliIfIndex = ((apcliIfIndex - 64) / 16);		
-#endif /* MAC_REPEATER_SUPPORT */
-
-					if(isValidApCliIf(apcliIfIndex))
-					{
-						ULONG CtrlCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].CtrlCurrState;
-#ifdef MAC_REPEATER_SUPPORT
-						UCHAR CliIdx = 0;
-
-						apcliIfIndex = Elem->Priv;
-
-						if (apcliIfIndex >= 64)
-						{
-							CliIdx = ((apcliIfIndex - 64) % 16);
-							apcliIfIndex = ((apcliIfIndex - 64) / 16);
-							CtrlCurrState = pAd->ApCfg.ApCliTab[apcliIfIndex].RepeaterCli[CliIdx].CtrlCurrState;
-						}
-#endif /* MAC_REPEATER_SUPPORT */
-						StateMachinePerformAction(pAd, &pAd->Mlme.ApCliCtrlMachine, Elem, CtrlCurrState);
-					}
-					break;
-#endif /* APCLI_SUPPORT */
-
 #endif /* CONFIG_AP_SUPPORT */
+
 				case WPA_STATE_MACHINE:
 					StateMachinePerformAction(pAd, &pAd->Mlme.WpaMachine, Elem, pAd->Mlme.WpaMachine.CurrState);
 					break;
@@ -657,26 +513,6 @@ VOID MlmeHandler(
                     break;
 #endif /* IWSC_SUPPORT */
 #endif /* WSC_INCLUDED */
-
-
-#ifdef P2P_SUPPORT
-				case P2P_CTRL_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->P2pCfg.P2PCtrlMachine, Elem,
-							pAd->P2pCfg.CtrlCurrentState);
-					break;
-				case P2P_DISC_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->P2pCfg.P2PDiscMachine, Elem,
-							pAd->P2pCfg.DiscCurrentState);
-					break;
-				case P2P_GO_FORM_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->P2pCfg.P2PGoFormMachine, Elem,
-							pAd->P2pCfg.GoFormCurrentState);
-					break;
-				case P2P_ACTION_STATE_MACHINE:
-					StateMachinePerformAction(pAd, &pAd->P2pCfg.P2PActionMachine, Elem,
-							pAd->P2pCfg.ActionState);
-					break;
-#endif /* P2P_SUPPORT */
 				default:
 					DBGPRINT(RT_DEBUG_TRACE, ("ERROR: Illegal machine %ld in MlmeHandler()\n", Elem->Machine));
 					break;
@@ -1056,34 +892,6 @@ VOID MlmePeriodicExec(
 								fRTMP_ADAPTER_NIC_NOT_EXIST))))
 		return;
 
-#ifdef CONFIG_STA_SUPPORT
-	IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-	{
-		/* Do nothing if monitor mode is on*/
-		if (MONITOR_ON(pAd))
-			return;
-
-		if (pAd->Mlme.PeriodicRound & 0x1)
-		{
-			/* This is the fix for wifi 11n extension channel overlapping test case.  for 2860D*/
-			if (((pAd->MACVersion & 0xffff) == 0x0101) && 
-				(STA_TGN_WIFI_ON(pAd)) &&
-				(pAd->CommonCfg.IOTestParm.bToggle == FALSE))
-
-				{
-					RTMP_IO_WRITE32(pAd, TXOP_CTRL_CFG, 0x24Bf);
-					pAd->CommonCfg.IOTestParm.bToggle = TRUE;
-				}
-				else if ((STA_TGN_WIFI_ON(pAd)) &&
-						((pAd->MACVersion & 0xffff) == 0x0101))
-				{
-					RTMP_IO_WRITE32(pAd, TXOP_CTRL_CFG, 0x243f);
-					pAd->CommonCfg.IOTestParm.bToggle = FALSE;
-				}
-		}
-	}
-#endif /* CONFIG_STA_SUPPORT */
-
 	pAd->bUpdateBcnCntDone = FALSE;
 	
 /*	RECBATimerTimeout(SystemSpecific1,FunctionContext,SystemSpecific2,SystemSpecific3);*/
@@ -1101,27 +909,7 @@ VOID MlmePeriodicExec(
 		IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 			APMlmeDynamicTxRateSwitching(pAd);
 #endif /* CONFIG_AP_SUPPORT */
-#ifdef CONFIG_STA_SUPPORT
-		/* perform dynamic tx rate switching based on past TX history*/
-		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-		{
-			if ((OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_MEDIA_STATE_CONNECTED)
-#ifdef P2P_SUPPORT
-					|| P2P_GO_ON(pAd) || P2P_CLI_ON(pAd)
-#endif /* P2P_SUPPORT */
-					)
-				&& (!OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE)))
-				MlmeDynamicTxRateSwitching(pAd);
-		}
-#endif /* CONFIG_STA_SUPPORT */
 	}
-
-#ifdef DFS_SUPPORT
-#ifdef CONFIG_AP_SUPPORT
-#endif /* CONFIG_AP_SUPPORT */
-#endif /* DFS_SUPPORT */
-
-
 
 	/* Normal 1 second Mlme PeriodicExec.*/
 	if (pAd->Mlme.PeriodicRound %MLME_TASK_EXEC_MULTIPLE == 0)

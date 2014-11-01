@@ -83,10 +83,6 @@ BOOLEAN PeerAssocReqCmmSanity(
     UCHAR			WPA1_OUI[4] = { 0x00, 0x50, 0xF2, 0x01 };
     UCHAR			WPA2_OUI[3] = { 0x00, 0x0F, 0xAC };
     MAC_TABLE_ENTRY *pEntry = (MAC_TABLE_ENTRY *)NULL;
-#ifdef P2P_SUPPORT
-	PRT_P2P_CONFIG	pP2PCtrl = &pAd->P2pCfg;
-	UCHAR	P2POUIBYTE[4] = {0x50, 0x6f, 0x9a, 0x9};
-#endif /* P2P_SUPPORT */
 
     /* to prevent caller from using garbage output value */
 	*pSsidLen     = 0;
@@ -239,24 +235,7 @@ BOOLEAN PeerAssocReqCmmSanity(
             case IE_WPA:    /* same as IE_VENDOR_SPECIFIC */
             case IE_WPA2:
 
-#ifdef P2P_SUPPORT
-				if (NdisEqualMemory(eid_ptr->Octet, P2POUIBYTE, sizeof(P2POUIBYTE)) && (eid_ptr->Len >= 4))
-				{
-					if (*P2PSubelementLen == 0)
-					{
-						RTMPMoveMemory(pP2pSubelement, &eid_ptr->Eid, (eid_ptr->Len+2));
-						*P2PSubelementLen = (eid_ptr->Len+2);
-					}
-					else if (*P2PSubelementLen > 0)
-					{
-						RTMPMoveMemory(pP2pSubelement + *P2PSubelementLen, &eid_ptr->Eid, (eid_ptr->Len+2));
-						*P2PSubelementLen += (eid_ptr->Len+2);
-					}
 
-					DBGPRINT(RT_DEBUG_TRACE, (" ! ===>P2P - PeerAssocReqSanity  P2P IE Len becomes = %d.   %s\n", *P2PSubelementLen, decodeP2PState(pP2PCtrl->P2PConnectState)));
-					break;
-				}
-#endif /* P2P_SUPPORT */
 				if (NdisEqualMemory(eid_ptr->Octet, WPS_OUI, 4))
 				{
 #ifdef WSC_AP_SUPPORT

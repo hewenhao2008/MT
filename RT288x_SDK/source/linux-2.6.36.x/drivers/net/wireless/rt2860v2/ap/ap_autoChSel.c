@@ -384,8 +384,7 @@ static inline UCHAR SelectClearChannelCCA(
 				if (pAd->ChannelList[loop].Channel - pAd->ChannelList[loop-1].Channel > 4)
 					break;
 
-				pChannelInfo->dirtyness[loop] +=
-					((9 - (loop - channel_idx)) * 4);
+				pChannelInfo->dirtyness[loop] += ((9 - (loop - channel_idx)) * 4);
 			}
             /* check neighbor channel */
 			for (loop=(channel_idx-1); loop >= (channel_idx-BelowBound); loop--)

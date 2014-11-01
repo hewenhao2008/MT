@@ -821,14 +821,6 @@ INT	Set_TxPower_Proc(
 		IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 			pAd->CommonCfg.TxPowerPercentage = TxPower;
 #endif /* CONFIG_AP_SUPPORT */
-
-#ifdef CONFIG_STA_SUPPORT
-		IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-		{
-			pAd->CommonCfg.TxPowerDefault = TxPower;
-			pAd->CommonCfg.TxPowerPercentage = pAd->CommonCfg.TxPowerDefault;
-		}
-#endif /* CONFIG_STA_SUPPORT */
 		success = TRUE;
 	}
 	else

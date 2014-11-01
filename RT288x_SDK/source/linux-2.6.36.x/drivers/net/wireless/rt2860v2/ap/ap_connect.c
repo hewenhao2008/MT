@@ -61,6 +61,11 @@ BOOLEAN BeaconTransmitRequired(
 #endif /* CARRIER_DETECTION_SUPPORT */
 
 
+		if (pMbss->BcnBufIdx >= HW_BEACON_MAX_NUM)
+			break;
+		if (pAd->BeaconOffset[pMbss->BcnBufIdx] == 0)
+			break;
+
 		if (apidx == MAIN_MBSSID)
 		{
 			if (pMbss->bBcnSntReq == TRUE) 
@@ -115,25 +120,22 @@ VOID APMakeBssBeacon(
 	HTTRANSMIT_SETTING	BeaconTransmit;   /* MGMT frame PHY rate setting when operatin at Ht rate. */
 	UCHAR PhyMode, SupRateLen;
 	UINT8 TXWISize = pAd->chipCap.TXWISize;
+	MULTISSID_STRUCT *pMbss = &pAd->ApCfg.MBSSID[apidx];
 #ifdef SPECIFIC_TX_POWER_SUPPORT
 	UCHAR TxPwrAdj = 0;
 #endif /* SPECIFIC_TX_POWER_SUPPORT */
-
-	if(!BeaconTransmitRequired(pAd, apidx, &pAd->ApCfg.MBSSID[apidx]))
+	
+	if(!BeaconTransmitRequired(pAd, apidx, pMbss))
 		return;
 
-	PhyMode = pAd->ApCfg.MBSSID[apidx].PhyMode;
+	PhyMode = pMbss->PhyMode;
 
-	if (pAd->ApCfg.MBSSID[apidx].bHideSsid)
+	if (pMbss->bHideSsid)
 		SsidLen = 0;
 	else
-		SsidLen = pAd->ApCfg.MBSSID[apidx].SsidLen;
+		SsidLen = pMbss->SsidLen;
 
-	MgtMacHeaderInit(pAd, &BcnHdr, SUBTYPE_BEACON, 0, BROADCAST_ADDR, 
-#ifdef P2P_SUPPORT
-						pAd->ApCfg.MBSSID[apidx].Bssid,
-#endif /* P2P_SUPPORT */
-						pAd->ApCfg.MBSSID[apidx].Bssid);
+	MgtMacHeaderInit(pAd, &BcnHdr, SUBTYPE_BEACON, 0, BROADCAST_ADDR, pMbss->Bssid);
 
 	
 	/* for update framelen to TxWI later. */
@@ -141,50 +143,14 @@ VOID APMakeBssBeacon(
 	if (PhyMode == PHY_11B)
 		SupRateLen = 4;
 
-#ifdef P2P_SUPPORT
-	if (P2P_GO_ON(pAd))
-	{
-		UCHAR		SupRate[MAX_LEN_OF_SUPPORTED_RATES];
-		UCHAR		SupRateIe = IE_SUPP_RATES;
-		UCHAR		SupRateLen = 0;
-		
-		SupRate[0]	= 0x8C;    /* 6 mbps, in units of 0.5 Mbps, basic rate */
-		SupRate[1]	= 0x12;    /* 9 mbps, in units of 0.5 Mbps */
-		SupRate[2]	= 0x98;    /* 12 mbps, in units of 0.5 Mbps, basic rate */
-		SupRate[3]	= 0x24;    /* 18 mbps, in units of 0.5 Mbps */
-		SupRate[4]	= 0xb0;    /* 24 mbps, in units of 0.5 Mbps, basic rate */
-		SupRate[5]	= 0x48;    /* 36 mbps, in units of 0.5 Mbps */
-		SupRate[6]	= 0x60;    /* 48 mbps, in units of 0.5 Mbps */
-		SupRate[7]	= 0x6c;    /* 54 mbps, in units of 0.5 Mbps */
-		SupRateLen	= 8;
-
-		MakeOutgoingFrame(pBeaconFrame,                  &FrameLen,
-						sizeof(HEADER_802_11),           &BcnHdr, 
-						TIMESTAMP_LEN,                   &FakeTimestamp,
-						2,                               &pAd->CommonCfg.BeaconPeriod,
-						2,                               &pAd->ApCfg.MBSSID[apidx].CapabilityInfo,
-						1,                               &SsidIe, 
-						1,                               &SsidLen, 
-						SsidLen,                       pAd->ApCfg.MBSSID[apidx].Ssid,
-						1,                               &SupRateIe, 
-						1,                               &SupRateLen,
-						SupRateLen,                 &SupRate, 
-						1,                               &DsIe, 
-						1,                               &DsLen, 
-						1,                               &pAd->CommonCfg.Channel,
-						END_OF_ARGS);
-
-	}
-	else
-#endif /* P2P_SUPPORT */
 	MakeOutgoingFrame(pBeaconFrame,                  &FrameLen,
 					sizeof(HEADER_802_11),           &BcnHdr, 
 					TIMESTAMP_LEN,                   &FakeTimestamp,
 					2,                               &pAd->CommonCfg.BeaconPeriod,
-					2,                               &pAd->ApCfg.MBSSID[apidx].CapabilityInfo,
+					2,                               &pMbss->CapabilityInfo,
 					1,                               &SsidIe, 
 					1,                               &SsidLen, 
-					SsidLen,                         pAd->ApCfg.MBSSID[apidx].Ssid,
+					SsidLen,                         pMbss->Ssid,
 					1,                               &SupRateIe, 
 					1,                               &SupRateLen,
 					SupRateLen,                      pAd->CommonCfg.SupRate, 
@@ -300,10 +266,10 @@ VOID APMakeBssBeacon(
 
 #ifdef SPECIFIC_TX_POWER_SUPPORT
         /* Specific Power for Long-Range Beacon */
-	if ((pAd->ApCfg.MBSSID[apidx].TxPwrAdj != -1) && 
+	if ((pMbss->TxPwrAdj != -1) && 
 	    (BeaconTransmit.field.MODE == MODE_CCK)) 
 	{
-		TxPwrAdj = pAd->ApCfg.MBSSID[apidx].TxPwrAdj;
+		TxPwrAdj = pMbss->TxPwrAdj;
 	}
 #endif /* SPECIFIC_TX_POWER_SUPPORT */
 	RTMPWriteTxWI(pAd, pTxWI, FALSE, FALSE, TRUE, FALSE, FALSE, TRUE, 0, BSS0Mcast_WCID, 
@@ -325,12 +291,12 @@ VOID APMakeBssBeacon(
 	for (i=0; i < TXWISize; i+=4)
 	{
 		longValue =  *ptr + (*(ptr+1)<<8) + (*(ptr+2)<<16) + (*(ptr+3)<<24);
-		RTMP_CHIP_UPDATE_BEACON(pAd, pAd->BeaconOffset[pAd->ApCfg.MBSSID[apidx].BcnBufIdx] + i, longValue, 4);
+		RTMP_CHIP_UPDATE_BEACON(pAd, pAd->BeaconOffset[pMbss->BcnBufIdx] + i, longValue, 4);
 		ptr += 4;
 	}
 
 	/* update BEACON frame content. start right after the TXWI field. */
-	ptr = (PUCHAR)pAd->ApCfg.MBSSID[apidx].BeaconBuf;
+	ptr = (PUCHAR)pMbss->BeaconBuf;
 #ifdef RT_BIG_ENDIAN
     RTMPFrameEndianChange(pAd, ptr, DIR_WRITE, FALSE);
 #endif
@@ -338,13 +304,13 @@ VOID APMakeBssBeacon(
 	for (i= 0; i< FrameLen; i+=4)
 	{
 		longValue =  *ptr + (*(ptr+1)<<8) + (*(ptr+2)<<16) + (*(ptr+3)<<24);
-		RTMP_CHIP_UPDATE_BEACON(pAd, pAd->BeaconOffset[pAd->ApCfg.MBSSID[apidx].BcnBufIdx] + TXWISize + i, longValue, 4);
+		RTMP_CHIP_UPDATE_BEACON(pAd, pAd->BeaconOffset[pMbss->BcnBufIdx] + TXWISize + i, longValue, 4);
 		ptr += 4;
 	}
 
 
-	pAd->ApCfg.MBSSID[apidx].TimIELocationInBeacon = (UCHAR)FrameLen; 
-	pAd->ApCfg.MBSSID[apidx].CapabilityInfoLocationInBeacon = sizeof(HEADER_802_11) + TIMESTAMP_LEN + 2;
+	pMbss->TimIELocationInBeacon = (UCHAR)FrameLen; 
+	pMbss->CapabilityInfoLocationInBeacon = sizeof(HEADER_802_11) + TIMESTAMP_LEN + 2;
 }
 
 
@@ -452,14 +418,49 @@ VOID APUpdateBeaconFrame(
 	/* adjust BEACON length according to the new TIM */
 	FrameLen += (2 + *(ptr+1)); 
 
+	/* move RSN IE from below to here for Ralink Win7 v3.0.0.61 version parse beacon issue. */
+	/* sync the order with BRCM's AP. */
+	if ((pMbss->AuthMode == Ndis802_11AuthModeWPA) || 
+		(pMbss->AuthMode == Ndis802_11AuthModeWPAPSK))
+		RSNIe = IE_WPA;
+	else if ((pMbss->AuthMode == Ndis802_11AuthModeWPA2) || 
+		(pMbss->AuthMode == Ndis802_11AuthModeWPA2PSK))
+		RSNIe = IE_WPA2;
+
+	/* Append RSN_IE when  WPA OR WPAPSK, */
+	if ((pMbss->AuthMode == Ndis802_11AuthModeWPA1WPA2) || 
+		(pMbss->AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK))
+	{
+		ULONG TmpLen;
+		MakeOutgoingFrame(pBeaconFrame+FrameLen,        &TmpLen,
+						  1,                            &RSNIe,
+						  1,                            &pMbss->RSNIE_Len[0],
+						  pMbss->RSNIE_Len[0],      pMbss->RSN_IE[0],
+						  1,                            &RSNIe2,
+						  1,                            &pMbss->RSNIE_Len[1],
+						  pMbss->RSNIE_Len[1],      pMbss->RSN_IE[1],
+						  END_OF_ARGS);
+		FrameLen += TmpLen;
+	}
+	else if (pMbss->AuthMode >= Ndis802_11AuthModeWPA)
+	{
+		ULONG TmpLen;
+		MakeOutgoingFrame(pBeaconFrame+FrameLen,        &TmpLen,
+						  1,                            &RSNIe,
+						  1,                            &pMbss->RSNIE_Len[0],
+						  pMbss->RSNIE_Len[0],      pMbss->RSN_IE[0],
+						  END_OF_ARGS);
+		FrameLen += TmpLen;
+	}
+
 #ifdef HOSTAPD_SUPPORT
-	if ( pAd->ApCfg.MBSSID[apidx].HostapdWPS && (pAd->ApCfg.MBSSID[apidx].WscIEBeacon.ValueLen))
+	if ( pMbss->HostapdWPS && (pMbss->WscIEBeacon.ValueLen))
 		bHasWpsIE = TRUE;
 #endif
 
 #ifdef WSC_AP_SUPPORT
     /* add Simple Config Information Element */
-    if (((pAd->ApCfg.MBSSID[apidx].WscControl.WscConfMode >= 1) && (pAd->ApCfg.MBSSID[apidx].WscIEBeacon.ValueLen)))
+    if (((pMbss->WscControl.WscConfMode >= 1) && (pMbss->WscIEBeacon.ValueLen)))
     {
     	bHasWpsIE = TRUE;
     }
@@ -470,17 +471,17 @@ VOID APUpdateBeaconFrame(
 		ULONG WscTmpLen = 0;
         
 		MakeOutgoingFrame(pBeaconFrame+FrameLen,                            &WscTmpLen,
-						  pAd->ApCfg.MBSSID[apidx].WscIEBeacon.ValueLen,    pAd->ApCfg.MBSSID[apidx].WscIEBeacon.Value,
+						  pMbss->WscIEBeacon.ValueLen,    pMbss->WscIEBeacon.Value,
                               END_OF_ARGS);
 		FrameLen += WscTmpLen;		  
     }
 
 #ifdef WSC_AP_SUPPORT
-    if ((pAd->ApCfg.MBSSID[apidx].WscControl.WscConfMode != WSC_DISABLE) &&
+    if ((pMbss->WscControl.WscConfMode != WSC_DISABLE) &&
 #ifdef DOT1X_SUPPORT
-        (pAd->ApCfg.MBSSID[apidx].IEEE8021X == FALSE) && 
+        (pMbss->IEEE8021X == FALSE) && 
 #endif /* DOT1X_SUPPORT */		
-        (pAd->ApCfg.MBSSID[apidx].WepStatus == Ndis802_11WEPEnabled))
+        (pMbss->WepStatus == Ndis802_11WEPEnabled))
     {
         /*
             Non-WPS Windows XP and Vista PCs are unable to determine if a WEP enalbed network is static key based 
@@ -685,44 +686,6 @@ VOID APUpdateBeaconFrame(
 #endif /* defined(DOT11N_DRAFT3) || defined(DOT11V_WNM_SUPPORT) */
 
 
-	if ((pMbss->AuthMode == Ndis802_11AuthModeWPA) || 
-		(pMbss->AuthMode == Ndis802_11AuthModeWPAPSK))
-		RSNIe = IE_WPA;
-	else if ((pMbss->AuthMode == Ndis802_11AuthModeWPA2) || 
-		(pMbss->AuthMode == Ndis802_11AuthModeWPA2PSK))
-		RSNIe = IE_WPA2;
-#ifdef WAPI_SUPPORT
-	else if ((pMbss->AuthMode == Ndis802_11AuthModeWAICERT) || 
-		(pMbss->AuthMode == Ndis802_11AuthModeWAIPSK))
-		RSNIe = IE_WAPI;
-#endif /* WAPI_SUPPORT */
-
-	/* Append RSN_IE when  WPA OR WPAPSK, */
-	if ((pMbss->AuthMode == Ndis802_11AuthModeWPA1WPA2) || 
-		(pMbss->AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK))
-	{
-		ULONG TmpLen;
-		MakeOutgoingFrame(pBeaconFrame+FrameLen,        &TmpLen,
-						  1,                            &RSNIe,
-						  1,                            &pMbss->RSNIE_Len[0],
-						  pMbss->RSNIE_Len[0],      pMbss->RSN_IE[0],
-						  1,                            &RSNIe2,
-						  1,                            &pMbss->RSNIE_Len[1],
-						  pMbss->RSNIE_Len[1],      pMbss->RSN_IE[1],
-						  END_OF_ARGS);
-		FrameLen += TmpLen;
-	}
-	else if (pMbss->AuthMode >= Ndis802_11AuthModeWPA)
-	{
-		ULONG TmpLen;
-		MakeOutgoingFrame(pBeaconFrame+FrameLen,        &TmpLen,
-						  1,                            &RSNIe,
-						  1,                            &pMbss->RSNIE_Len[0],
-						  pMbss->RSNIE_Len[0],      pMbss->RSN_IE[0],
-						  END_OF_ARGS);
-		FrameLen += TmpLen;
-	}
-
 	/* add WMM IE here */
 	if (pMbss->bWmmCapable)
 	{
@@ -901,41 +864,6 @@ VOID APUpdateBeaconFrame(
 	else
 #endif /* A_BAND_SUPPORT */		
 		BeaconTransmit.word = 0;
-	
-#ifdef P2P_SUPPORT
-	if (P2P_GO_ON(pAd))
-	{
-                PUCHAR  pP2pNoAIE = NULL;
-                ULONG   P2pTmpLen;
-                UCHAR   P2pCapId = SUBID_P2P_CAP, P2pDevId = SUBID_P2P_DEVICE_ID;
-                USHORT  P2pCapIdLen = 2, P2pDevIdLen = 6;
-                UCHAR   P2pIEFixed[6] = {0xdd, 0x12, 0x50, 0x6f, 0x9a, 0x9};
-
-                MakeOutgoingFrame(pBeaconFrame+FrameLen,        &P2pTmpLen,
-                                                  6,                                            &P2pIEFixed[0],
-                                                  1,                                            &P2pCapId,
-                                                  2,                                            &P2pCapIdLen,
-                                                  2,                                            &pAd->P2pCfg.P2pCapability,
-                                                  END_OF_ARGS);
-                FrameLen += P2pTmpLen;
-
-                MakeOutgoingFrame(pBeaconFrame+FrameLen,        &P2pTmpLen,
-                                                  1,                                            &P2pDevId,
-                                                  2,                                            &P2pDevIdLen,
-                                                  6,                                            &pAd->P2pCfg.CurrentAddress,
-                                                          END_OF_ARGS);
-                FrameLen += P2pTmpLen;
-
-                /* NoA */
-                pP2pNoAIE = pBeaconFrame + FrameLen;
-                P2pTmpLen = P2pUpdateNoABeacon(pAd, apidx, pP2pNoAIE);
-		FrameLen += P2pTmpLen;
-		BeaconTransmit.field.MODE = 1;
-		BeaconTransmit.field.MCS = MCS_RATE_6;
-
-	}
-
-#endif /* P2P_SUPPORT */
 
 #ifdef SPECIFIC_TX_POWER_SUPPORT
 	/* Specific Power for Long-Range Beacon */	
@@ -1034,17 +962,6 @@ VOID APMakeAllBssBeacon(
 	NumOfMacs = pAd->ApCfg.BssidNum + MAX_MESH_NUM + MAX_APCLI_NUM;
 
 
-#ifdef P2P_SUPPORT
-#ifdef P2P_ODD_MAC_ADJUST
-	if (NumOfMacs != 2)
-	{
-		DBGPRINT(RT_DEBUG_ERROR, 
-					("The P2P mode is enabled, the NumOfMacs MUST be 2, NumOfMacs=%d\n",
-					NumOfMacs));		
-	}
-#endif /* P2P_ODD_MAC_ADJUST */
-#endif /* P2P_SUPPORT */
-
 	/* set Multiple BSSID mode */
 	if (NumOfMacs <= 1)
 	{
@@ -1054,11 +971,6 @@ VOID APMakeAllBssBeacon(
 	else if (NumOfMacs <= 2)
 	{
 		if ((pAd->CurrentAddress[5] % 2 != 0)
-#ifdef P2P_SUPPORT
-#ifdef P2P_ODD_MAC_ADJUST
-			&& FALSE
-#endif /* P2P_ODD_MAC_ADJUST */
-#endif /* P2P_SUPPORT */
 		)
 			DBGPRINT(RT_DEBUG_ERROR, ("The 2-BSSID mode is enabled, the BSSID byte5 MUST be the multiple of 2\n"));
 		

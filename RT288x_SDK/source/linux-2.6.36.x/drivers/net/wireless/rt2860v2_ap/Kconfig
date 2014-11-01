@@ -46,6 +46,11 @@ config	NEW_MBSSID_MODE
 	depends on RALINK_RT3883 || RALINK_RT3352 || RALINK_RT5350 || RALINK_RT6352 || RALINK_MT7620
 	default n
 
+config ENHANCE_NEW_MBSSID_MODE
+    bool "Enhanced MBSSID mode"
+    depends on NEW_MBSSID_MODE
+    default n
+
 config  RT2860V2_AP_APCLI
 	bool "AP-CLient Support"
 	depends on RT2860V2_AP

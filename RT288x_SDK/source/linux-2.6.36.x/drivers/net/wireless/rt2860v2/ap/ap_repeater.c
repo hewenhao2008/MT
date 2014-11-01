@@ -412,10 +412,6 @@ MAC_TABLE_ENTRY *RTMPInsertRepeaterMacEntry(
 		RTMPInitTimer(pAd, &pEntry->EnqueueStartForPSKTimer, GET_TIMER_FUNCTION(EnqueueStartForPSKExec), pEntry, FALSE);
 		RTMPInitTimer(pAd, &pEntry->RetryTimer, GET_TIMER_FUNCTION(WPARetryExec), pEntry, FALSE);
 
-#ifdef TXBF_SUPPORT
-		if (pAd->chipCap.FlgHwTxBfCap)
-			RTMPInitTimer(pAd, &pEntry->eTxBfProbeTimer, GET_TIMER_FUNCTION(eTxBfProbeTimerExec), pEntry, FALSE);
-#endif /* TXBF_SUPPORT */
 
 		pEntry->pAd = pAd;
 		pEntry->CMTimerRunning = FALSE;
@@ -477,10 +473,6 @@ MAC_TABLE_ENTRY *RTMPInsertRepeaterMacEntry(
 		pEntry->Receive_EapolStart_EapRspId = 0;
 #endif /* WSC_AP_SUPPORT */
 
-#ifdef TXBF_SUPPORT
-		if (pAd->chipCap.FlgHwTxBfCap)
-			NdisAllocateSpinLock(pAd, &pEntry->TxSndgLock);
-#endif /* TXBF_SUPPORT */
 
 		DBGPRINT(RT_DEBUG_TRACE, ("%s - allocate entry #%d, Aid = %d, Total= %d\n",__FUNCTION__, i, pEntry->Aid, pAd->MacTab.Size));
 	}
@@ -622,6 +614,11 @@ VOID RTMPRepeaterInsertInvaildMacEntry(
 				NdisReleaseSpinLock(&pAd->ApCfg.ReptCliEntryLock);
 				return;
 			}
+			else
+			{
+				pEntry->bInsert = TRUE;
+				break;
+			}
 		}
 
 		/* pick up the first available vacancy*/
@@ -651,7 +648,7 @@ VOID RTMPRepeaterInsertInvaildMacEntry(
 		}
 	}
 
-	DBGPRINT(RT_DEBUG_ERROR, (" Save Need Skip MAC Address = %02X:%02X:%02X:%02X:%02X:%02X. !!!\n",
+	DBGPRINT(RT_DEBUG_ERROR, (" Store Invaild MacAddr = %02x:%02x:%02x:%02x:%02x:%02x. !!!\n",
 				PRINT_MAC(pEntry->MacAddr)));
 
 	pAd->ApCfg.ReptControl.ReptInVaildMacSize++;

@@ -934,7 +934,7 @@ VOID AsicGetAutoAgcOffsetForExternalTxAlc(
 
 				*pTxAgcCompensate = -(TxAgcStep * (idx-1));			
 				DeltaPwr += (*pTxAgcCompensate);
-				DBGPRINT(RT_DEBUG_TRACE, ("-- Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = -%d\n",
+				DBGPRINT(RT_DEBUG_ERROR, ("-- Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = -%d\n",
 					                BbpR49.byte, TssiRef, TxAgcStep, idx-1));                    
 			}
 			else if (BbpR49.byte < pTssiPlusBoundary[1])
@@ -959,13 +959,13 @@ VOID AsicGetAutoAgcOffsetForExternalTxAlc(
 				/* The index is the step we should increase, idx = 0 means there is nothing to compensate */
 				*pTxAgcCompensate = TxAgcStep * (idx-1);
 				DeltaPwr += (*pTxAgcCompensate);
-				DBGPRINT(RT_DEBUG_TRACE, ("++ Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = +%d\n",
+				DBGPRINT(RT_DEBUG_ERROR, ("++ Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = +%d\n",
 				                	BbpR49.byte, TssiRef, TxAgcStep, idx-1));
 			}
 			else
 			{
 				*pTxAgcCompensate = 0;
-				DBGPRINT(RT_DEBUG_TRACE, ("   Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = +%d\n",
+				DBGPRINT(RT_DEBUG_ERROR, ("   Tx Power, BBP R49=%x, TssiRef=%x, TxAgcStep=%x, step = +%d\n",
 				                	BbpR49.byte, TssiRef, TxAgcStep, 0));
 			}
 		}
@@ -1367,7 +1367,7 @@ VOID AsicGetAutoAgcOffsetForTemperatureSensor(
 	}
 
 	*pAgcCompensate = *pTxAgcCompensate;
-	DBGPRINT(RT_DEBUG_INFO, ("<--%s\n", __FUNCTION__));
+	DBGPRINT(RT_DEBUG_ERROR, ("TotalDeltaPwr: %d, AgcCompenstate: %d\n", *pTotalDeltaPwr, *pAgcCompensate));
 }
 #endif /* RTMP_TEMPERATURE_COMPENSATION */
 
@@ -1616,6 +1616,8 @@ VOID AsicPercentageDeltaPower(
 	{
 		*pDeltaPowerByBbpR1 -= 12; /* -12 dBm */
 	}
+
+	DBGPRINT(RT_DEBUG_WARN, ("PwrByBbpR1: %d, DeltaPwr: %d.\n", *pDeltaPowerByBbpR1, *pDeltaPwr));
 }
 
 VOID AsicCompensatePowerViaBBP(
@@ -1654,7 +1656,7 @@ VOID AsicCompensatePowerViaBBP(
 		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R1, BbpR1);
 	}
 
-	DBGPRINT(RT_DEBUG_INFO, ("%s: <After BBP R1> TotalDeltaPower = %d dBm, BbpR1 = 0x%02X \n", __FUNCTION__, *pTotalDeltaPower, BbpR1));
+	DBGPRINT(RT_DEBUG_ERROR, ("<After BBP R1> TotalDeltaPower = %d dBm, BbpR1 = 0x%02X \n", *pTotalDeltaPower, BbpR1));
 }
 
 /*
@@ -1728,8 +1730,7 @@ VOID AsicAdjustTxPower(
 	RTMP_CHIP_ASIC_AUTO_AGC_OFFSET_GET(
 		pAd, &DeltaPwr, &TotalDeltaPower, &TxAgcCompensate, &DeltaPowerByBbpR1);
 
-	DBGPRINT(RT_DEBUG_INFO, ("%s: DeltaPwr=%d, TotalDeltaPower=%d, TxAgcCompensate=%d, DeltaPowerByBbpR1=%d\n",
-			__FUNCTION__,
+	DBGPRINT(RT_DEBUG_ERROR, ("DeltaPwr=%d, TotalDeltaPower=%d, TxAgcCompensate=%d, DeltaPowerByBbpR1=%d\n",
 			DeltaPwr,
 			TotalDeltaPower,
 			TxAgcCompensate,

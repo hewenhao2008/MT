@@ -99,7 +99,6 @@ NDIS_STATUS MiniportMMRequest(
 		QueIdx &= (~MGMT_USE_QUEUE_FLAG);
 	}
 
-#ifdef RTMP_MAC_PCI
 	/* 2860C use Tx Ring*/
 //	IrqState = pAd->irq_disabled;
 	if (pAd->MACVersion == 0x28600100)
@@ -114,29 +113,19 @@ NDIS_STATUS MiniportMMRequest(
 		FlgIsLocked = TRUE;
 		retryCnt = MAX_DATAMM_RETRY;		
 	}
-#endif /* RTMP_MAC_PCI */
 
 	do
 	{
 		/* Reset is in progress, stop immediately*/
 		if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_RESET_IN_PROGRESS) ||
 			 RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_HALT_IN_PROGRESS | fRTMP_ADAPTER_NIC_NOT_EXIST)||
-			 !RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_START_UP)
-#ifdef P2P_SUPPORT
-			|| IS_P2P_ABSENCE(pAd)
-#endif /* P2P_SUPPORT */
-			)
+			 !RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_START_UP))
 		{
 			Status = NDIS_STATUS_FAILURE;
 			break;
 		}
-
-#ifdef CONFIG_STA_SUPPORT
-#endif /* CONFIG_STA_SUPPORT */
-
 		/* Check Free priority queue*/
 		/* Since we use PBF Queue2 for management frame.  Its corresponding DMA ring should be using TxRing.*/
-#ifdef RTMP_MAC_PCI
 		if (bUseDataQ)
 		{
 			/* free Tx(QueIdx) resources*/
@@ -144,7 +133,6 @@ NDIS_STATUS MiniportMMRequest(
 			FreeNum = GET_TXRING_FREENO(pAd, QueIdx);
 		}
 		else
-#endif /* RTMP_MAC_PCI */
 		{
 			FreeNum = GET_MGMTRING_FREENO(pAd);
 		}
@@ -160,36 +148,17 @@ NDIS_STATUS MiniportMMRequest(
 				break;
 			}
 
-
-			/*pAd->CommonCfg.MlmeTransmit.field.MODE = MODE_CCK;*/
-			/*pAd->CommonCfg.MlmeRate = RATE_2;*/
-#ifdef DOT11Z_TDLS_SUPPORT
-#ifdef UAPSD_SUPPORT
-			UAPSD_MR_QOS_NULL_HANDLE(pAd, pData, pPacket);
-#endif /* UAPSD_SUPPORT */
-#else
-#ifdef CONFIG_AP_SUPPORT
-#ifdef UAPSD_SUPPORT
-#ifdef P2P_SUPPORT
-			if (P2P_GO_ON(pAd))
-#else
 			IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
-#endif /* P2P_SUPPORT */
 			{
 				UAPSD_MR_QOS_NULL_HANDLE(pAd, pData, pPacket);
 			}
-#endif /* UAPSD_SUPPORT */
-#endif /* CONFIG_AP_SUPPORT */
-#endif /* DOT11Z_TDLS_SUPPORT */
 
-#ifdef RTMP_MAC_PCI
 			if (bUseDataQ)
 			{
-/*				Status = MlmeDataHardTransmit(pAd, QueIdx, pPacket); */
+				//Status = MlmeDataHardTransmit(pAd, QueIdx, pPacket);
 				FlgDataQForce = TRUE;
 				retryCnt--;
 			}
-#endif /* RTMP_MAC_PCI */
 
 			Status = MlmeHardTransmit(pAd, QueIdx, pPacket, FlgDataQForce, FlgIsLocked);
 			if (Status == NDIS_STATUS_SUCCESS)
@@ -200,28 +169,24 @@ NDIS_STATUS MiniportMMRequest(
 		else
 		{
 			pAd->RalinkCounters.MgmtRingFullCount++;
-#ifdef RTMP_MAC_PCI
 			if (bUseDataQ)
 			{
 				retryCnt--;
-				DBGPRINT(RT_DEBUG_WARN, ("retryCnt %d\n", retryCnt));
+				DBGPRINT(RT_DEBUG_TRACE, ("retryCnt %d\n", retryCnt));
 				if (retryCnt == 0)
 				{
 					DBGPRINT(RT_DEBUG_ERROR, ("Qidx(%d), not enough space in DataRing, MgmtRingFullCount=%ld!\n",
 											QueIdx, pAd->RalinkCounters.MgmtRingFullCount));
 				}
 			}
-#endif /* RTMP_MAC_PCI */
 			DBGPRINT(RT_DEBUG_ERROR, ("Qidx(%d), not enough space in MgmtRing, MgmtRingFullCount=%ld!\n",
 										QueIdx, pAd->RalinkCounters.MgmtRingFullCount));
 		}
 	} while (retryCnt > 0);
 
 	
-#ifdef RTMP_MAC_PCI
 	if (bUseDataQ)
 		RTMP_IRQ_UNLOCK(&pAd->irq_lock, IrqFlags);
-#endif /* RTMP_MAC_PCI */
 
 	return Status;
 }

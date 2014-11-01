@@ -15,7 +15,8 @@ AutoChannelSel()
 	#iwpriv ra0 set SiteSurvey=1; //noneed this
 	Channel=`nvram get Channel`
 	if [ x${Channel} != x"0" ]; then
-		iwpriv ra0 set Channel=${Channel}
+		#不要设置信道,会闪断.
+		#iwpriv ra0 set Channel=${Channel}
 		return
 	fi
 

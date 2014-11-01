@@ -2373,9 +2373,6 @@ typedef struct _MAC_TABLE_ENTRY {
 	   Bit 3: AsMesh, Bit 4: AsDls, Bit 5: AsTDls
 	 */
 	UINT32 EntryType;
-#ifdef P2P_SUPPORT
-	UINT32 P2PEntryType; /* 0:Invalid, 1:P2P_GO, 2:P2P_CLI */
-#endif /* P2P_SUPPORT */
 	BOOLEAN isCached;
 	BOOLEAN bIAmBadAtheros;	/* Flag if this is Atheros chip that has IOT problem.  We need to turn on RTS/CTS protection. */
 
@@ -2404,9 +2401,6 @@ typedef struct _MAC_TABLE_ENTRY {
 	UCHAR PTK[64];
 	UCHAR ReTryCounter;
 	RALINK_TIMER_STRUCT RetryTimer;
-#ifdef TXBF_SUPPORT
-	RALINK_TIMER_STRUCT eTxBfProbeTimer;
-#endif /* TXBF_SUPPORT */
 	NDIS_802_11_AUTHENTICATION_MODE AuthMode;	/* This should match to whatever microsoft defined */
 	NDIS_802_11_WEP_STATUS WepStatus;
 	NDIS_802_11_WEP_STATUS GroupKeyWepStatus;
@@ -2473,8 +2467,7 @@ typedef struct _MAC_TABLE_ENTRY {
 	   clear it when statistics handle.
 	   if the flag is set when PS-poll frame is received then calling
 	   statistics handler to clear it. */
-	BOOLEAN bAPSDFlagLegacySent;	/* 1: Legacy PS sent but
-					   yet statistics handle */
+	BOOLEAN bAPSDFlagLegacySent;	/* 1: Legacy PS sent but yet statistics handle */
 
 #endif /* UAPSD_SUPPORT */
 
@@ -2483,13 +2476,6 @@ typedef struct _MAC_TABLE_ENTRY {
 	USHORT NoBADataCountDown;
 
 	UINT32 CachedBuf[16];	/* UINT (4 bytes) for alignment */
-
-#ifdef TXBF_SUPPORT
-	COUNTER_TXBF TxBFCounters;		/* TxBF Statistics */
-	UINT LastETxCount;		/* Used to compute %BF statistics */
-	UINT LastITxCount;
-	UINT LastTxCount;
-#endif /* TXBF_SUPPORT */
 #endif /* DOT11_N_SUPPORT */
 
 #ifdef STREAM_MODE_SUPPORT
@@ -2539,34 +2525,6 @@ typedef struct _MAC_TABLE_ENTRY {
 	UCHAR	mfbToTx;
 	UCHAR	mfb0, mfb1;
 #endif	/* MFB_SUPPORT */
-#ifdef TXBF_SUPPORT
-	UCHAR			TxSndgType;
-	NDIS_SPIN_LOCK	TxSndgLock;
-
-/* ETxBF */
-	UCHAR		bfState;
-	UCHAR		sndgMcs;
-	UCHAR		sndgBW;
-	INT			sndg0Snr0, sndg0Snr1, sndg0Snr2;
-	UCHAR		sndg0Mcs;
-#ifdef ETXBF_EN_COND3_SUPPORT
-	UCHAR		bestMethod;
-	UCHAR		sndgRateIdx;
-	UCHAR		bf0Mcs, sndg0RateIdx, bf0RateIdx;
-	UCHAR		sndg1Mcs, bf1Mcs, sndg1RateIdx, bf1RateIdx;
-	INT			sndg1Snr0, sndg1Snr1, sndg1Snr2;
-#endif /* ETXBF_EN_COND3_SUPPORT */
-	UCHAR		noSndgCnt;
-	UCHAR		eTxBfEnCond;
-	UCHAR		noSndgCntThrd, ndpSndgStreams;
-	UCHAR		iTxBfEn;
-
-	BOOLEAN		phyETxBf;			/* True=>Set ETxBF bit in PHY rate */
-	BOOLEAN		phyITxBf;			/* True=>Set ITxBF bit in PHY rate */
-	UCHAR		lastNonBfRate;		/* Last good non-BF rate */
-	BOOLEAN		lastRatePhyTxBf;	/* For Quick Check. True if last rate was BF */
-	USHORT      BfTxQuality[MAX_TX_RATE_INDEX + 1];	// Beamformed TX Quality
-#endif /* TXBF_SUPPORT */
 
 	/* to record the each TX rate's quality. 0 is best, the bigger the worse. */
 	USHORT      TxQuality[MAX_TX_RATE_INDEX + 1];

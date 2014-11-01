@@ -450,6 +450,17 @@ VOID rtmp_read_ids_from_file(
 							
 		DBGPRINT(RT_DEBUG_TRACE, ("EapReqFloodThreshold = %d\n", pAd->ApCfg.EapReqFloodThreshold));
 	}
+
+#ifdef ROY_FILTER_UTILS
+	/* DataFloodThreshold  */
+	if(RTMPGetKeyParameter("DataFloodThreshold", tmpbuf, 10, buffer, TRUE))
+	{						
+		pAd->ApCfg.DataFloodThreshold = simple_strtol(tmpbuf, 0, 10);
+							
+		DBGPRINT(RT_DEBUG_TRACE, ("DataFloodThreshold = %d\n", pAd->ApCfg.DataFloodThreshold));
+	}
+#endif /* ROY_FILTER_UTILS */
+
 }
 
 #endif /* IDS_SUPPORT */

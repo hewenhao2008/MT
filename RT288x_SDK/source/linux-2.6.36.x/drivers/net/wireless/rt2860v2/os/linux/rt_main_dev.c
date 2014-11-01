@@ -57,6 +57,7 @@ MODULE_PARM (mac, "s");
 module_param (mac, charp, 0);
 #endif
 MODULE_PARM_DESC (mac, "rt28xx: wireless mac addr");
+MODULE_LICENSE("GPL");
 
 #ifdef OS_ABL_SUPPORT
 RTMP_DRV_ABL_OPS RtmpDrvOps, *pRtmpDrvOps = &RtmpDrvOps;

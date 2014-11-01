@@ -3019,7 +3019,7 @@ NDIS_STATUS	RTMPSetProfileParameters(
 			if(RTMPGetKeyParameter("DtimPeriod", tmpbuf, 10, pBuffer, TRUE))
 			{
 				pAd->ApCfg.DtimPeriod = (UCHAR) simple_strtol(tmpbuf, 0, 10);
-				DBGPRINT(RT_DEBUG_TRACE, ("DtimPeriod=%d\n", pAd->ApCfg.DtimPeriod));
+				DBGPRINT(RT_DEBUG_ERROR, ("DtimPeriod=%d\n", pAd->ApCfg.DtimPeriod));
 			}
 		}
 #endif /* CONFIG_AP_SUPPORT */					
@@ -3031,7 +3031,7 @@ NDIS_STATUS	RTMPSetProfileParameters(
 			IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
 				pAd->CommonCfg.TxPowerDefault = pAd->CommonCfg.TxPowerPercentage;
 #endif /* CONFIG_STA_SUPPORT */
-			DBGPRINT(RT_DEBUG_TRACE, ("TxPower=%ld\n", pAd->CommonCfg.TxPowerPercentage));
+			DBGPRINT(RT_DEBUG_ERROR, ("TxPower=%ld\n", pAd->CommonCfg.TxPowerPercentage));
 		}
 		/*BGProtection*/
 		if(RTMPGetKeyParameter("BGProtection", tmpbuf, 10, pBuffer, TRUE))

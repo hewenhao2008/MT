@@ -1156,7 +1156,7 @@ VOID APMlmeKickOutSta(
 	        return;
 	    
 	    DBGPRINT(RT_DEBUG_TRACE, ("ASSOC - MLME disassociates %02x:%02x:%02x:%02x:%02x:%02x; Send DISASSOC request\n",
-	        pStaAddr[0],pStaAddr[1],pStaAddr[2], pStaAddr[3],pStaAddr[4],pStaAddr[5]));
+	        		PRINT_MAC(pStaAddr)));
 	    MgtMacHeaderInit(pAd, &DisassocHdr, SUBTYPE_DISASSOC, 0, pStaAddr, 
 #ifdef P2P_SUPPORT
 							pAd->ApCfg.MBSSID[ApIdx].Bssid,

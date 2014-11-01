@@ -157,11 +157,7 @@ VOID APPeerDlsReqAction(
 	else
 	{
 		/* response error to source station */
-		MgtMacHeaderInit(pAd, &DlsRspHdr, SUBTYPE_ACTION, 0, SA,
-#ifdef P2P_SUPPORT
-						pAd->ApCfg.MBSSID[pSAEntry->apidx].Bssid,
-#endif /* P2P_SUPPORT */
-						pAd->ApCfg.MBSSID[pSAEntry->apidx].Bssid);
+		MgtMacHeaderInit(pAd, &DlsRspHdr, SUBTYPE_ACTION, 0, SA, pAd->ApCfg.MBSSID[pSAEntry->apidx].Bssid);
 
 		/*
 			Capability information and supported rate field are present

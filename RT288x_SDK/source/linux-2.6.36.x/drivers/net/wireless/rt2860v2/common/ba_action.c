@@ -10,7 +10,7 @@
 #define ORI_BA_SESSION_TIMEOUT	(2000)	/* ms*/
 #define REC_BA_SESSION_IDLE_TIMEOUT	(1000)	/* ms*/
 
-#define REORDERING_PACKET_TIMEOUT		((200 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
+#define REORDERING_PACKET_TIMEOUT		((100 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
 #define MAX_REORDERING_PACKET_TIMEOUT	((3000 * OS_HZ)/1000)	/* system ticks -- 100 ms*/
 
 

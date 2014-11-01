@@ -36,50 +36,6 @@ void build_ext_channel_switch_ie(
 	IN HT_EXT_CHANNEL_SWITCH_ANNOUNCEMENT_IE *pIE);
 #endif /* DOT11_N_SUPPORT */
 
-#ifdef P2P_SUPPORT
-extern UCHAR	WILDP2PSSID[];
-extern UCHAR	WILDP2PSSIDLEN;
-#endif /* P2P_SUPPORT */
-
-/*
-	==========================================================================
-	Description:
-		The sync state machine,
-	Parameters:
-		Sm - pointer to the state machine
-	Note:
-		the state machine looks like the following
-
-							AP_SYNC_IDLE
-	APMT2_PEER_PROBE_REQ	peer_probe_req_action
-	==========================================================================
- */
-VOID APSyncStateMachineInit(
-	IN PRTMP_ADAPTER pAd,
-	IN STATE_MACHINE *Sm,
-	OUT STATE_MACHINE_FUNC Trans[])
-{
-	StateMachineInit(Sm, (STATE_MACHINE_FUNC *)Trans, AP_MAX_SYNC_STATE, AP_MAX_SYNC_MSG, (STATE_MACHINE_FUNC)Drop, AP_SYNC_IDLE, AP_SYNC_MACHINE_BASE);
-
-	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_PEER_PROBE_REQ, (STATE_MACHINE_FUNC)APPeerProbeReqAction);
-	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_PEER_BEACON, (STATE_MACHINE_FUNC)APPeerBeaconAction);
-#ifdef P2P_SUPPORT
-	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_PEER_PROBE_RSP, (STATE_MACHINE_FUNC)APPeerBeaconAtScanAction);
-#endif /* P2P_SUPPORT */
-#ifdef AP_SCAN_SUPPORT
-	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_MLME_SCAN_REQ, (STATE_MACHINE_FUNC)APMlmeScanReqAction);
-
-	/* scan_listen state */
-	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_MLME_SCAN_REQ, (STATE_MACHINE_FUNC)APInvalidStateWhenScan);
-	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_PEER_BEACON, (STATE_MACHINE_FUNC)APPeerBeaconAtScanAction);
-	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_PEER_PROBE_RSP, (STATE_MACHINE_FUNC)APPeerBeaconAtScanAction);
-	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_SCAN_TIMEOUT, (STATE_MACHINE_FUNC)APScanTimeoutAction);
-	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_MLME_SCAN_CNCL, (STATE_MACHINE_FUNC)APScanCnclAction);
-
-	RTMPInitTimer(pAd, &pAd->MlmeAux.APScanTimer, GET_TIMER_FUNCTION(APScanTimeout), pAd, FALSE);
-#endif /* AP_SCAN_SUPPORT */
-}
-
 /*
 	==========================================================================
 	Description:
@@ -105,7 +61,9 @@ VOID APPeerProbeReqAction(
 	UCHAR   ErpIeLen = 1;
 	UCHAR         apidx = 0, PhyMode, SupRateLen;
 	UCHAR   RSNIe=IE_WPA, RSNIe2=IE_WPA2;/*, RSN_Len=22; */
+	MULTISSID_STRUCT *pMbss;
 	BOOLEAN		bRequestRssi=FALSE;
+	CHAR rssi = 0;
 
 #ifdef WSC_AP_SUPPORT
     UCHAR		  Addr3[MAC_ADDR_LEN];
@@ -119,12 +77,6 @@ VOID APPeerProbeReqAction(
 	if (pAd->WdsTab.Mode == WDS_BRIDGE_MODE)
 		return;
 #endif /* WDS_SUPPORT */
-#ifdef P2P_SUPPORT
-	/* When enable P2P scan, there driver alway sent probe request.
-	    But when user enter main page, LG request not sent probe response. */
-	if ( pAd->P2pCfg.bSentProbeRSP != TRUE )
-		return;
-#endif /* P2P_SUPPORT */
 
 	if (! PeerProbeReqSanity(pAd, Elem->Msg, Elem->MsgLen, Addr2, Ssid, &SsidLen, &bRequestRssi))
 		return;
@@ -132,25 +84,23 @@ VOID APPeerProbeReqAction(
 	for(apidx=0; apidx<pAd->ApCfg.BssidNum; apidx++)
 	{
 		RSNIe = IE_WPA;
+		pMbss = &pAd->ApCfg.MBSSID[apidx];
 	
-		if ((pAd->ApCfg.MBSSID[apidx].MSSIDDev != NULL) &&
-			!(RTMP_OS_NETDEV_STATE_RUNNING(pAd->ApCfg.MBSSID[apidx].MSSIDDev)))
+		if ((pMbss->MSSIDDev != NULL) &&
+			!(RTMP_OS_NETDEV_STATE_RUNNING(pMbss->MSSIDDev)))
 		{
 			/* the interface is down, so we can not send probe response */
 			continue;
 		} /* End of if */
 
-		PhyMode = pAd->ApCfg.MBSSID[apidx].PhyMode;
+		PhyMode = pMbss->PhyMode;
 
-		if (((SsidLen == 0) && (! pAd->ApCfg.MBSSID[apidx].bHideSsid)) ||
+		if (((SsidLen == 0) && (! pMbss->bHideSsid)) ||
 #ifdef WSC_AP_SUPPORT
             /* buffalo WPS testbed STA send ProbrRequest ssid length = 32 and ssid are not AP , but DA are AP. for WPS test send ProbeResponse */
-			((SsidLen == 32) && MAC_ADDR_EQUAL(Addr3, pAd->ApCfg.MBSSID[apidx].Bssid) && (pAd->ApCfg.MBSSID[apidx].bHideSsid == 0)) ||
+			((SsidLen == 32) && MAC_ADDR_EQUAL(Addr3, pMbss->Bssid) && (pMbss->bHideSsid == 0)) ||
 #endif /* WSC_AP_SUPPORT */
-#ifdef P2P_SUPPORT
-			(NdisEqualMemory(Ssid, &WILDP2PSSID[0], WILDP2PSSIDLEN)) ||
-#endif /* P2P_SUPPORT */
-		((SsidLen == pAd->ApCfg.MBSSID[apidx].SsidLen) && NdisEqualMemory(Ssid, pAd->ApCfg.MBSSID[apidx].Ssid, (ULONG) SsidLen)))
+		((SsidLen == pMbss->SsidLen) && NdisEqualMemory(Ssid, pMbss->Ssid, (ULONG) SsidLen)))
 			;
 		else
 			continue; /* check next BSS */
@@ -159,64 +109,21 @@ VOID APPeerProbeReqAction(
 		NStatus = MlmeAllocateMemory(pAd, &pOutBuffer);
 		if (NStatus != NDIS_STATUS_SUCCESS)
 			return;
-		MgtMacHeaderInit(pAd, &ProbeRspHdr, SUBTYPE_PROBE_RSP, 0, Addr2, 
-#ifdef P2P_SUPPORT
-							pAd->ApCfg.MBSSID[apidx].Bssid,
-#endif /* P2P_SUPPORT */
-							pAd->ApCfg.MBSSID[apidx].Bssid);
 
-		 if ((pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA) ||
-			(pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPAPSK))
+		MgtMacHeaderInit(pAd, &ProbeRspHdr, SUBTYPE_PROBE_RSP, 0, Addr2, pMbss->Bssid);
+
+		 if ((pMbss->AuthMode == Ndis802_11AuthModeWPA) ||
+			(pMbss->AuthMode == Ndis802_11AuthModeWPAPSK))
 			RSNIe = IE_WPA;
-		else if ((pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA2) ||
-			(pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA2PSK))
+		else if ((pMbss->AuthMode == Ndis802_11AuthModeWPA2) ||
+			(pMbss->AuthMode == Ndis802_11AuthModeWPA2PSK))
 			RSNIe = IE_WPA2;
 #ifdef WAPI_SUPPORT
-		else if ((pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWAICERT) ||
-			(pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWAIPSK))
+		else if ((pMbss->AuthMode == Ndis802_11AuthModeWAICERT) ||
+			(pMbss->AuthMode == Ndis802_11AuthModeWAIPSK))
 			RSNIe = IE_WAPI;
 #endif /* WAPI_SUPPORT */
 
-#ifdef P2P_SUPPORT
-		if (P2P_GO_ON(pAd))
-		{
-			UCHAR		SupRate[MAX_LEN_OF_SUPPORTED_RATES];
-			UCHAR		SupRateIe = IE_SUPP_RATES;
-			UCHAR		SupRateLen = 0;
-			UCHAR	Channel = pAd->CommonCfg.Channel;
-
-			if (IS_P2P_LISTEN(pAd))
-				Channel = pAd->P2pCfg.ListenChannel;
-
-			SupRate[0]	= 0x8C;    /* 6 mbps, in units of 0.5 Mbps, basic rate */
-			SupRate[1]	= 0x12;    /* 9 mbps, in units of 0.5 Mbps */
-			SupRate[2]	= 0x98;    /* 12 mbps, in units of 0.5 Mbps, basic rate */
-			SupRate[3]	= 0x24;    /* 18 mbps, in units of 0.5 Mbps */
-			SupRate[4]	= 0xb0;    /* 24 mbps, in units of 0.5 Mbps, basic rate */
-			SupRate[5]	= 0x48;    /* 36 mbps, in units of 0.5 Mbps */
-			SupRate[6]	= 0x60;    /* 48 mbps, in units of 0.5 Mbps */
-			SupRate[7]	= 0x6c;    /* 54 mbps, in units of 0.5 Mbps */
-			SupRateLen	= 8;
-
-			MakeOutgoingFrame(pOutBuffer,				  &FrameLen,
-							  sizeof(HEADER_802_11),	  &ProbeRspHdr,
-							  TIMESTAMP_LEN,			  &FakeTimestamp,
-							  2,						  &pAd->CommonCfg.BeaconPeriod,
-							  2,						  &pAd->ApCfg.MBSSID[apidx].CapabilityInfo,
-							  1,						  &SsidIe,
-							  1,						  &pAd->ApCfg.MBSSID[apidx].SsidLen,
-							  pAd->ApCfg.MBSSID[apidx].SsidLen, 	pAd->ApCfg.MBSSID[apidx].Ssid,
-							  1,						  &SupRateIe,
-							  1,						  &SupRateLen,
-							  SupRateLen,				  &SupRate,
-							  1,						  &DsIe,
-							  1,						  &DsLen,
-							  1,						  &Channel,
-							  END_OF_ARGS);
-
-		}
-		else
-#endif /* P2P_SUPPORT */
 		{
 		SupRateLen = pAd->CommonCfg.SupRateLen;
 		if (PhyMode == PHY_11B)
@@ -226,10 +133,10 @@ VOID APPeerProbeReqAction(
 						  sizeof(HEADER_802_11),      &ProbeRspHdr,
 						  TIMESTAMP_LEN,              &FakeTimestamp,
 						  2,                          &pAd->CommonCfg.BeaconPeriod,
-						  2,                          &pAd->ApCfg.MBSSID[apidx].CapabilityInfo,
+						  2,                          &pMbss->CapabilityInfo,
 						  1,                          &SsidIe,
-						  1,                          &pAd->ApCfg.MBSSID[apidx].SsidLen,
-						  pAd->ApCfg.MBSSID[apidx].SsidLen,     pAd->ApCfg.MBSSID[apidx].Ssid,
+						  1,                          &pMbss->SsidLen,
+						  pMbss->SsidLen,     pMbss->Ssid,
 						  1,                          &SupRateIe,
 						  1,                          &SupRateLen,
 						  SupRateLen,                 pAd->CommonCfg.SupRate,
@@ -275,7 +182,7 @@ VOID APPeerProbeReqAction(
 
 #ifdef DOT11_N_SUPPORT
 		if ((PhyMode >= PHY_11ABGN_MIXED) &&
-			(pAd->ApCfg.MBSSID[apidx].DesiredHtPhyInfo.bHtEnable))
+			(pMbss->DesiredHtPhyInfo.bHtEnable))
 		{
 			ULONG TmpLen;
 			UCHAR	HtLen, AddHtLen, NewExtLen;
@@ -346,18 +253,18 @@ VOID APPeerProbeReqAction(
 #endif /* DOT11_N_SUPPORT */
 
 		/* Append RSN_IE when  WPA OR WPAPSK, */
-		if (pAd->ApCfg.MBSSID[apidx].AuthMode < Ndis802_11AuthModeWPA)
+		if (pMbss->AuthMode < Ndis802_11AuthModeWPA)
 			; /* enough information */
-		else if ((pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA1WPA2) ||
-			(pAd->ApCfg.MBSSID[apidx].AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK))
+		else if ((pMbss->AuthMode == Ndis802_11AuthModeWPA1WPA2) ||
+			(pMbss->AuthMode == Ndis802_11AuthModeWPA1PSKWPA2PSK))
 		{
 			MakeOutgoingFrame(pOutBuffer+FrameLen,      &TmpLen,
 							  1,                        &RSNIe,
-							  1,                        &pAd->ApCfg.MBSSID[apidx].RSNIE_Len[0],
-							  pAd->ApCfg.MBSSID[apidx].RSNIE_Len[0],  pAd->ApCfg.MBSSID[apidx].RSN_IE[0],
+							  1,                        &pMbss->RSNIE_Len[0],
+							  pMbss->RSNIE_Len[0],  pMbss->RSN_IE[0],
 							  1,                        &RSNIe2,
-							  1,                        &pAd->ApCfg.MBSSID[apidx].RSNIE_Len[1],
-							  pAd->ApCfg.MBSSID[apidx].RSNIE_Len[1],  pAd->ApCfg.MBSSID[apidx].RSN_IE[1],
+							  1,                        &pMbss->RSNIE_Len[1],
+							  pMbss->RSNIE_Len[1],  pMbss->RSN_IE[1],
 							  END_OF_ARGS);
 			FrameLen += TmpLen;
 		}
@@ -365,20 +272,20 @@ VOID APPeerProbeReqAction(
 		{
 			MakeOutgoingFrame(pOutBuffer+FrameLen,      &TmpLen,
 							  1,                        &RSNIe,
-							  1,                        &pAd->ApCfg.MBSSID[apidx].RSNIE_Len[0],
-							  pAd->ApCfg.MBSSID[apidx].RSNIE_Len[0],  pAd->ApCfg.MBSSID[apidx].RSN_IE[0],
+							  1,                        &pMbss->RSNIE_Len[0],
+							  pMbss->RSNIE_Len[0],  pMbss->RSN_IE[0],
 							  END_OF_ARGS);
 			FrameLen += TmpLen;
 		}
 
 		/* add WMM IE here */
-		if (pAd->ApCfg.MBSSID[apidx].bWmmCapable)
+		if (pMbss->bWmmCapable)
 		{
 			UCHAR i;
 			UCHAR WmeParmIe[26] = {IE_VENDOR_SPECIFIC, 24, 0x00, 0x50, 0xf2, 0x02, 0x01, 0x01, 0, 0};
 			WmeParmIe[8] = pAd->ApCfg.BssEdcaParm.EdcaUpdateCount & 0x0f;
 #ifdef UAPSD_SUPPORT
-            UAPSD_MR_IE_FILL(WmeParmIe[8], &pAd->ApCfg.MBSSID[apidx].UapsdInfo);
+            UAPSD_MR_IE_FILL(WmeParmIe[8], &pMbss->UapsdInfo);
 #endif /* UAPSD_SUPPORT */
 			for (i=QID_AC_BE; i<=QID_AC_VO; i++)
 			{
@@ -410,7 +317,7 @@ VOID APPeerProbeReqAction(
 	 	/* P802.11n_D3.03, 7.3.2.60 Overlapping BSS Scan Parameters IE */
 	 	if ((PhyMode >= PHY_11ABGN_MIXED) &&
 			(pAd->CommonCfg.Channel <= 14) &&
-			(pAd->ApCfg.MBSSID[apidx].DesiredHtPhyInfo.bHtEnable) &&
+			(pMbss->DesiredHtPhyInfo.bHtEnable) &&
 			(pAd->CommonCfg.HtCapability.HtCapInfo.ChannelWidth == 1))
 	 	{
 			OVERLAP_BSS_SCAN_IE  OverlapScanParam;
@@ -450,7 +357,7 @@ VOID APPeerProbeReqAction(
 
 			/* P802.11n_D1.10, HT Information Exchange Support */
 			if ((PhyMode >= PHY_11ABGN_MIXED) && (pAd->CommonCfg.Channel <= 14) &&
-				(pAd->ApCfg.MBSSID[apidx].DesiredHtPhyInfo.bHtEnable) && 
+				(pMbss->DesiredHtPhyInfo.bHtEnable) && 
 				(pAd->CommonCfg.bBssCoexEnable == TRUE))
 			{
 			extCapInfo.BssCoexistMgmtSupport = 1;
@@ -604,7 +511,7 @@ VOID APPeerProbeReqAction(
 
 #ifdef DOT11_N_SUPPORT
 		if ((PhyMode >= PHY_11ABGN_MIXED) &&
-			(pAd->ApCfg.MBSSID[apidx].DesiredHtPhyInfo.bHtEnable))
+			(pMbss->DesiredHtPhyInfo.bHtEnable))
 		{
 			ULONG TmpLen;
 			UCHAR	HtLen, AddHtLen;/*, NewExtLen; */
@@ -684,11 +591,11 @@ VOID APPeerProbeReqAction(
 
 #ifdef WSC_AP_SUPPORT
 		/* for windows 7 logo test */
-		if ((pAd->ApCfg.MBSSID[apidx].WscControl.WscConfMode != WSC_DISABLE) &&
+		if ((pMbss->WscControl.WscConfMode != WSC_DISABLE) &&
 #ifdef DOT1X_SUPPORT
-				(pAd->ApCfg.MBSSID[apidx].IEEE8021X == FALSE) && 
+				(pMbss->IEEE8021X == FALSE) && 
 #endif /* DOT1X_SUPPORT */
-				(pAd->ApCfg.MBSSID[apidx].WepStatus == Ndis802_11WEPEnabled))
+				(pMbss->WepStatus == Ndis802_11WEPEnabled))
 		{
 			/*
 				Non-WPS Windows XP and Vista PCs are unable to determine if a WEP enalbed network is static key based 
@@ -709,11 +616,11 @@ VOID APPeerProbeReqAction(
 	    }
 
         /* add Simple Config Information Element */
-        if ((pAd->ApCfg.MBSSID[apidx].WscControl.WscConfMode > WSC_DISABLE) && (pAd->ApCfg.MBSSID[apidx].WscIEProbeResp.ValueLen))
+        if ((pMbss->WscControl.WscConfMode > WSC_DISABLE) && (pMbss->WscIEProbeResp.ValueLen))
         {
     		ULONG WscTmpLen = 0;
     		MakeOutgoingFrame(pOutBuffer+FrameLen,                                  &WscTmpLen,
-    						  pAd->ApCfg.MBSSID[apidx].WscIEProbeResp.ValueLen,   pAd->ApCfg.MBSSID[apidx].WscIEProbeResp.Value,
+    						  pMbss->WscIEProbeResp.ValueLen,   pMbss->WscIEProbeResp.Value,
                               END_OF_ARGS);
     		FrameLen += WscTmpLen;
         }
@@ -721,40 +628,6 @@ VOID APPeerProbeReqAction(
 
 
 
-#ifdef P2P_SUPPORT
-	if (P2P_GO_ON(pAd))
-	{
-		ULONG	Peerip, P2PSubelementLen = 0, WpsLen = 0;
-		UCHAR			*P2pSubelement;
-		UCHAR			*WpsIE;
-
-		os_alloc_mem(NULL, (UCHAR **)&P2pSubelement, MAX_VIE_LEN);
-		os_alloc_mem(NULL, (UCHAR **)&WpsIE, MAX_VIE_LEN);
-
-		/*PeerP2pProbeReqSanity(pAd, Elem->Msg,  Elem->MsgLen, Addr2, Ssid, &SsidLen, &Peerip, &P2PSubelementLen, P2pSubelement, &WpsLen, WpsIE);*/
-		/* Ralink Proprietary feature for IP */
-/*
-		P2pMakeProbeRspWSCIE(pAd, pOutBuffer + FrameLen, &TmpLen);		
-		FrameLen += TmpLen;
-*/
-		/* APPeerProbeReqAction() is called when I am already GO. So doesn't use Is_P2P_on to check whether need to add P2P IE in response. */
-		/*if (P2PSubelementLen > 0)*/
-		if (PeerP2pProbeReqSanity(pAd, Elem->Msg,  Elem->MsgLen, Addr2, Ssid, &SsidLen, &Peerip, &P2PSubelementLen, P2pSubelement, &WpsLen, WpsIE))
-		{
-			ULONG	P2PIeLen;
-			PUCHAR	ptr;
-			ptr = pOutBuffer + FrameLen;
-			P2pMakeP2pIE(pAd, SUBTYPE_PROBE_RSP, ptr, &P2PIeLen);
-			FrameLen += P2PIeLen;
-		}
-		if (P2pSubelement)
-			os_free_mem(NULL, P2pSubelement);
-		if (WpsIE)
-			os_free_mem(NULL, WpsIE);
-
-	}
-
-#endif /* P2P_SUPPORT */
 
 		/* 802.11n 11.1.3.2.2 active scanning. sending probe response with MCS rate is */
 		MiniportMMRequest(pAd, 0, pOutBuffer, FrameLen);
@@ -828,14 +701,10 @@ VOID APPeerBeaconAction(
 	UCHAR AddHtInfoLen;
 	UCHAR NewExtChannelOffset = 0xff;
 	UCHAR MaxSupportedRate = 0;
-#ifdef CONFIG_STA_SUPPORT
-	UCHAR	pPreNHtCapabilityLen = 0;
-#endif /* CONFIG_STA_SUPPORT */
+
 
 	EXT_CAP_INFO_ELEMENT	ExtCapInfo;
-#ifdef APCLI_SUPPORT
-	UINT32 MaxWcidNum = MAX_LEN_OF_MAC_TABLE;
-#endif /* APCLI_SUPPORT */
+
 
 	/* allocate memory */
 	os_alloc_mem(NULL, (UCHAR **)&VarIE, MAX_VIE_LEN);
@@ -910,9 +779,6 @@ VOID APPeerBeaconAction(
 								&QosCapability,
 								&RalinkIe,
 								&HtCapabilityLen,
-#ifdef CONFIG_STA_SUPPORT
-								&pPreNHtCapabilityLen,
-#endif /* CONFIG_STA_SUPPORT */
 								pHtCapability,
 								&ExtCapInfo,
 								&AddHtInfoLen,
@@ -929,9 +795,6 @@ VOID APPeerBeaconAction(
 			&& (pAd->CommonCfg.bOverlapScanning == FALSE)
 #endif /* DOT11N_DRAFT3 */
 #endif /* DOT11_N_SUPPORT */
-#ifdef P2P_SUPPORT
-			&& (!P2P_CLI_ON(pAd))
-#endif /* P2P_SUPPORT */
 			)
 		{
 			goto __End_Of_APPeerBeaconAction;
@@ -960,17 +823,6 @@ VOID APPeerBeaconAction(
 		{
 			if (pAd->CommonCfg.Channel<=14)
 			{
-#ifdef P2P_SUPPORT
-				if(OPSTATUS_TEST_FLAG(pAd, fOP_AP_STATUS_MEDIA_STATE_CONNECTED) && P2P_CLI_ON(pAd))
-				{
-					if (Channel != pAd->CommonCfg.Channel)
-					{
-						DBGPRINT(RT_DEBUG_INFO, ("Channel=%d is not equal as CommonCfg.Channel = %d.\n", Channel, pAd->CommonCfg.Channel));
-//						goto __End_Of_APPeerBeaconAction;
-					}
-				}
-				else
-#endif /* P2P_SUPPORT */
 				if (((pAd->CommonCfg.CentralChannel+2) != Channel) &&
 					((pAd->CommonCfg.CentralChannel-2) != Channel))
 				{
@@ -1098,22 +950,6 @@ VOID APPeerBeaconAction(
 			}
 		}
 
-#ifdef P2P_SUPPORT
-		if (P2P_CLI_ON(pAd) &&
-			(ApCliWaitProbRsp(pAd, 0) == TRUE) && 
-			(NdisEqualMemory(pAd->ApCfg.ApCliTab[0].CfgApCliBssid, Bssid, MAC_ADDR_LEN)))
-		{
-			MlmeEnqueue(pAd, APCLI_SYNC_STATE_MACHINE, APCLI_MT2_PEER_BEACON, Elem->MsgLen, Elem->Msg, 0);
-		}
-		else
-		{
-			PeerP2pBeacon(pAd, Addr2, Elem, TimeStamp);
-			if(MessageToMe)
-			{
-				MiniportMMRequest(pAd, 0, (PUCHAR)&pAd->ApCfg.ApCliTab[0].PsPollFrame, sizeof(PSPOLL_FRAME));
-			}
-		}
-#endif /* P2P_SUPPORT */
 #endif /* APCLI_SUPPORT */
 
 #ifdef WDS_SUPPORT
@@ -1397,9 +1233,7 @@ VOID APPeerBeaconAtScanAction(
 	UCHAR			AddHtInfoLen;
 	UCHAR			NewExtChannelOffset = 0xff;
 	CHAR			RealRssi = -127;
-#ifdef CONFIG_STA_SUPPORT
-	UCHAR	pPreNHtCapabilityLen = 0;
-#endif /* CONFIG_STA_SUPPORT */
+
 
 	EXT_CAP_INFO_ELEMENT	ExtCapInfo;
 
@@ -1473,9 +1307,6 @@ VOID APPeerBeaconAtScanAction(
 								&QosCapability,
 								&RalinkIe,
 								&HtCapabilityLen,
-#ifdef CONFIG_STA_SUPPORT
-								&pPreNHtCapabilityLen,
-#endif /* CONFIG_STA_SUPPORT */
 								pHtCapability,
 								&ExtCapInfo,
 								&AddHtInfoLen,
@@ -1489,9 +1320,6 @@ VOID APPeerBeaconAtScanAction(
 
 		RealRssi = RTMPMaxRssi(pAd, ConvertToRssi(pAd, Elem->Rssi0, RSSI_0), ConvertToRssi(pAd, Elem->Rssi1, RSSI_1), ConvertToRssi(pAd, Elem->Rssi2, RSSI_2));
 
-#ifdef P2P_SUPPORT
-				MlmeEnqueue(pAd, P2P_DISC_STATE_MACHINE, P2P_DISC_PEER_PROB_RSP, Elem->MsgLen, Elem->Msg, Channel);
-#endif /* P2P_SUPPORT */
 
 		
 		/* ignore BEACON not in this channel */
@@ -1642,12 +1470,51 @@ VOID ApSiteSurvey(
     RTMP_MLME_HANDLER(pAd);
 }
 
+
 BOOLEAN ApScanRunning(
 		IN PRTMP_ADAPTER pAd)
 {
 	return (pAd->Mlme.ApSyncMachine.CurrState == AP_SCAN_LISTEN) ? TRUE : FALSE;
 }
 #endif /* AP_SCAN_SUPPORT */
+
+
+/*
+	==========================================================================
+	Description:
+		The sync state machine,
+	Parameters:
+		Sm - pointer to the state machine
+	Note:
+		the state machine looks like the following
+
+							AP_SYNC_IDLE
+	APMT2_PEER_PROBE_REQ	peer_probe_req_action
+	==========================================================================
+ */
+VOID APSyncStateMachineInit(
+	IN PRTMP_ADAPTER pAd,
+	IN STATE_MACHINE *Sm,
+	OUT STATE_MACHINE_FUNC Trans[])
+{
+	StateMachineInit(Sm, (STATE_MACHINE_FUNC *)Trans, AP_MAX_SYNC_STATE, AP_MAX_SYNC_MSG, (STATE_MACHINE_FUNC)Drop, AP_SYNC_IDLE, AP_SYNC_MACHINE_BASE);
+
+	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_PEER_PROBE_REQ, (STATE_MACHINE_FUNC)APPeerProbeReqAction);
+	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_PEER_BEACON, (STATE_MACHINE_FUNC)APPeerBeaconAction);
+#ifdef AP_SCAN_SUPPORT
+	StateMachineSetAction(Sm, AP_SYNC_IDLE, APMT2_MLME_SCAN_REQ, (STATE_MACHINE_FUNC)APMlmeScanReqAction);
+
+	/* scan_listen state */
+	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_MLME_SCAN_REQ, (STATE_MACHINE_FUNC)APInvalidStateWhenScan);
+	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_PEER_BEACON, (STATE_MACHINE_FUNC)APPeerBeaconAtScanAction);
+	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_PEER_PROBE_RSP, (STATE_MACHINE_FUNC)APPeerBeaconAtScanAction);
+	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_SCAN_TIMEOUT, (STATE_MACHINE_FUNC)APScanTimeoutAction);
+	StateMachineSetAction(Sm, AP_SCAN_LISTEN, APMT2_MLME_SCAN_CNCL, (STATE_MACHINE_FUNC)APScanCnclAction);
+
+	RTMPInitTimer(pAd, &pAd->MlmeAux.APScanTimer, GET_TIMER_FUNCTION(APScanTimeout), pAd, FALSE);
+#endif /* AP_SCAN_SUPPORT */
+}
+
 
 VOID SupportRate(
 	IN PUCHAR SupRate,
@@ -1778,7 +1645,7 @@ void build_ext_channel_switch_ie(
 	pIE->ChannelSwitchMode = 1;	/*no further frames */
 	pIE->NewRegClass = get_regulatory_class(pAd);
 	pIE->NewChannelNum = pAd->CommonCfg.Channel;
-    pIE->ChannelSwitchCount = pAd->Dot11_H.CSCount;
+    pIE->ChannelSwitchCount = (pAd->Dot11_H.CSPeriod - pAd->Dot11_H.CSCount - 1);
 }
 #endif /* DOT11_N_SUPPORT */
 

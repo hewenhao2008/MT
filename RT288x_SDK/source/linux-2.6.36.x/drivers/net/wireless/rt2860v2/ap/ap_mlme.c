@@ -142,7 +142,7 @@ VOID APMlmePeriodicExec(
 			}
 			else
 			{
-				printk("Carrier gone\n");
+				DBGPRINT(RT_DEBUG_TRACE, ("Carrier gone\n"));
 			}
 		}
 		pCarrierDetect->OneSecIntCount = 0;
@@ -417,32 +417,6 @@ BOOLEAN APMsgTypeSubst(
 	case SUBTYPE_ACTION_NO_ACK:
 		*Machine = ACTION_STATE_MACHINE;
 		/*  Sometimes Sta will return with category bytes with MSB = 1, if they receive catogory out of their support */
-#ifdef P2P_SUPPORT
-		/*	Vendor specific usage. */
-		if ((pFrame->Octet[0] & 0x7F) == MT2_ACT_VENDOR) /*  Sometimes Sta will return with category bytes with MSB = 1, if they receive catogory out of their support */
-		{
-			UCHAR	P2POUIBYTE[4] = {0x50, 0x6f, 0x9a, 0x9};
-
-			DBGPRINT(RT_DEBUG_ERROR, ("Vendor Action frame OUI= 0x%x\n", *(PULONG)&pFrame->Octet[1]));
-			/* Now support WFA P2P */
-			if (RTMPEqualMemory(&pFrame->Octet[1], P2POUIBYTE, 4) && (P2P_INF_ON(pAd)))
-			{
-				DBGPRINT(RT_DEBUG_TRACE, ("Vendor Action frame P2P OUI= 0x%x\n", *(PULONG)&pFrame->Octet[1]));
-				*Machine = P2P_ACTION_STATE_MACHINE;
-				if (pFrame->Octet[5] <= MT2_MAX_PEER_SUPPORT)
-				{
-					*MsgType = pFrame->Octet[5]; /* subtype.  */
-				}
-				else
-					return FALSE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		} 
-		else
-#endif /* P2P_SUPPORT */
 		if ((pFrame->Octet[0]&0x7F) > MAX_PEER_CATE_MSG) 
 		{
 			*MsgType = MT2_ACT_INVALID;
@@ -491,11 +465,6 @@ VOID APAsicEvaluateRxAnt(
 	return;
 #endif /* CARRIER_DETECTION_SUPPORT */
 	
-#ifdef TXBF_SUPPORT
-	/* TODO: we didn't do RxAnt evaluate for 3x3 chips */
-	if (IS_RT3883(pAd) || IS_RT2883(pAd))
-		return;
-#endif /* TXBF_SUPPORT */
 
 	
 	RTMP_BBP_IO_READ8_BY_REG_ID(pAd, BBP_R3, &BBPR3);

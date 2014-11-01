@@ -38,6 +38,7 @@ obj-$(CONFIG_BE2NET) += benet/
 obj-$(CONFIG_VMXNET3) += vmxnet3/
 obj-$(CONFIG_RALINK_RDM) += rt_rdm/
 obj-$(CONFIG_RAETH) += raeth/
+obj-$(CONFIG_MT6605_NFC) += nfc/
 
 gianfar_driver-objs := gianfar.o \
 		gianfar_ethtool.o \
@@ -174,7 +175,7 @@ obj-$(CONFIG_SLIP) += slip.o
 obj-$(CONFIG_SLHC) += slhc.o
 
 obj-$(CONFIG_XEN_NETDEV_FRONTEND) += xen-netfront.o
-
+obj-$(CONFIG_IMQ) += imq.o
 obj-$(CONFIG_DUMMY) += dummy.o
 obj-$(CONFIG_IFB) += ifb.o
 obj-$(CONFIG_MACVLAN) += macvlan.o
@@ -303,3 +304,9 @@ obj-$(CONFIG_WIMAX) += wimax/
 obj-$(CONFIG_CAIF) += caif/
 
 obj-$(CONFIG_OCTEON_MGMT_ETHERNET) += octeon/
+ifeq ($(CONFIG_RALINK_HWCRYPTO), m)
+obj-$(CONFIG_RALINK_HWCRYPTO) += cryptoDriver/
+endif
+
+#obj-m += eip93_drivers/cryptoEngine/V-Driver_93/build/
+#obj-m += eip93_drivers/slad_test_k/
