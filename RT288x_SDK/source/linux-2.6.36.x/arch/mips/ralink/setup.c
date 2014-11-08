@@ -50,7 +50,6 @@
 #include <asm/mach-ralink/surfboardint.h>
 #include <asm/time.h>
 #include <asm/traps.h>
-#include <asm/gcmpregs.h>  
 
 #if defined(CONFIG_SERIAL_CONSOLE) || defined(CONFIG_PROM_CONSOLE)
 extern void console_setup(char *, int *);
@@ -75,85 +74,6 @@ const char *get_system_type(void)
 
 extern void mips_time_init(void);
 extern void mips_timer_setup(struct irqaction *irq);
-
-int coherentio = -1;    /* no DMA cache coherency (may be set by user) */
-int hw_coherentio;      /* init to 0 => no HW DMA cache coherency (reflects real HW) */
-static int __init setcoherentio(char *str)
-{
-        if (coherentio < 0)
-                pr_info("Command line checking done before"
-                                " plat_setup_iocoherency!!\n");
-        if (coherentio == 0)
-                pr_info("Command line enabling coherentio"
-                                " (this will break...)!!\n");
-
-        coherentio = 1;
-        pr_info("Hardware DMA cache coherency (command line)\n");
-        return 1;
-}
-__setup("coherentio", setcoherentio);
-
-static int __init setnocoherentio(char *str)
-{
-        if (coherentio < 0)
-                pr_info("Command line checking done before"
-                                " plat_setup_iocoherency!!\n");
-        if (coherentio == 1)
-                pr_info("Command line disabling coherentio\n");
-
-        coherentio = 0;
-        pr_info("Software DMA cache coherency (command line)\n");
-        return 1;
-}
-__setup("nocoherentio", setnocoherentio);
-
-static int __init
-plat_enable_iocoherency(void)
-{
-#ifdef CONFIG_MIPS_IOCU
-        int supported = 0;
-        if (gcmp_niocu() != 0) {
-                /* Nothing special needs to be done to enable coherency */
-                printk("CMP IOCU detected\n");
-                supported = 1;
-        }
-        hw_coherentio = supported;
-        return supported;
-#else
-	return 0;
-#endif
-}
-
-static void __init
-plat_setup_iocoherency(void)
-{
-#ifdef CONFIG_DMA_NONCOHERENT
-        /*
-         * Kernel has been configured with software coherency
-         * but we might choose to turn it off
-         */
-        if (plat_enable_iocoherency()) {
-                if (coherentio == 0)
-                        pr_info("Hardware DMA cache coherency supported"
-                                        " but disabled from command line\n");
-                else {
-                        coherentio = 1;
-                        printk(KERN_INFO "Hardware DMA cache coherency\n");
-                }
-        } else {
-                if (coherentio == 1)
-                        pr_info("Hardware DMA cache coherency not supported"
-                                " but enabled from command line\n");
-                else {
-                        coherentio = 0;
-                        pr_info("Software DMA cache coherency\n");
-                }
-        }
-#else
-        if (!plat_enable_iocoherency())
-                panic("Hardware DMA cache coherency not supported");
-#endif
-}
 
 void __init rt2880_setup(void)
 {
@@ -223,7 +143,6 @@ void __init rt2880_setup(void)
 	//board_time_init = mips_time_init;
 	//board_timer_setup = mips_timer_setup;
 
-	plat_setup_iocoherency();
 	mips_reboot_setup();
 }
 

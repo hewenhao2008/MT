@@ -34,8 +34,6 @@ int rdm_release(struct inode *inode, struct file *filp);
 #define RT_RDM_CMD_SET_BASE		0x6B0D
 #define RT_RDM_CMD_SET_BASE_SYS		0x6B0E
 #define RT_RDM_CMD_SET_BASE_WLAN	0x6B0F
-#define RT_RDM_CMD_DUMP_QUEUE_OFFSET 0x6B10
-#define RT_RDM_CMD_DUMP_QUEUE 0x6B11
 
 #define RT_RDM_DUMP_RANGE		16  // unit=16bytes
 #endif

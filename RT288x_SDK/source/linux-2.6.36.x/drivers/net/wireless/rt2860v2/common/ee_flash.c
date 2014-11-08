@@ -218,6 +218,7 @@ static BOOLEAN RandomMacAddrs(RTMP_ADAPTER *pAd)
 
 		// wlan mac addr
 		Addr45 += 0x1000;
+		Addr45 &= 0xf4ff; //power of 2
 		rtmp_ee_flash_write(pAd, 0x08, Addr45);
 	}
 	

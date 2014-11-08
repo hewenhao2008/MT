@@ -151,13 +151,6 @@ void __init prom_meminit(void)
  	//add_memory_region(0x0a000000, rt2880_res_ram.end - rt2880_res_ram.start, BOOT_MEM_RAM);
 #if defined(CONFIG_RT2880_ASIC) || defined(CONFIG_RT2880_FPGA)
  	add_memory_region(0x08000000, RAM_SIZE, BOOT_MEM_RAM);
-#elif defined(CONFIG_MT7621_ASIC) || defined(CONFIG_MT7621_FPGA)
-#if defined (CONFIG_RT2880_DRAM_512M)
- 	add_memory_region(0x00000000, RAM_SIZE + 64*1024*1024, BOOT_MEM_RAM);
-#else
- 	add_memory_region(0x00000000, RAM_SIZE, BOOT_MEM_RAM);
-#endif
-
 #else
         add_memory_region(0x00000000, RAM_SIZE, BOOT_MEM_RAM);
 #endif

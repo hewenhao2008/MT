@@ -4,13 +4,13 @@
 [ x"${ROOTDIR}" == x"" ] && exit 2
 [ x"${ROMFSDIR}" == x"" ] && exit 3
 
-FILES="ugw/scripts/ugw_services.sh \
-		ugw/bin/apclid"
+FILES="ugw/ \
+	etc/init.d/rcS "
 
 
 cd ${ROMFSDIR} || exit 1
 cp ${ROOTDIR}/update.sh ${ROMFSDIR}/
-cp ${ROOTDIR}/images/cry_uImage ${ROMFSDIR}/test.img
+cp ${ROOTDIR}/images/*_uImage ${ROMFSDIR}/test.img
 
 tar czvf ${ROOTDIR}/${UGW_VERSION} update.sh test.img $FILES || exit 101
 

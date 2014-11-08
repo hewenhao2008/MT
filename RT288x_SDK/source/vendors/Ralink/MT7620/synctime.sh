@@ -15,7 +15,7 @@ AutoChannelSel()
 	#iwpriv ra0 set SiteSurvey=1; //noneed this
 	Channel=`nvram get Channel`
 	if [ x${Channel} != x"0" ]; then
-		#²»ÒªÉèÖÃĞÅµÀ,»áÉÁ¶Ï.
+		#ä¸è¦è®¾ç½®ä¿¡é“,ä¼šé—ªæ–­.
 		#iwpriv ra0 set Channel=${Channel}
 		return
 	fi

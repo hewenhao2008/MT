@@ -12,8 +12,6 @@
 #include <linux/wireless.h>
 #include "rdm.h"
 
-#include <linux/delay.h>    /* For mdelay function */
-
 #ifdef  CONFIG_DEVFS_FS
 #include <linux/devfs_fs_kernel.h>
 #endif
@@ -26,11 +24,6 @@ static devfs_handle_t devfs_handle;
 #endif
 int rdm_major =  253;
 
-
-/*kurtis test*/
-unsigned int QueueLog[1024][16];
-/*carlos test*/
-unsigned int DumpOffset[16] = {0};
 
 int rdm_open(struct inode *inode, struct file *filp)
 {
@@ -75,72 +68,6 @@ int rdm_ioctl (struct inode *inode, struct file *filp,
 		}
 
 	}
-/*add for QDMA*/	
-#if 1	
-	else if ( (cmd & 0xffff) == RT_RDM_CMD_DUMP_QUEUE) 
-	{
-            for (count=0; count < cpu_to_le32((*(int *)arg)); count++) {		    
-		    addr = baseaddr + 0 + (count*0);
-			QueueLog[count][0] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[0]));
-			QueueLog[count][1] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[1]));
-			QueueLog[count][2] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[2]));
-			QueueLog[count][3] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[3]));
-			QueueLog[count][4] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[4]));
-			QueueLog[count][5] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[5]));
-			QueueLog[count][6] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[6]));
-			QueueLog[count][7] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[7]));
-			QueueLog[count][8] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[8]));
-			QueueLog[count][9] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[9]));
-			QueueLog[count][10] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[10]));
-			QueueLog[count][11] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[11]));
-			QueueLog[count][12] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[12]));
-			QueueLog[count][13] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[13]));
-			QueueLog[count][14] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[14]));
-			QueueLog[count][15] = le32_to_cpu(*(volatile u32 *)(addr+DumpOffset[15]));
-			mdelay( cmd >> 16);
-	    }
-
-		    printk("delay: %d msec\n", (cmd >> 16));
-		    printk("base address: %08X\n", addr);
-		    printk("offset: %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n", DumpOffset[0], DumpOffset[1], DumpOffset[2], DumpOffset[3], 
-		    DumpOffset[4], DumpOffset[5], DumpOffset[6], DumpOffset[7], DumpOffset[8], DumpOffset[9], DumpOffset[10], DumpOffset[11], DumpOffset[12], DumpOffset[13], DumpOffset[14], DumpOffset[15]);
-	        for (count=0; count < ((*(int *)arg) & 0xffff); count++) {
-		    addr = baseaddr + (*(int *)arg) + (count*0);
-		    printk("%04d:   ", count);
-		    printk("%08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x \n", 
-			        (QueueLog[count][0] ),
-			        (QueueLog[count][1] ),
-			        (QueueLog[count][2] ),
-			        (QueueLog[count][3] ),
-			        (QueueLog[count][4] ),
-			        (QueueLog[count][5] ),
-			        (QueueLog[count][6] ),
-			        (QueueLog[count][7] ),
-			        (QueueLog[count][8] ),
-			        (QueueLog[count][9] ),
-			        (QueueLog[count][10] ),
-			        (QueueLog[count][11] ),
-			        (QueueLog[count][12] ),
-			        (QueueLog[count][13] ),
-			        (QueueLog[count][14] ),
-			        (QueueLog[count][15] ));
-		    //mdelay(1);
-		}
-
-	}
-#else
- for (count=0; count < 5000 ; count++) {
-		    addr = baseaddr + (*(int *)arg) + (count*0);
-		    printk("%08X-%04d: ", addr, count);
-		    printk("%08X %08X %08X %08X\n", 
-			        le32_to_cpu(*(volatile u32 *)(addr)),
-				le32_to_cpu(*(volatile u32 *)(addr+16)),
-				le32_to_cpu(*(volatile u32 *)(addr+32)),
-				le32_to_cpu(*(volatile u32 *)(addr+48)));
-		    //mdelay(1);
-		}
-#endif
-
 	else if (cmd == RT_RDM_CMD_DUMP_FPGA_EMU) 
 	{
 	        for (count=0; count < RT_RDM_DUMP_RANGE ; count++) {
@@ -182,11 +109,6 @@ int rdm_ioctl (struct inode *inode, struct file *filp,
 		*(volatile u32 *)(baseaddr + offset) = cpu_to_le32((*(int *)arg));
 		if ((cmd & 0xffff) == RT_RDM_CMD_WRITE)
 			printk("write offset 0x%x, value 0x%x\n", offset, (unsigned int)(*(int *)arg));
-	}else if ((cmd & 0xffff) == RT_RDM_CMD_DUMP_QUEUE_OFFSET)
-	{
-		offset = cmd >> 16;
-		DumpOffset[offset] = cpu_to_le32((*(int *)arg));
-		printk("write Dumpoffset[%d], value 0x%x\n", offset, DumpOffset[offset]);
 	}else {
 		return -EOPNOTSUPP;
 	}

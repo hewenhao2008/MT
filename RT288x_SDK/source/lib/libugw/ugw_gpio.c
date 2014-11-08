@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <errno.h>
+
 //ugw_gpio.c
 #include "ugw.h"
 #include "ralink_gpio.h"
@@ -332,43 +335,43 @@ int gpio_set_led(int gpio, int on, int off, int blinks, int resets, int times)
 	led.gpio = gpio;
 	if (led.gpio < 0 || led.gpio >= RALINK_GPIO_NUMBER) {
 		printf("gpio number %d out of range (should be 0 ~ %d)\n", led.gpio, RALINK_GPIO_NUMBER);
-		return;
+		return -EINVAL;
 	}
 	led.on = on;
 	if (led.on > RALINK_GPIO_LED_INFINITY) {
 		printf("on interval %d out of range (should be 0 ~ %d)\n", led.on, RALINK_GPIO_LED_INFINITY);
-		return;
+		return -EINVAL;
 	}
 	led.off = off;
 	if (led.off > RALINK_GPIO_LED_INFINITY) {
 		printf("off interval %d out of range (should be 0 ~ %d)\n", led.off, RALINK_GPIO_LED_INFINITY);
-		return;
+		return -EINVAL;
 	}
 	led.blinks = blinks;
 	if (led.blinks > RALINK_GPIO_LED_INFINITY) {
 		printf("number of blinking cycles %d out of range (should be 0 ~ %d)\n", led.blinks, RALINK_GPIO_LED_INFINITY);
-		return;
+		return -EINVAL;
 	}
 	led.rests = resets;
 	if (led.rests > RALINK_GPIO_LED_INFINITY) {
 		printf("number of resting cycles %d out of range (should be 0 ~ %d)\n", led.rests, RALINK_GPIO_LED_INFINITY);
-		return;
+		return -EINVAL;
 	}
 	led.times = times;
 	if (led.times > RALINK_GPIO_LED_INFINITY) {
 		printf("times of blinking %d out of range (should be 0 ~ %d)\n", led.times, RALINK_GPIO_LED_INFINITY);
-		return;
+		return -EINVAL;
 	}
 
 	fd = open(GPIO_DEV, O_RDONLY);
 	if (fd < 0) {
 		perror(GPIO_DEV);
-		return;
+		return -EINVAL;
 	}
 	if (ioctl(fd, RALINK_GPIO_LED_SET, &led) < 0) {
 		perror("ioctl");
 		close(fd);
-		return;
+		return -EINVAL;
 	}
 	close(fd);
 }

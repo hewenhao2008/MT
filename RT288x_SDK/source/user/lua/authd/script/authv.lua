@@ -1004,7 +1004,7 @@ function cmd_map.smlg(loop, cmd, s)
 
 	evhttpclient(loop, tv, {need_read = true, timeout = 60}, function(rt) 
 			local t = cjson.decode(rt.content)
-			if not t or not t.Cmd or t.Cmd ~= "login" or not t.Data or not t.Detail then 
+			if not t or not t.Cmd or t.Cmd ~= "phonereg" or not t.Data or not t.Detail then 
 				return syserr("decode %s fail", rt.content)
 			end
 			local code = "302"

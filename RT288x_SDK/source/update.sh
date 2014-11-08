@@ -11,5 +11,9 @@ echo `date`":workdir: "`pwd`"files:\n"`md5sum *` > /ugw/scripts/update.log
 [ -e ./ugw ] && cp -a ./ugw /
 [ -f ./test.img ] && mtd_write -c write ./test.img Kernel
 
+#reset factory
+#rm -rf /jffs2/ugw
+#iwpriv ra0 e2p 0=0
+
 sync
 reboot

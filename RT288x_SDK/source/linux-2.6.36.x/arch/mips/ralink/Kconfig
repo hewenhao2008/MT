@@ -11,20 +11,6 @@ endchoice
 endif
 #-----------------------------
 
-if RALINK_RT2883
-
-choice
-        prompt "Soc Hardware Type"
-	default RT2883_ASIC
-
-config  RT2883_ASIC 
-        bool "RT2883-ASIC"
-endchoice
-
-endif
-
-#---------------------------
-
 if RALINK_RT3052
 
 choice
@@ -109,23 +95,6 @@ endif
 
 #--------------------------
 
-if RALINK_RT6855
-
-choice
-        prompt "Soc Hardware Type"
-	default RT6855_ASIC
-
-config  RT6855_ASIC 
-	bool "RT6855-ASIC"
-	select USB_ARCH_HAS_OHCI
-	select USB_ARCH_HAS_EHCI
-
-endchoice
-
-endif
-
-#--------------------------
-
 if RALINK_MT7620
 
 choice
@@ -143,36 +112,6 @@ endif
 
 #--------------------------
 
-if RALINK_MT7621
-
-choice
-        prompt "Soc Hardware Type"
-	default MT7621_ASIC
-
-config  MT7621_ASIC 
-	bool "MT7621-ASIC"
-
-endchoice
-
-endif
-#--------------------------
-
-if RALINK_MT7628
-
-choice
-        prompt "Soc Hardware Type"
-	default MT7628_ASIC
-
-config  MT7628_ASIC 
-	bool "MT7628-ASIC"
-	select USB_ARCH_HAS_OHCI
-	select USB_ARCH_HAS_EHCI
-
-endchoice
-
-endif
-
-#--------------------------
 config FLASH_REMAP_NEED
        bool
        default y if (RALINK_RT2880)
@@ -198,11 +137,6 @@ config RT2880_DRAM_128M
 config RT2880_DRAM_256M
        bool "256M"
 
-config RT2880_DRAM_512M
-       bool "512M"
-       depends on  RALINK_MT7621
-       select HIGHMEM
-
 endchoice
 
 
@@ -218,23 +152,13 @@ config MTD_SPI_RALINK
        bool "SPI"
        depends on  !RALINK_RT2880
 
-config MTK_MTD_NAND
-		bool "MTK_NAND"	
-		depends on  RALINK_MT7621
-		select MTD_NAND
-		select MTD_NAND_IDS
-		select MTD_NAND_ECC
-
 config MTD_NAND_RALINK
        bool "NAND"
-       depends on  !RALINK_RT3352 && !RALINK_RT2880 && !RALINK_RT5350 && !RALINK_MT7621 && !RALINK_MT7628
+       depends on  !RALINK_RT3352 && !RALINK_RT2880 && !RALINK_RT5350
 
 config MTD_ANY_RALINK
        bool "ANY (NOR/SPI/NAND)"
-       depends on  !RALINK_RT3352 && !RALINK_RT5350 && !RALINK_MT7628
-		select MTD_NAND
-		select MTD_NAND_IDS
-		select MTD_NAND_ECC
+       depends on  !RALINK_RT3352 && !RALINK_RT5350
 
 endchoice
 
@@ -280,8 +204,6 @@ config  RALINK_RAM_SIZE
 	default 64 if RT2880_DRAM_64M
 	default 128 if RT2880_DRAM_128M
 	default 256 if RT2880_DRAM_256M
-	default 512 if RT2880_DRAM_512M
-	default 1024 if RT2880_DRAM_1024M
 
 config MTD_PHYSMAP_START
        hex 
@@ -293,12 +215,8 @@ config MTD_PHYSMAP_START
        default 0xBF000000 if !FLASH_REMAP_NEED && RALINK_RT3052
        default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_RT3352
        default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_RT5350
-       default 0xBC000000 if !FLASH_REMAP_NEED && RALINK_RT2883
        default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_RT3883
-       default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_RT6855
        default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_MT7620
-       default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_MT7621
-       default 0x1C000000 if !FLASH_REMAP_NEED && RALINK_MT7628
 
 config MTD_PHYSMAP_LEN
        hex 

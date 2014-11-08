@@ -6,51 +6,104 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <syslog.h>
+#include <errno.h>
 #include <linux/autoconf.h>
 
 #include "nvram.h"
+#include "flash_api.h"
 
 #if defined (CONFIG_RALINK_GPIO) || defined (CONFIG_RALINK_GPIO_MODULE)
 #include "ralink_gpio.h"
 #define GPIO_DEV "/dev/gpio"
 #endif
 
-
-#ifdef CONFIG_RT2880_L2_MANAGE
-int ramad_start(void);
-#endif
 static char *saved_pidfile;
 
-void loadDefault(int chip_id)
+struct ConstFactorySt {
+	char ac_ipaddr[64];
+	char ac_ipaddr_port[16];
+	char cloud_account[64];
+	char cloud_password[64];
+	char nick_name[128];
+};
+
+static struct ConstFactorySt cFactorys[] = {
+	{
+		ac_ipaddr:	"yun.sohowifi.cn",
+		ac_ipaddr_port:	"8081",
+		cloud_account: "leguang",
+		cloud_password: "cloud@leguang",
+		nick_name: "乐光",
+	},{
+		ac_ipaddr:	"yun.wangjie.com",
+		ac_ipaddr_port:	"8081",
+		cloud_account: "wangjie",
+		cloud_password: "cloud@wangjie",
+		nick_name: "网捷",
+	},{
+		ac_ipaddr:	"yun.i-wiwi.com",
+		ac_ipaddr_port:	"8081",
+		cloud_account: "shenlan",
+		cloud_password: "cloud@i-wiwi",
+		nick_name: "深蓝",
+	},
+};
+
+enum {
+	FC_LEGUANG = 0,
+	FC_WANGJIE,
+	FC_MAX_SUPPORTED,
+};
+
+#define NUM_FACTORYS (sizeof(cFactorys)/sizeof(struct ConstFactorySt))
+
+void FixupFactoryInfo(void)
 {
-    switch(chip_id)
-    {
-    case 2860:
+	char idx;
+
+	if(mtdpart_read("Factory", &idx, 0x110, 1)<0) {
+		logerr("mtd read failed.\n");
+		return;
+	}
+	if(idx<0 || idx>=NUM_FACTORYS) {
+		logerr("read factory init conf overflow %d.\n", idx);
+		return;
+	}
+
+	logdbg("fixup use factory idx: %d\n", idx);
+	//覆盖默认nvram配置.
+	if (strlen(cFactorys[idx].ac_ipaddr) > 0){
+		nvram_bufset(RT2860_NVRAM, "ac_ipaddr", cFactorys[idx].ac_ipaddr);
+		logdbg("fixup ac_ipaddr [%s]\n", cFactorys[idx].ac_ipaddr);
+	}
+	if (strlen(cFactorys[idx].ac_ipaddr_port) > 0){
+		nvram_bufset(RT2860_NVRAM, "ac_ipaddr_port", cFactorys[idx].ac_ipaddr_port);
+		logdbg("fixup ac_port [%s]\n", cFactorys[idx].ac_ipaddr_port);
+	}
+	if (strlen(cFactorys[idx].cloud_account) > 0){
+		nvram_bufset(RT2860_NVRAM, "cloud_account", cFactorys[idx].cloud_account);
+		logdbg("fixup accout [%s]\n", cFactorys[idx].cloud_account);
+	}
+	if (strlen(cFactorys[idx].cloud_password) > 0){
+		nvram_bufset(RT2860_NVRAM, "cloud_password", cFactorys[idx].cloud_password);
+		//logdbg("fixup password [%s]\n", cFactorys[idx].cloud_password);
+	}
+	if (strlen(cFactorys[idx].nick_name) > 0){
+		nvram_bufset(RT2860_NVRAM, "nick_name", cFactorys[idx].nick_name);
+		logdbg("fixup nick_name [%s]\n", cFactorys[idx].nick_name);
+	}
+}
+
+void loadDefault(void)
+{
+	nvram_close(RT2860_NVRAM);
+
 	system("ralink_init clear 2860");
-#if defined CONFIG_LAN_WAN_SUPPORT || defined CONFIG_MAC_TO_MAC_MODE 
-	system("ralink_init renew 2860 /etc_ro/Wireless/RT2860AP/RT2860_default_vlan");
-#elif defined(CONFIG_ICPLUS_PHY)
-	system("ralink_init renew 2860 /etc_ro/Wireless/RT2860AP/RT2860_default_oneport");
-#else
 	system("ralink_init renew 2860 /etc_ro/Wireless/RT2860AP/RT2860_default_novlan");
-#endif
-	break;
-    case 2880:
-	system("ralink_init clear rtdev");
-#if defined (CONFIG_RTDEV)
-	system("ralink_init renew rtdev /etc_ro/Wireless/iNIC/RT2860AP.dat");
-#elif defined (CONFIG_RTDEV_PLC)
-	system("ralink_init renew rtdev /etc_ro/PLC/plc_default.dat");
-#endif
-	break;
-    case 2561: 
-	system("ralink_init clear rtdev");
-	system("ralink_init renew rtdev /etc_ro/Wireless/RT61AP/RT2561_default");
-	break;
-    default:
-	printf("%s:Wrong chip id\n",__FUNCTION__);
-	break;
-    }
+
+    FixupFactoryInfo();
+	nvram_close(RT2860_NVRAM);
 }
 
 /*
@@ -61,38 +114,35 @@ void loadDefault(int chip_id)
 static void nvramIrqHandler(int signum)
 {
 	if (signum == SIGUSR1) {
-#ifdef CONFIG_RALINK_RT2880
 		int gopid;
 		FILE *fp = fopen("/var/run/goahead.pid", "r");
 
 		if (NULL == fp) {
-			printf("nvram: goAhead is not running\n");
+			logerr("nvram: goAhead is not running\n");
 			return;
 		}
 		fscanf(fp, "%d", &gopid);
 		if (gopid < 2) {
-			printf("nvram: goAhead pid(%d) <= 1\n", gopid);
+			logerr("nvram: goAhead pid(%d) <= 1\n", gopid);
 			return;
 		}
 
 		//send SIGUSR1 signal to goAhead for WPSPBCStart();
-		printf("notify goahead to start WPS PBC..\n");
+		logdbg("notify goahead to start WPS PBC..\n");
 		kill(gopid, SIGUSR1);
 		fclose(fp);
-#else
-		//RT2883, RT3052, RT3883 use a different gpio number for WPS,
-		//which will be registered in goahead instead
-#endif
 	} else if (signum == SIGUSR2) {
-		printf("load default and reboot..\n");
-		loadDefault(2860);
-#if defined (CONFIG_RTDEV) || \
-    defined (CONFIG_RTDEV_PLC)
-		loadDefault(2880);
-#elif defined (CONFIG_RT2561_AP) || defined (CONFIG_RT2561_AP_MODULE)
-		loadDefault(2561);
-#endif
-		system("reboot");
+		logdbg("load default and reboot..\n");
+		loadDefault();
+		system("reboot -d 10");
+	// } else if(signum == SIGTERM) {
+	// 	logdbg("erase && close nvram & exit\n");
+	// 	loadDefault();
+	// 	closelog();
+	// 	exit(EXIT_SUCCESS);
+	} else {
+		logdbg("sig: %d\n");
+		return;
 	}
 }
 
@@ -104,34 +154,11 @@ static void nvramIrqHandler(int signum)
  */
 int initGpio(void)
 {
-#if !defined (CONFIG_RALINK_GPIO) && !defined (CONFIG_RALINK_GPIO_MODULE)
-	signal(SIGUSR1, nvramIrqHandler);
-	signal(SIGUSR2, nvramIrqHandler);
-	return 0;
-#else
 	int fd;
 	ralink_gpio_reg_info info;
 
 	info.pid = getpid();
-#if defined (CONFIG_RALINK_RT2880)
-	info.irq = 0;
-#elif defined (CONFIG_RALINK_RT3052) && ((CONFIG_RALINK_I2S) || defined (CONFIG_RALINK_I2S_MODULE))
-	info.irq = 43;
-#elif defined (CONFIG_RALINK_RT3883)
-	//RT3883 uses gpio 27 for load-to-default
-	info.irq = 27;
-#elif defined (CONFIG_RALINK_RT6855A)
-#if defined (CONFIG_RT6855A_PCIE_PORT0_ENABLE)
-	info.irq = 0;	// rt6855 reset default
-#else
-	info.irq = 2;	// rt6856 reset default
-#endif
-#elif defined (CONFIG_RALINK_MT7620)
 	info.irq = 1;	// MT7620 reset default
-#else
-	//RT2883, RT3052, RT3352, RT6855 use gpio 10 for load-to-default
-	info.irq = 10;
-#endif	
 
 	fd = open(GPIO_DEV, O_RDONLY);
 	if (fd < 0) {
@@ -139,60 +166,10 @@ int initGpio(void)
 		return -1;
 	}
 	//set gpio direction to input
-#if !defined (CONFIG_RALINK_RT6855A)
 	if (info.irq < 24) {
 		if (ioctl(fd, RALINK_GPIO_SET_DIR_IN, (1<<info.irq)) < 0)
 			goto ioctl_err;
 	}
-#if defined (RALINK_GPIO_HAS_2722)
-	else if (22 <= info.irq) {
-		if (ioctl(fd, RALINK_GPIO2722_SET_DIR_IN, (1<<(info.irq-22))) < 0)
-			goto ioctl_err;
-	}
-#elif defined (RALINK_GPIO_HAS_4524)
-	else if (24 <= info.irq && info.irq < 40) {
-		if (ioctl(fd, RALINK_GPIO3924_SET_DIR_IN, (1<<(info.irq-24))) < 0)
-			goto ioctl_err;
-	}
-	else {
-		if (ioctl(fd, RALINK_GPIO4540_SET_DIR_IN, (1<<(info.irq-40))) < 0)
-			goto ioctl_err;
-	}
-#elif defined (RALINK_GPIO_HAS_5124)
-	else if (24 <= info.irq && info.irq < 40) {
-		if (ioctl(fd, RALINK_GPIO3924_SET_DIR_IN, (1<<(info.irq-24))) < 0)
-			goto ioctl_err;
-	}
-	else {
-		if (ioctl(fd, RALINK_GPIO5140_SET_DIR_IN, (1<<(info.irq-40))) < 0)
-			goto ioctl_err;
-	}
-#elif defined (RALINK_GPIO_HAS_9524) || defined (RALINK_GPIO_HAS_7224)
-	else if (24 <= info.irq && info.irq < 40) {
-		if (ioctl(fd, RALINK_GPIO3924_SET_DIR_IN, (1<<(info.irq-24))) < 0)
-			goto ioctl_err;
-	}
-	else if (40 <= info.irq && info.irq < 72) {
-		if (ioctl(fd, RALINK_GPIO7140_SET_DIR_IN, (1<<(info.irq-40))) < 0)
-			goto ioctl_err;
-	}
-	else {
-#if defined (RALINK_GPIO_HAS_7224)
-		if (ioctl(fd, RALINK_GPIO72_SET_DIR_IN, (1<<(info.irq-72))) < 0)
-#else
-		if (ioctl(fd, RALINK_GPIO9572_SET_DIR_IN, (1<<(info.irq-72))) < 0)
-#endif
-			goto ioctl_err;
-	}
-#endif
-#else
-	if (info.irq < 16) {
-		if (ioctl(fd, RALINK_GPIO_SET_DIR_IN, info.irq) < 0)
-			goto ioctl_err;
-	} else {
-		goto ioctl_err;
-	}
-#endif
 	//enable gpio interrupt
 	if (ioctl(fd, RALINK_GPIO_ENABLE_INTP) < 0)
 		goto ioctl_err;
@@ -200,6 +177,7 @@ int initGpio(void)
 	//register my information
 	if (ioctl(fd, RALINK_GPIO_REG_IRQ, &info) < 0)
 		goto ioctl_err;
+
 	close(fd);
 
 	//issue a handler to handle SIGUSR1 and SIGUSR2
@@ -208,10 +186,9 @@ int initGpio(void)
 	return 0;
 
 ioctl_err:
-	perror("ioctl");
+	logerr("ioctl: %d\n", errno);
 	close(fd);
 	return -1;
-#endif
 }
 
 static void pidfile_delete(void)
@@ -226,7 +203,7 @@ int pidfile_acquire(const char *pidfile)
 
 	pid_fd = open(pidfile, O_CREAT | O_WRONLY, 0644);
 	if (pid_fd < 0) {
-		printf("Unable to open pidfile %s: %m\n", pidfile);
+		logerr("Unable to open pidfile %s\n", pidfile);
 	} else {
 		lockf(pid_fd, F_LOCK, 0);
 		if (!saved_pidfile)
@@ -255,8 +232,10 @@ int main(int argc,char **argv)
 	pid_t pid;
 	int fd;
 
+	openlog("nvdaemon", 0, 0);
+
 	if (strcmp(nvram_bufget(RT2860_NVRAM, "WebInit"),"1")) {
-		loadDefault(2860);
+		loadDefault();
 	}
 	//每次都强制写入版本信息, 防止被修改. 
 	nvram_bufset(RT2860_NVRAM, "ugw_version", UGW_VERSION);
@@ -272,6 +251,8 @@ int main(int argc,char **argv)
 	while (1) {
 		pause();
 	}
+
+	closelog();
 
 	exit(EXIT_SUCCESS);
 }

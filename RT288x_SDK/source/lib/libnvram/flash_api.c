@@ -97,10 +97,10 @@ int flash_read_mac(char *buf)
 	return mtdpart_read("Factory", buf, from, 6);
 }
 
-int flash_read_NicConf(char *buf)
-{
-	return mtdpart_read("Factory", buf, 0x34, 6);
-}
+// int flash_read_NicConf(char *buf)
+// {
+// 	return mtdpart_read("Factory", buf, 0x34, 6);
+// }
 
 int flash_read(char *buf, off_t from, size_t len)
 {

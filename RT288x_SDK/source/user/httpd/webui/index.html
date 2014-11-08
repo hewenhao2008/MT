@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>MT7620 Basic UI</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="MTK-7620 AP basic setup">
+
+	<link href="css/normal_ws.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="logo" style="background:#303030;">
+			<img width="200" height="70" src="lg-log.png" alt="" />
+		</div>
+	<div class="big">
+		<!-- Basic  -->
+		<section id="ugw-basic" class="shadow">
+			<div class="page-header">
+				<h1>基本参数</h1>
+			</div>
+			<div class="row-fluid">
+				<p class="docs-lead"></p>
+				<p>
+					<ul>
+						<li><label>
+						<span>系统时间:</span>
+						<span><input type="text" disabled id="ugw_timelast"/></span></label></li>
+						<li><label>
+						<span>系统版本:</span>
+						<span><input type="text" disabled id="ugw_version" /></span></label></li>
+						<li><label>
+						<span>MAC 地址:</span>
+						<span><input type="text" disabled id="et0macaddr"/></span></label></li>
+						<li><label>
+						<span>AP 描述名:</span>
+						<span><input type="text" id="nick_name"/></span></label></li>
+						<li><label>
+						<span>登录帐号:</span>
+						<span><input type="text" id="Login"/></span></label></li>
+						<li><label>
+						<span>登录密码:</span>
+						<span><input type="text" id="Password"/></span></label></li>
+						<li><label>
+						<span>最大用户数:</span>
+						<span><input type="text" id="MaxStaNum"></span></label></li>
+					</ul>
+				</p>
+			</div>
+		</section>
+		<!-- SSID & auth -->
+		<section id="ugw-ssid" class="shadow">
+			<div class="page-header">
+				<h1>网络配置</h1>
+			</div>
+			<div class="row-fluid">
+				<p class="docs-lead"></p>
+				<p>
+					<ul>
+						<li><label>
+						<span>地址分配:</span>
+						<span>
+						<select id="lan_dhcp" style="min-width:172px;">
+							<option value="0">Static</option>
+							<option value="1">DHCP</option>
+						</select></span></label></li>
+						<li><label>
+						<span>地址:</span>
+						<span><input type="text" id="lan_ipaddr"></span></label></li>
+						<li><label>
+						<span>掩码:</span>
+						<span><input type="text" id="lan_netmask"></span></label></li>
+						<li><label>
+						<span>网关:</span>
+						<span><input type="text" id="lan_gateway"></span></label></li>
+					</ul>
+				</p>
+			</div>
+		</section>
+
+		<!-- Radio -->
+	  <!--   <section id="ugw-radio">
+			<div class="page-header">
+				<h1>无线参数</h1>
+			</div>
+			<div class="row-fluid">
+				<p class="docs-lead"></p>
+				<p>
+					<ul>
+						<li><label>
+						<span>SSID:</span>
+						<span><input type="text" id="SSID1"></span></label></li>
+						<li><label>
+						<span>加密:</span>
+						<span><select id="">
+							<option value="none">不加密</option>
+							<option value="psk">加密</option>
+						</select></span></label></li>
+						<li><label>
+						<span>密码设置:</span>
+						<span><input type="text" id="" placeholder="8位密码"></span></label></li></li>
+					</ul>
+				</p>
+			</div>
+		</section> -->
+
+		<!-- Radio -->
+		<section id="ugw-utils" class="shadow">
+			<div class="page-header">
+				<h1>云端配置</h1>
+			</div>
+			<div class="row-fluid">
+				<p class="docs-lead"></p>
+				<p>
+					<ul>
+						<li><label>
+						<span>当前连接控制器:</span>
+						<span><input type="text" disabled id="ac_current"/></span></label></li>
+						<li><label>
+						<span>控制器地址:</span>
+						<span><input type="text" disabled id="ac_ipaddr"></span></label></li>
+						<li><label>
+						<!-- <span>控制器端口:</span>
+						<span><input type="text" id="ac_ipaddr_port"></span></label></li>
+						<li><label> -->
+						<span>云端接入帐号:</span>
+						<span><input type="text" id="cloud_account"></span></label></li>
+						<!-- <li><label>
+						<span>接入密码:</span>
+						<span><input type="text" id="cloud_password"></span></label></li> -->
+					</ul>
+				</p>
+			</div>
+		</section>
+
+		<section id="ugw-controls">
+				<p class="bottom">
+				<span><input type="submit" class="btn" id="btn_save_conf" value="保存配置"></span>
+				<span><input type="button" class="btn" id="btn_sys_service" value="重启服务"></span>
+				<span><input type="button" class="btn" id="btn_sys_reset" value="系统复位"></span>
+				<span><input type="button" class="btn" id="btn_sys_restart" value="系统重启"></span>
+				</p>
+		</section>
+
+		<!-- Footer
+		================================================== -->
+		<footer class="footer">
+			<div class="container">
+				<p> &copy;2007-2014 深圳市朝恒辉网络科技有限公司 版权所有 <a target="_blank" href="http://www.miitbeian.gov.cn/">粤ICP备14071325号</a></p>
+			</div>
+		</footer>
+	</div>
+</body>
+<script src="js/jquery.js" type="text/javascript"></script>
+<script src="js/utils.js" type="text/javascript"></script>
+<script src="js/index.js" type="text/javascript"></script>
+</html>

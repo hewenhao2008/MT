@@ -181,7 +181,7 @@ void set_wdg_timer_ebl(unsigned int timer, unsigned int ebl)
         }
         sysRegWrite(GPIOMODE,result);
     }
-#elif defined (CONFIG_RALINK_MT7621) || defined (CONFIG_RALINK_MT7628)
+#elif defined (CONFIG_RALINK_RT7621)
     if(timer==TMR1CTL) {
         result=sysRegRead(GPIOMODE);
         /*
@@ -199,18 +199,12 @@ void set_wdg_timer_ebl(unsigned int timer, unsigned int ebl)
             //result |= (0x1<<21); //REFCLK0
         }
         sysRegWrite(GPIOMODE,result);
-       
-        //reset output low period is 100us
-	result=sysRegRead(RSTSTAT);
-	result &= ~(0x3FFF);
-	result |= 0x64;
-	sysRegWrite(RSTSTAT, result);
     }
 #endif
 #endif 
 }
 
-#if defined (CONFIG_RALINK_MT7621) || defined (CONFIG_RALINK_MT7628)
+#if defined (CONFIG_RALINK_MT7621)
 void set_wdg_timer_clock_prescale(int prescale)
 {
      unsigned int result;
@@ -260,7 +254,7 @@ void refresh_wdg_timer(unsigned long unused)
 {
 #if defined (CONFIG_RALINK_RT6855A)
     sysRegWrite(RLDWDOG, 1);
-#elif defined (CONFIG_RALINK_MT7621) || defined (CONFIG_RALINK_MT7628)
+#elif defined (CONFIG_RALINK_MT7621)
     sysRegWrite(TMRSTAT, (1 << 9)); //WDTRST
 #else
     sysRegWrite(TMR1LOAD, wdg_load_value);
@@ -300,7 +294,7 @@ int32_t __init wdt_init_module(void)
 	    }
     }
     sysRegWrite(TMR1LOAD, wdg_load_value);
-#elif defined (CONFIG_RALINK_MT7621) || defined (CONFIG_RALINK_MT7628)
+#elif defined (CONFIG_RALINK_MT7621)
     set_wdg_timer_clock_prescale(1000); //1ms
     wdg_load_value =  CONFIG_RALINK_WDG_TIMER * 1000;
     sysRegWrite(TMR1LOAD, wdg_load_value);

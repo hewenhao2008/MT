@@ -38,7 +38,6 @@ obj-$(CONFIG_BE2NET) += benet/
 obj-$(CONFIG_VMXNET3) += vmxnet3/
 obj-$(CONFIG_RALINK_RDM) += rt_rdm/
 obj-$(CONFIG_RAETH) += raeth/
-obj-$(CONFIG_MT6605_NFC) += nfc/
 
 gianfar_driver-objs := gianfar.o \
 		gianfar_ethtool.o \

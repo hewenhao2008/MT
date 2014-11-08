@@ -15,11 +15,6 @@
 
 obj-y    := reset.o init.o irq.o \
             memory.o printf.o cmdline.o setup.o time.o
-
-ifeq ($(CONFIG_MIPS_MT_SMP),y)
-	obj-y += malta-amon.o
-endif
-
 obj-$(CONFIG_KERNEL_NVRAM) += nvram.o
 obj-$(CONFIG_PCI) += pci.o
 obj-$(CONFIG_DWC_OTG) += lm.o

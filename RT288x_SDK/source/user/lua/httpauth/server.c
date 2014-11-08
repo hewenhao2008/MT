@@ -538,9 +538,12 @@ static int sms_login(struct mg_connection *conn, void *param) {
 	char buf[100];
 	ev_param *evp;
 
-	string user;
+	string user, ssid;
 	mg_get_var(conn, "UserName", buf, sizeof(buf)); 	
 	user = buf;
+	mg_get_var(conn, "Ssid", buf, sizeof(buf)); 	
+	ssid = buf;
+
 	
 	evp = (ev_param *)param;
 	seq = evp->cur_seq + 1; 
@@ -550,7 +553,9 @@ static int sms_login(struct mg_connection *conn, void *param) {
 	cJSON_AddStringToObject(root, "Cmd", s_cmd_smslogin);
 	
 	cJSON_AddNumberToObject(data, "Seq", seq);   
-	cJSON_AddStringToObject(data, "UserName", user.c_str()); 
+	cJSON_AddStringToObject(data, "UserName", user.c_str());
+	cJSON_AddStringToObject(data, "Ip", conn->remote_ip);
+	cJSON_AddStringToObject(data, "Ssid", ssid.c_str());
 	
 	cJSON_AddItemToObject(root, "Data", data);
 

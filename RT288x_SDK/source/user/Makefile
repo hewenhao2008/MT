@@ -32,10 +32,10 @@ dir_n =
 dir_  =
 
 
-dir_y	+= mongoose
 dir_y	+= rt2880_app
 dir_y 	+= wireless_tools
 dir_y	+= apclid
+dir_y	+= httpd
 dir_y 	+= lua
 dir_y	+= mtd_write
 dir_y	+= bridge-utils

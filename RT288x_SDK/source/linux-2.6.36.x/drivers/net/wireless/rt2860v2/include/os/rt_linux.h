@@ -777,7 +777,7 @@ do{                                   \
 {                                                                               \
     if (!(x))                                                                   \
     {                                                                           \
-        printk(KERN_WARNING __FILE__ ":%d assert " #x "failed\n", __LINE__);    \
+        printk(KERN_WARNING "%s: %d assert " #x "failed\n", __FUNCTION__, __LINE__);    \
     }                                                                           \
 }
 #else

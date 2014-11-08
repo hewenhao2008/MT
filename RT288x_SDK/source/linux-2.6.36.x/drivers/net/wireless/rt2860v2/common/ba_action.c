@@ -2226,17 +2226,13 @@ static VOID Peer_DelBA_Tx_Adapt_Enable(
 #ifdef MCS_LUT_SUPPORT
 	if (pAd->bUseHwTxLURate != TRUE)
 	{
-		DBGPRINT(RT_DEBUG_WARN, 
-				("%s(): Warning! bUseHwTxLURate is FALSE.\n",
-				__FUNCTION__));
+		DBGPRINT(RT_DEBUG_WARN, ("Warning! bUseHwTxLURate is FALSE.\n"));
 		return;
 	}
 
 	if (!IS_HW_TXRATE_LOOKUP_SUPPORT(pAd))
 	{
-		DBGPRINT(RT_DEBUG_WARN, 
-				("%s(): Warning! This chip does not support HW Tx rate lookup.\n",
-				__FUNCTION__));
+		DBGPRINT(RT_DEBUG_WARN, ("Warning! This chip does not support HW Tx rate lookup.\n"));
 		return;
 	}
 	
@@ -2260,9 +2256,8 @@ static VOID Peer_DelBA_Tx_Adapt_Enable(
 		}
 		RegId = 0x1C00 + (pEntry->Aid << 3);
 		RTMP_IO_WRITE32(pAd, RegId, 0x4007); /* Legacy OFDM / no STBC / LGI / BW20 / MCS 7 */
-		DBGPRINT(RT_DEBUG_TRACE,
-				("%s():MacReg = 0x%08x, bPeerDelBaTxAdaptEn = 0x%x\n",
-				__FUNCTION__, MacReg, pEntry->bPeerDelBaTxAdaptEn));
+		DBGPRINT(RT_DEBUG_TRACE, ("MacReg = 0x%08x, bPeerDelBaTxAdaptEn = 0x%x\n", 
+			MacReg, pEntry->bPeerDelBaTxAdaptEn));
 	}
 #endif /* MCS_LUT_SUPPORT */
 }
@@ -2275,17 +2270,13 @@ static VOID Peer_DelBA_Tx_Adapt_Disable(
 #ifdef MCS_LUT_SUPPORT
 	if (pAd->bUseHwTxLURate != TRUE)
 	{
-		DBGPRINT(RT_DEBUG_WARN, 
-				("%s(): Warning! bUseHwTxLURate is FALSE.\n",
-				__FUNCTION__));
+		DBGPRINT(RT_DEBUG_WARN, ("Warning! bUseHwTxLURate is FALSE.\n"));
 		return;
 	}
 
 	if (!IS_HW_TXRATE_LOOKUP_SUPPORT(pAd))
 	{
-		DBGPRINT(RT_DEBUG_WARN, 
-				("%s(): Warning! This chip does not support HW Tx rate lookup.\n",
-				__FUNCTION__));
+		DBGPRINT(RT_DEBUG_WARN, ("Warning! This chip does not support HW Tx rate lookup.\n"));
 		return;
 	}
 

@@ -47,6 +47,7 @@ init_jffs2()
 
 	cp -a /etc /jffs2 || ERR "cp etc";
 	cp -a /ugw /jffs2 || ERR "cp ugw";
+	cp -a /root /jffs2 || ERR "cp root";
 
 	LOG "init_jffs2 finished";
 }
@@ -62,6 +63,7 @@ mount_jffs2()
 	fi
 	mount -o,rbind /jffs2/ugw	/ugw
 	mount -o,rbind /jffs2/etc	/etc
+	mount -o,rbind /jffs2/root 	/root
 }
 
 #start base system

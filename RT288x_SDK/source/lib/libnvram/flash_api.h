@@ -21,12 +21,22 @@ typedef struct image_header {
     uint8_t     ih_name[IH_NMLEN];  /* Image Name       */
 } image_header_t;
 
+/*
+* 返回读取成功的字节数
+ */
 int flash_read(char *buf, off_t from, size_t len);
+
+/*
+* -1 出错
+ */
 int flash_write(char *buf, off_t to, size_t len);
 unsigned int flush_mtd_size(char *part);
 
 int image_check(int image_fd, int offset, int len, char *err_msg);
 int mtd_write_firmware(char *imagefile, int offset, int len);
 int mtd_write_bootloader(char *imagefile, int offset, int len);
+
+int mtdpart_read(const char *name, char *buf, off_t from, size_t len);
+int mtdpart_write(const char *name, char *buf, off_t to, size_t len);
 
 #endif
