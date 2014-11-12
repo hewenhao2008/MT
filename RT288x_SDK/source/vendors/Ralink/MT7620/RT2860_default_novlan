@@ -2,9 +2,9 @@
 Default
 WebInit=1
 ugw_timelast=1409811257
-cloud_account=root
-cloud_password=ugwroot
-ac_ipaddr=yun.i-wiwi.com
+cloud_account=
+cloud_password=
+ac_ipaddr=
 ac_current=
 ac_ipaddr_port=8081
 sta_limits=0
@@ -15,8 +15,8 @@ lan_ipaddr=192.168.1.110
 lan_netmask=255.255.255.0
 lan_gateway=192.168.1.1
 nick_name=MT-7620
-HostName=RChain
-os_version=CA115.7.620.57.0904
+HostName=RC-Chain
+os_version=UGW.MT.7.620.57.0904
 Login=admin
 Password=admin
 OperationMode=0

@@ -9,7 +9,7 @@
 #include <errno.h>
 #include "linux/autoconf.h"
 #include "config/autoconf.h" //user config
-#include "user/busybox/include/autoconf.h" //busybox config
+//#include "user/busybox/include/autoconf.h" //busybox config
 
 #ifdef USER_MANAGEMENT_SUPPORT
 #include "um.h"

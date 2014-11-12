@@ -558,6 +558,7 @@ typedef struct {
 
 #define RALINK_GPIO(x)			(1 << x)
 
+#ifdef KERNEL
 #define logerr(fmt, args...) \
  	do{	\
  		printk(KERN_ERR "%s:%d "fmt, __FUNCTION__, __LINE__, ##args); \
@@ -566,5 +567,15 @@ typedef struct {
 	do { \
 		printk(KERN_INFO "%s:%d "fmt, __FUNCTION__, __LINE__, ##args); \
 	}while(0)
+#else
+#define logerr(fmt, args...) \
+ 	do{	\
+ 		syslog(LOG_ERR, "%s: "fmt, __FUNCTION__, ##args); \
+	}while(0)
+#define logdbg(fmt, args...) \
+	do { \
+		syslog(LOG_INFO, "%s: "fmt, __FUNCTION__, ##args); \
+	}while(0)
+#endif
 
 #endif

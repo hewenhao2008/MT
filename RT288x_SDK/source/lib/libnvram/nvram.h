@@ -84,7 +84,7 @@ char *getNvramName(int index);
 unsigned int getNvramIndex(char *name);
 void toggleNvramDebug(void);
 
-/* ÊÊÅäÆäËüÆ½Ì¨µÄ´úÂë */
+/* é€‚é…å…¶å®ƒå¹³å°çš„ä»£ç  */
 #define NVRAM_BUFSIZE 	128
 #define MAX_NVRAM_SIZE	(1024 * 32)
 
@@ -103,9 +103,9 @@ static inline int nvram_ra_unset(char *key)
 	return nvram_bufset(RT2860_NVRAM, key, "");
 }
 
-static inline int nvram_ra_commit(void)
+static inline void nvram_ra_commit(void)
 {
-	return nvram_commit(RT2860_NVRAM);
+	nvram_close(RT2860_NVRAM);
 }
 
 static inline int nvram_ra_getall(char *buff, int size)
@@ -126,6 +126,6 @@ static inline int nvram_ra_match(char* key, char* mval)
 }
 
 #define nvram_safe_get nvram_ra_get
-/* END ÊÊÅä */
+/* END é€‚é… */
 
 #endif

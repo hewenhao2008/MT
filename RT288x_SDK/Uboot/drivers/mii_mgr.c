@@ -129,7 +129,7 @@ u32 mii_mgr_read(u32 phy_addr, u32 phy_register, u32 *read_data)
 		{
 			status = inw(MDIO_PHY_CONTROL_0);
 			*read_data = (u32)(status & 0x0000FFFF);
-			printf("\n MDIO_PHY_CONTROL_0: 0x%8x!!\n", status);
+			// printf("\n MDIO_PHY_CONTROL_0: 0x%8x!!\n", status);
 
 			enable_mdio(0);
 			return 1;

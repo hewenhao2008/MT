@@ -20,79 +20,90 @@
 
 static char *saved_pidfile;
 
+#define FC_MAX_DISP_VER 32
 struct ConstFactorySt {
-	char ac_ipaddr[64];
+	char ac_ipaddr_def[64];
 	char ac_ipaddr_port[16];
 	char cloud_account[64];
 	char cloud_password[64];
 	char nick_name[128];
+	char *disp_version[FC_MAX_DISP_VER];
 };
 
 static struct ConstFactorySt cFactorys[] = {
 	{
-		ac_ipaddr:	"yun.sohowifi.cn",
+		ac_ipaddr_def:	"yun.sohowifi.cn",
 		ac_ipaddr_port:	"8081",
-		cloud_account: "leguang",
+		cloud_account: "",
 		cloud_password: "cloud@leguang",
 		nick_name: "乐光",
+		disp_version: {"LG-A291", NULL,},
 	},{
-		ac_ipaddr:	"yun.wangjie.com",
+		ac_ipaddr_def:	"yun.wangjie.com",
 		ac_ipaddr_port:	"8081",
-		cloud_account: "wangjie",
+		cloud_account: "",
 		cloud_password: "cloud@wangjie",
 		nick_name: "网捷",
+		disp_version: {"X3", NULL,},
 	},{
-		ac_ipaddr:	"yun.i-wiwi.com",
+		ac_ipaddr_def:	"yun.i-wiwi.com",
 		ac_ipaddr_port:	"8081",
-		cloud_account: "shenlan",
+		cloud_account: "",
 		cloud_password: "cloud@i-wiwi",
 		nick_name: "深蓝",
+		disp_version: {"SL-a291", NULL,},
 	},
 };
 
-enum {
-	FC_LEGUANG = 0,
-	FC_WANGJIE,
-	FC_MAX_SUPPORTED,
-};
-
-#define NUM_FACTORYS (sizeof(cFactorys)/sizeof(struct ConstFactorySt))
+#define FC_NUM_FACTORYS (sizeof(cFactorys)/sizeof(struct ConstFactorySt))
 
 void FixupFactoryInfo(void)
 {
-	char idx;
+	char fidx, vidx;
+	char buff[32], *pstr;
 
-	if(mtdpart_read("Factory", &idx, 0x110, 1)<0) {
+	if(mtdpart_read("Factory", &fidx, 0x110, 1)<0) {
 		logerr("mtd read failed.\n");
 		return;
 	}
-	if(idx<0 || idx>=NUM_FACTORYS) {
-		logerr("read factory init conf overflow %d.\n", idx);
+	mtdpart_read("Factory", &vidx, 0x112, 1);
+
+	if(fidx<0 || fidx>=FC_NUM_FACTORYS) {
+		logerr("read factory init conf overflow %d.\n", fidx);
 		return;
 	}
+	if(vidx<0 || vidx >= FC_MAX_DISP_VER) {
+		logerr("undefined disp ver idx for fidx: %d\n", fidx);
+		vidx = 0;
+	}
 
-	logdbg("fixup use factory idx: %d\n", idx);
+	logdbg("fixup use factory fidx: %d, vidx: %d\n", fidx, vidx);
 	//覆盖默认nvram配置.
-	if (strlen(cFactorys[idx].ac_ipaddr) > 0){
-		nvram_bufset(RT2860_NVRAM, "ac_ipaddr", cFactorys[idx].ac_ipaddr);
-		logdbg("fixup ac_ipaddr [%s]\n", cFactorys[idx].ac_ipaddr);
+	if (strlen(cFactorys[fidx].ac_ipaddr_def) > 0){
+		nvram_bufset(RT2860_NVRAM, "ac_ipaddr_def", cFactorys[fidx].ac_ipaddr_def);
+		logdbg("fixup ac_ipaddr_def [%s]\n", cFactorys[fidx].ac_ipaddr_def);
 	}
-	if (strlen(cFactorys[idx].ac_ipaddr_port) > 0){
-		nvram_bufset(RT2860_NVRAM, "ac_ipaddr_port", cFactorys[idx].ac_ipaddr_port);
-		logdbg("fixup ac_port [%s]\n", cFactorys[idx].ac_ipaddr_port);
+	if (strlen(cFactorys[fidx].ac_ipaddr_port) > 0){
+		nvram_bufset(RT2860_NVRAM, "ac_ipaddr_port", cFactorys[fidx].ac_ipaddr_port);
+		logdbg("fixup ac_port [%s]\n", cFactorys[fidx].ac_ipaddr_port);
 	}
-	if (strlen(cFactorys[idx].cloud_account) > 0){
-		nvram_bufset(RT2860_NVRAM, "cloud_account", cFactorys[idx].cloud_account);
-		logdbg("fixup accout [%s]\n", cFactorys[idx].cloud_account);
+	if (strlen(cFactorys[fidx].cloud_account) > 0){
+		nvram_bufset(RT2860_NVRAM, "cloud_account", cFactorys[fidx].cloud_account);
+		logdbg("fixup accout [%s]\n", cFactorys[fidx].cloud_account);
 	}
-	if (strlen(cFactorys[idx].cloud_password) > 0){
-		nvram_bufset(RT2860_NVRAM, "cloud_password", cFactorys[idx].cloud_password);
-		//logdbg("fixup password [%s]\n", cFactorys[idx].cloud_password);
+	if (strlen(cFactorys[fidx].cloud_password) > 0){
+		nvram_bufset(RT2860_NVRAM, "cloud_password", cFactorys[fidx].cloud_password);
+		//logdbg("fixup password [%s]\n", cFactorys[fidx].cloud_password);
 	}
-	if (strlen(cFactorys[idx].nick_name) > 0){
-		nvram_bufset(RT2860_NVRAM, "nick_name", cFactorys[idx].nick_name);
-		logdbg("fixup nick_name [%s]\n", cFactorys[idx].nick_name);
+	if (strlen(cFactorys[fidx].nick_name) > 0){
+		nvram_bufset(RT2860_NVRAM, "nick_name", cFactorys[fidx].nick_name);
+		logdbg("fixup nick_name [%s]\n", cFactorys[fidx].nick_name);
 	}
+
+	//fixup vidx
+	snprintf(buff, sizeof(buff), "%s%s", 
+		cFactorys[fidx].disp_version[vidx], strstr(UGW_VERSION, "-"));
+	nvram_bufset(RT2860_NVRAM, "os_version", buff);
 }
 
 void loadDefault(void)

@@ -108,6 +108,15 @@ static int exec_line(char *key, char *val, int num, unsigned int *modify)
 
 		nvram_ra_set(key, val);
 
+		//fixup 关联改动配置.
+		if (strncmp(key, "cloud_account", strlen("cloud_account")) == 0 ) {
+			if(strlen(val) > 0) {
+				nvram_ra_set("UGWAuthEnable", "1");
+			}else{
+				nvram_ra_set("UGWAuthEnable", "0");
+			}
+		}
+
 		*modify |= F_MODIFY_RECONF;
 	}
 

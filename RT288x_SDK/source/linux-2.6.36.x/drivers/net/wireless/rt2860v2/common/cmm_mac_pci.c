@@ -1458,12 +1458,7 @@ VOID RT28xx_UpdateBeaconToAsic(
 #ifdef CONFIG_AP_SUPPORT
 	if (apidx < pAd->ApCfg.BssidNum &&
 		apidx < HW_BEACON_MAX_NUM &&
-#ifdef P2P_SUPPORT
-		P2P_GO_ON(pAd)
-#else
-	       (pAd->OpMode == OPMODE_AP)
-#endif /* P2P_SUPPORT */
-		)
+		(pAd->OpMode == OPMODE_AP))
 	{
 		MULTISSID_STRUCT *pMbss;
 
@@ -1520,278 +1515,6 @@ VOID RT28xx_UpdateBeaconToAsic(
 	}
 }
 
-
-#ifdef CONFIG_STA_SUPPORT
-VOID RT28xxPciStaAsicForceWakeup(
-	IN PRTMP_ADAPTER pAd,
-	IN BOOLEAN       bFromTx)
-{
-    AUTO_WAKEUP_STRUC	AutoWakeupCfg;
-
-    if (!OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE))
-        return;
-
-    if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_WAKEUP_NOW))
-    {
-        DBGPRINT(RT_DEBUG_TRACE, ("waking up now!\n"));
-        return;
-    }
-
-    OPSTATUS_SET_FLAG(pAd, fOP_STATUS_WAKEUP_NOW);
-
-   /* RTMP_CLEAR_PSFLAG(pAd, fRTMP_PS_GO_TO_SLEEP_NOW);*/
-#ifdef PCIE_PS_SUPPORT
-    if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-		&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-    {
-        /* Support PCIe Advance Power Save*/
-    	if (bFromTx == TRUE
-			&&(pAd->Mlme.bPsPollTimerRunning == TRUE))
-    	{
-            pAd->Mlme.bPsPollTimerRunning = FALSE;
-    		RTMPPCIeLinkCtrlValueRestore(pAd, RESTORE_WAKEUP);
-    		RTMPusecDelay(3000);
-            DBGPRINT(RT_DEBUG_TRACE, ("=======AsicForceWakeup===bFromTx\n"));
-    	}
-
-		AutoWakeupCfg.word = 0;
-		RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);
-	
-        if (RT28xxPciAsicRadioOn(pAd, DOT11POWERSAVE))
-        {
-			RTMP_CHIP_OP *pChipOps = &pAd->chipOps;
-				
-			if (pChipOps->AsicReverseRfFromSleepMode)
-				pChipOps->AsicReverseRfFromSleepMode(pAd, FALSE);
-			else
-			{
-			/* end johnli*/
-				/* In Radio Off, we turn off RF clk, So now need to call ASICSwitchChannel again.*/
-				if (INFRA_ON(pAd) && (pAd->CommonCfg.CentralChannel != pAd->CommonCfg.Channel) 
-					&& (pAd->MlmeAux.HtCapability.HtCapInfo.ChannelWidth == BW_40))
-				{	
-					/* Must using 40MHz.*/
-					AsicSwitchChannel(pAd, pAd->CommonCfg.CentralChannel, FALSE);
-					AsicLockChannel(pAd, pAd->CommonCfg.CentralChannel);
-				}
-				else
-				{	
-					/* Must using 20MHz.*/
-					AsicSwitchChannel(pAd, pAd->CommonCfg.Channel, FALSE);
-					AsicLockChannel(pAd, pAd->CommonCfg.Channel);
-				}
-			} 
-        }
-    }
-    else
-#endif /* PCIE_PS_SUPPORT */
-    {
-        /* PCI, 2860-PCIe*/
-         DBGPRINT(RT_DEBUG_TRACE, ("<==RT28xxPciStaAsicForceWakeup::Original PCI Power Saving\n"));
-        AsicSendCommandToMcu(pAd, 0x31, 0xff, 0x00, 0x02, FALSE);
-        AutoWakeupCfg.word = 0;
-	    RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);
-    }
-    
-    OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_DOZE);
-    OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_WAKEUP_NOW);
-    DBGPRINT(RT_DEBUG_TRACE, ("<=======RT28xxPciStaAsicForceWakeup\n"));
-}
-
-
-VOID RT28xxPciStaAsicSleepThenAutoWakeup(
-	IN PRTMP_ADAPTER pAd, 
-	IN USHORT TbttNumToNextWakeUp) 
-{
-#ifdef PCIE_PS_SUPPORT
-	BOOLEAN brc;
-#endif /* PCIE_PS_SUPPORT */
-	
-	if (pAd->StaCfg.bRadio == FALSE)
-	{
-		OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_DOZE);
-		return;
-	}
-#ifdef PCIE_PS_SUPPORT
-	if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-		&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-	{
-		ULONG	Now = 0;
-		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_WAKEUP_NOW))
-		{
-			DBGPRINT(RT_DEBUG_TRACE, ("waking up now!\n"));
-			OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_DOZE);
-			return;
-		}
-
-		NdisGetSystemUpTime(&Now);
-		/* If last send NULL fram time is too close to this receiving beacon (within 8ms), don't go to sleep for this DTM.*/
-		/* Because Some AP can't queuing outgoing frames immediately.*/
-		if (((pAd->Mlme.LastSendNULLpsmTime + 8) >= Now) && (pAd->Mlme.LastSendNULLpsmTime <= Now))		
-		{
-			DBGPRINT(RT_DEBUG_TRACE, ("Now = %lu, LastSendNULLpsmTime=%lu :  RxCountSinceLastNULL = %lu. \n", Now, pAd->Mlme.LastSendNULLpsmTime, pAd->RalinkCounters.RxCountSinceLastNULL));
-			return;
-		}
-		else if ((pAd->RalinkCounters.RxCountSinceLastNULL > 0) && ((pAd->Mlme.LastSendNULLpsmTime + pAd->CommonCfg.BeaconPeriod) >= Now))		
-		{
-			DBGPRINT(RT_DEBUG_TRACE, ("Now = %lu, LastSendNULLpsmTime=%lu: RxCountSinceLastNULL = %lu > 0 \n", Now, pAd->Mlme.LastSendNULLpsmTime,  pAd->RalinkCounters.RxCountSinceLastNULL));			
-			return;
-		}
-		
-		brc = RT28xxPciAsicRadioOff(pAd, DOT11POWERSAVE, TbttNumToNextWakeUp);
-		if (brc==TRUE)
-			OPSTATUS_SET_FLAG(pAd, fOP_STATUS_DOZE);
-	}
-	else
-#endif /* PCIE_PS_SUPPORT */
-	{
-		AUTO_WAKEUP_STRUC	AutoWakeupCfg;	
-		/* we have decided to SLEEP, so at least do it for a BEACON period.	*/
-		if (TbttNumToNextWakeUp == 0)
-			TbttNumToNextWakeUp = 1; 
-
-		/*RTMP_IO_WRITE32(pAd, INT_MASK_CSR, AutoWakeupInt);*/
-
-		AutoWakeupCfg.word = 0; 
-		RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);  
-		AutoWakeupCfg.field.NumofSleepingTbtt = TbttNumToNextWakeUp - 1;    
-		AutoWakeupCfg.field.EnableAutoWakeup = 1;   
-		AutoWakeupCfg.field.AutoLeadTime = 5;   
-		RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);  
-		AsicSendCommandToMcu(pAd, 0x30, 0xff, 0xff, 0x00, FALSE);   /* send POWER-SAVE command to MCU. Timeout 40us.*/
-		OPSTATUS_SET_FLAG(pAd, fOP_STATUS_DOZE);
-		DBGPRINT(RT_DEBUG_TRACE, ("<-- %s, TbttNumToNextWakeUp=%d \n", __FUNCTION__, TbttNumToNextWakeUp));
-	}
-
-}
-
-#ifdef PCIE_PS_SUPPORT
-VOID PsPollWakeExec(
-	IN PVOID SystemSpecific1, 
-	IN PVOID FunctionContext, 
-	IN PVOID SystemSpecific2, 
-	IN PVOID SystemSpecific3) 
-{
-	RTMP_ADAPTER *pAd = (RTMP_ADAPTER *)FunctionContext;
-	unsigned long flags;
-
-    DBGPRINT(RT_DEBUG_TRACE,("-->PsPollWakeExec \n"));
-
-	RTMP_INT_LOCK(&pAd->irq_lock, flags);
-    if (pAd->Mlme.bPsPollTimerRunning)
-    {
-	    RTMPPCIeLinkCtrlValueRestore(pAd, RESTORE_WAKEUP);
-    }
-    pAd->Mlme.bPsPollTimerRunning = FALSE;
-	RTMP_INT_UNLOCK(&pAd->irq_lock, flags);
-
-}
-
-
-VOID  RadioOnExec(
-	IN PVOID SystemSpecific1, 
-	IN PVOID FunctionContext, 
-	IN PVOID SystemSpecific2, 
-	IN PVOID SystemSpecific3) 
-{
-	RTMP_ADAPTER *pAd = (RTMP_ADAPTER *)FunctionContext;
-	RTMP_CHIP_OP *pChipOps = &pAd->chipOps;
-	WPDMA_GLO_CFG_STRUC	DmaCfg;
-	BOOLEAN				Cancelled;
-
-	if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE))
-	{
-		DBGPRINT(RT_DEBUG_TRACE,("-->RadioOnExec() return on fOP_STATUS_DOZE == TRUE; \n"));
-		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-			&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-		RTMPSetTimer(&pAd->Mlme.RadioOnOffTimer, 10);
-		return;
-	}
-	
-	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_BSS_SCAN_IN_PROGRESS))
-	{
-		DBGPRINT(RT_DEBUG_TRACE,("-->RadioOnExec() return on SCAN_IN_PROGRESS; \n"));
-
-
-		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-				&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-		RTMPSetTimer(&pAd->Mlme.RadioOnOffTimer, 10);
-		return;
-	}
-	
-if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-	&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-	{
-	pAd->Mlme.bPsPollTimerRunning = FALSE;
-	RTMPCancelTimer(&pAd->Mlme.PsPollTimer,	&Cancelled);
-	}
-
-
-	if (pAd->StaCfg.bRadio == TRUE)
-	{
-		pAd->bPCIclkOff = FALSE;
-		RTMPRingCleanUp(pAd, QID_AC_BK);
-		RTMPRingCleanUp(pAd, QID_AC_BE);
-		RTMPRingCleanUp(pAd, QID_AC_VI);
-		RTMPRingCleanUp(pAd, QID_AC_VO);
-		RTMPRingCleanUp(pAd, QID_HCCA);
-		RTMPRingCleanUp(pAd, QID_MGMT);
-		RTMPRingCleanUp(pAd, QID_RX);
-
-		/* 2. Send wake up command.*/
-		AsicSendCommandToMcu(pAd, 0x31, PowerWakeCID, 0x00, 0x02, FALSE);   
-		/* 2-1. wait command ok.*/
-		AsicCheckCommanOk(pAd, PowerWakeCID);	
-        
-		/* When PCI clock is off, don't want to service interrupt. So when back to clock on, enable interrupt.*/
-		/*RTMP_IO_WRITE32(pAd, INT_MASK_CSR, (DELAYINTMASK|RxINT));*/
-		RTMP_ASIC_INTERRUPT_ENABLE(pAd);
-		
-		/* 3. Enable Tx DMA.*/
-		RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &DmaCfg.word);
-		DmaCfg.field.EnableTxDMA = 1;
-		RTMP_IO_WRITE32(pAd, WPDMA_GLO_CFG, DmaCfg.word);
-		
-		/* In Radio Off, we turn off RF clk, So now need to call ASICSwitchChannel again.*/
-		if (INFRA_ON(pAd) && (pAd->CommonCfg.CentralChannel != pAd->CommonCfg.Channel) 
-			&& (pAd->MlmeAux.HtCapability.HtCapInfo.ChannelWidth == BW_40))
-		{	
-			/* Must using 40MHz.*/
-			AsicSwitchChannel(pAd, pAd->CommonCfg.CentralChannel, FALSE);
-			AsicLockChannel(pAd, pAd->CommonCfg.CentralChannel);
-		}
-		else
-		{	
-			/* Must using 20MHz.*/
-			AsicSwitchChannel(pAd, pAd->CommonCfg.Channel, FALSE);
-			AsicLockChannel(pAd, pAd->CommonCfg.Channel);
-		}
-				
-		if (pChipOps->AsicReverseRfFromSleepMode)
-			pChipOps->AsicReverseRfFromSleepMode(pAd, FALSE);
-
-		/* Clear Radio off flag*/
-		RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_RADIO_OFF);
-
-#ifdef LED_CONTROL_SUPPORT
-		/* Set LED*/
-		RTMPSetLED(pAd, LED_RADIO_ON);
-#endif /* LED_CONTROL_SUPPORT */
-
-		if (RtmpPktPmBitCheck(pAd) == FALSE)
-		{
-			RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R3, pAd->StaCfg.BBPR3);
-		}
-	}
-	else
-	{
-		RT28xxPciAsicRadioOff(pAd, GUIRADIO_OFF, 0);
-	}
-}
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
-
-
 /*
 	==========================================================================
 	Description:
@@ -1808,51 +1531,10 @@ BOOLEAN RT28xxPciAsicRadioOn(
 	IN UCHAR     Level)
 {
     /*WPDMA_GLO_CFG_STRUC	DmaCfg;*/
-#ifdef CONFIG_STA_SUPPORT    
-#ifdef PCIE_PS_SUPPORT
-	BOOLEAN				Cancelled;   
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
     /*UINT32			    MACValue;*/
 
 	if (pAd->OpMode == OPMODE_AP && Level==DOT11POWERSAVE)
 		return FALSE;
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-	if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE))
-	{
-		if (pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-		{
-	    	pAd->Mlme.bPsPollTimerRunning = FALSE;
-			RTMPCancelTimer(&pAd->Mlme.PsPollTimer,	&Cancelled);
-		}
-		if ((pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)&&
-			(((Level == GUIRADIO_OFF) || (Level == GUI_IDLE_POWER_SAVE))
-			||(RTMP_TEST_PSFLAG(pAd, fRTMP_PS_SET_PCI_CLK_OFF_COMMAND))))
-		{
-			/* Some chips don't need to delay 6ms, so copy RTMPPCIePowerLinkCtrlRestore*/
-			/* return condition here.*/
-			/*
-			if (((pAd->MACVersion&0xffff0000) != 0x28600000)
-				&& ((pAd->DeviceID == NIC2860_PCIe_DEVICE_ID)
-				||(pAd->DeviceID == NIC2790_PCIe_DEVICE_ID)))
-			*/
-			{
-				DBGPRINT(RT_DEBUG_TRACE, ("RT28xxPciAsicRadioOn ()\n"));
-				/* 1. Set PCI Link Control in Configuration Space.*/
-				RTMPPCIeLinkCtrlValueRestore(pAd, RESTORE_WAKEUP);
-				RTMPusecDelay(6000);
-			}
-		}
-	}
-    
-	{	
-    		pAd->bPCIclkOff = FALSE;
-		DBGPRINT(RT_DEBUG_TRACE, ("PSM :309xbPCIclkOff == %d\n", pAd->bPCIclkOff));
-	}
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
 
 	/* 2. Send wake up command.*/
 	AsicSendCommandToMcu(pAd, 0x31, PowerWakeCID, 0x00, 0x02, FALSE);
@@ -1867,50 +1549,17 @@ BOOLEAN RT28xxPciAsicRadioOn(
  /*2009/06/09: AP and stations need call the following function*/
  #ifndef RTMP_RBUS_SUPPORT
 			/* add by johnli, RF power sequence setup, load RF normal operation-mode setup*/
-
-				RTMP_CHIP_OP *pChipOps = &pAd->chipOps;
-				
-				if (pChipOps->AsicReverseRfFromSleepMode)
-				{
-					pChipOps->AsicReverseRfFromSleepMode(pAd, FALSE);
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-				/* 3090 MCU Wakeup command needs more time to be stable.*/
-				/* Before stable, don't issue other MCU command to prevent from firmware error.	*/
+			RTMP_CHIP_OP *pChipOps = &pAd->chipOps;
 			
-                                if ( pAd->chipCap.HW_PCIE_PS_L3_ENABLE==TRUE)
-				{
-					RTMP_SEM_LOCK(&pAd->McuCmdLock);
-					pAd->brt30xxBanMcuCmd = FALSE;
-					RTMP_SEM_UNLOCK(&pAd->McuCmdLock);
-				}
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
-
+			if (pChipOps->AsicReverseRfFromSleepMode)
+			{
+				pChipOps->AsicReverseRfFromSleepMode(pAd, FALSE);
 			}
 			else
 			/* end johnli*/
 #endif /* RTMP_RBUS_SUPPORT */
 			{
 	    		/* In Radio Off, we turn off RF clk, So now need to call ASICSwitchChannel again.*/
-#ifdef CONFIG_STA_SUPPORT
-				IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-				{
-	    			if (INFRA_ON(pAd) && (pAd->CommonCfg.CentralChannel != pAd->CommonCfg.Channel) 
-	    				&& (pAd->MlmeAux.HtCapability.HtCapInfo.ChannelWidth == BW_40))
-	    			{	
-	    				/* Must using 40MHz.*/
-	    				AsicSwitchChannel(pAd, pAd->CommonCfg.CentralChannel, FALSE);
-	    				AsicLockChannel(pAd, pAd->CommonCfg.CentralChannel);
-	    			}
-	    			else
-	    			{	
-	    				/* Must using 20MHz.*/
-	    				AsicSwitchChannel(pAd, pAd->CommonCfg.Channel, FALSE);
-	    				AsicLockChannel(pAd, pAd->CommonCfg.Channel);
-	    			}
-				}
-#endif /* CONFIG_STA_SUPPORT */
 #ifdef CONFIG_AP_SUPPORT
 				IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
 				{
@@ -1942,16 +1591,6 @@ BOOLEAN RT28xxPciAsicRadioOff(
 	IN UCHAR            Level, 
 	IN USHORT           TbttNumToNextWakeUp) 
 {
-#ifdef CONFIG_STA_SUPPORT	
-	WPDMA_GLO_CFG_STRUC	DmaCfg;
-	UCHAR		i, tempBBP_R3 = 0;
-#ifdef PCIE_PS_SUPPORT	
-    ULONG		BeaconPeriodTime;
-	UINT32		PsPollTime = 0/*, MACValue*/;
-	UINT32		TbTTTime = 0;
-	BOOLEAN		Cancelled;
-#endif /* PCIE_PS_SUPPORT */	
-#endif /* CONFIG_STA_SUPPORT */
 #if defined(CONFIG_STA_SUPPORT) || defined(RT2860)
 	BOOLEAN		brc = FALSE;
 #endif /* defined(CONFIG_STA_SUPPORT) || defined(RT2860) */
@@ -1983,64 +1622,8 @@ BOOLEAN RT28xxPciAsicRadioOff(
 
 
     /* Once go into this function, disable tx because don't want too many packets in queue to prevent HW stops.*/
-	/*pAd->bPCIclkOffDisableTx = TRUE;*/
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-	RTMP_SET_PSFLAG(pAd, fRTMP_PS_DISABLE_TX);
-	if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE) 
-		&& pAd->OpMode == OPMODE_STA
-		&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE
-		)
-	{
-
-	    RTMPCancelTimer(&pAd->Mlme.RadioOnOffTimer,	&Cancelled);
-	    RTMPCancelTimer(&pAd->Mlme.PsPollTimer,	&Cancelled);
-
-	    if (Level == DOT11POWERSAVE)
-		{
-			RTMP_IO_READ32(pAd, TBTT_TIMER, &TbTTTime);
-			TbTTTime &= 0x1ffff;
-			/* 00. check if need to do sleep in this DTIM period.   If next beacon will arrive within 30ms , ...doesn't necessarily sleep.*/
-			/* TbTTTime uint = 64us, LEAD_TIME unit = 1024us, PsPollTime unit = 1ms*/
-	        if  (((64*TbTTTime) <((LEAD_TIME*1024) + 40000)) && (TbttNumToNextWakeUp == 0))
-			{
-				DBGPRINT(RT_DEBUG_TRACE, ("TbTTTime = 0x%x , give up this sleep. \n", TbTTTime));
-	            OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_DOZE);
-	            		/*pAd->bPCIclkOffDisableTx = FALSE;*/
-	            		RTMP_CLEAR_PSFLAG(pAd, fRTMP_PS_DISABLE_TX);
-				return FALSE;
-			}
-			else
-			{
-				PsPollTime = (64*TbTTTime- LEAD_TIME*1024)/1000;
-				PsPollTime -= 3;
-
-	            BeaconPeriodTime = pAd->CommonCfg.BeaconPeriod*102/100;
-				if (TbttNumToNextWakeUp > 0)
-					PsPollTime += ((TbttNumToNextWakeUp -1) * BeaconPeriodTime);
-	            
-	            pAd->Mlme.bPsPollTimerRunning = TRUE;
-				RTMPSetTimer(&pAd->Mlme.PsPollTimer, PsPollTime);
-				}
-			}
-		}
-    	else
-    	{
-		DBGPRINT(RT_DEBUG_TRACE, ("RT28xxPciAsicRadioOff::Level!=DOT11POWERSAVE \n"));
-    	}
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
 	/*pAd->bPCIclkOffDisableTx = FALSE;*/
     RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_IDLE_RADIO_OFF);
-    
-#ifdef CONFIG_STA_SUPPORT
-    /* Set to 1R.*/
-	if (pAd->Antenna.field.RxPath > 1 && pAd->OpMode == OPMODE_STA)
-	{
-    	tempBBP_R3 = (pAd->StaCfg.BBPR3 & 0xE7);
-		RTMP_BBP_IO_WRITE8_BY_REG_ID(pAd, BBP_R3, tempBBP_R3);
-	}
-#endif /* CONFIG_STA_SUPPORT */
     
 	/* In Radio Off, we turn off RF clk, So now need to call ASICSwitchChannel again.*/
 	if ((INFRA_ON(pAd) || pAd->OpMode == OPMODE_AP) && (pAd->CommonCfg.CentralChannel != pAd->CommonCfg.Channel) 
@@ -2075,64 +1658,9 @@ BOOLEAN RT28xxPciAsicRadioOff(
 	/* send POWER-SAVE command to MCU. high-byte = 1 save power as much as possible. high byte = 0 save less power*/
 	AsicSendCommandToMcu(pAd, SLEEP_MCU_CMD, PowerSafeCID, 0xff, 0x1, FALSE);   
 
-#ifdef RT2860
-	/* in rt3xxx, after issue SLEEP command, can't read/write register. So don't check Command ok.*/
-	if ((pAd->DeviceID == NIC2860_PCIe_DEVICE_ID) 
-		||(pAd->DeviceID == NIC2790_PCIe_DEVICE_ID))
-	{
-		/*  2-1. Wait command success*/
-		/* Status = 1 : success, Status = 2, already sleep, Status = 3, Maybe MAC is busy so can't finish this task.*/
-		brc = AsicCheckCommanOk(pAd, PowerSafeCID);	
-
-		/*  3. After 0x30 command is ok, send radio off command. lowbyte = 0 for power safe.*/
-		/* If 0x30 command is not ok this time, we can ignore 0x35 command. It will make sure not cause firmware'r problem.*/
-		if ((Level == DOT11POWERSAVE) && (brc == TRUE))
-		{
-			AsicSendCommandToMcu(pAd, 0x35, PowerRadioOffCID, 0, 0x00, FALSE);	/* lowbyte = 0 means to do power safe, NOT turn off radio.*/
-		 	/*  3-1. Wait command success*/
-		 	AsicCheckCommanOk(pAd, PowerRadioOffCID);
-		}
-		else if (brc == TRUE)
-		{
-			AsicSendCommandToMcu(pAd, 0x35, PowerRadioOffCID, 1, 0x00, FALSE);	/* lowbyte = 0 means to do power safe, NOT turn off radio.*/
-		 	/*  3-1. Wait command success*/
-		 	AsicCheckCommanOk(pAd, PowerRadioOffCID);
-		}
-	}
-#endif /* RT2860 */
-    
-#ifdef CONFIG_STA_SUPPORT
-	/* 1. Wait DMA not busy*/
-	i = 0;
-	do
-	{
-		RTMP_IO_READ32(pAd, WPDMA_GLO_CFG, &DmaCfg.word);
-		if ((DmaCfg.field.RxDMABusy == 0) && (DmaCfg.field.TxDMABusy == 0))
-			break;
-		RTMPusecDelay(20);
-		i++;
-	}while(i < 50);
-
-	/*
-	if (i >= 50)
-	{
-		pAd->CheckDmaBusyCount++;
-		DBGPRINT(RT_DEBUG_TRACE, ("DMA Rx keeps busy.  return on AsicRadioOff () CheckDmaBusyCount = %d \n", pAd->CheckDmaBusyCount));
-	}	
-	else
-	{
-		pAd->CheckDmaBusyCount = 0;
-	}
-	*/
-#endif /* CONFIG_STA_SUPPORT */
-/* Disable for stability. If PCIE Link Control is modified for advance power save, re-covery this code segment.*/
-/*RTMP_IO_WRITE32(pAd, PBF_SYS_CTRL, 0x1280);*/
-/*OPSTATUS_SET_FLAG(pAd, fOP_STATUS_CLKSELECT_40MHZ);*/
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
+	/* Disable for stability. If PCIE Link Control is modified for advance power save, re-covery this code segment.*/
+	/*RTMP_IO_WRITE32(pAd, PBF_SYS_CTRL, 0x1280);*/
+	/*OPSTATUS_SET_FLAG(pAd, fOP_STATUS_CLKSELECT_40MHZ);*/
 	if (Level == DOT11POWERSAVE)
 	{
 		AUTO_WAKEUP_STRUC	AutoWakeupCfg;
@@ -2151,27 +1679,7 @@ BOOLEAN RT28xxPciAsicRadioOff(
 		AutoWakeupCfg.field.AutoLeadTime = LEAD_TIME;
 		RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);
 	}
-	
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-
-	/*  4-1. If it's to disable our device. Need to restore PCI Configuration Space to its original value.*/
-	if (Level == RTMP_HALT && pAd->OpMode == OPMODE_STA)
-	{
-		if ((brc == TRUE) && (i < 50))
-			RTMPPCIeLinkCtrlSetting(pAd, 1);
-	}
-	/*  4. Set PCI configuration Space Link Comtrol fields.  Only Radio Off needs to call this function*/
-	else if (pAd->OpMode == OPMODE_STA)
-	{
-		if ((brc == TRUE) && (i < 50))
-			RTMPPCIeLinkCtrlSetting(pAd, 3);
-	}
-	RTMP_CLEAR_PSFLAG(pAd, fRTMP_PS_DISABLE_TX);
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
-
-    	/*pAd->bPCIclkOffDisableTx = FALSE;*/
+    /*pAd->bPCIclkOffDisableTx = FALSE;*/
     	
 	return TRUE;
 }
@@ -2188,14 +1696,7 @@ VOID RT28xxPciMlmeRadioOn(
     DBGPRINT(RT_DEBUG_TRACE,("%s===>\n", __FUNCTION__));   
     
     if ((pAd->OpMode == OPMODE_AP) ||
-        ((pAd->OpMode == OPMODE_STA) 
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-        && (!OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)
-        ||pAd->StaCfg.PSControl.field.EnableNewPS == FALSE)
- #endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
-        ))
+        ((pAd->OpMode == OPMODE_STA)))
     {
     	RTMPRingCleanUp(pAd, QID_AC_BK);
     	RTMPRingCleanUp(pAd, QID_AC_BE);
@@ -2232,25 +1733,6 @@ VOID RT28xxPciMlmeRadioOn(
 #endif /* CONFIG_AP_SUPPORT */
 #endif /* LED_CONTROL_SUPPORT */
     }
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-
-    if ((pAd->OpMode == OPMODE_STA) &&
-        (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE))
-        &&(pAd->StaCfg.PSControl.field.EnableNewPS == TRUE))
-    {
-        BOOLEAN		Cancelled;
-    	
-    	RTMPPCIeLinkCtrlValueRestore(pAd, RESTORE_WAKEUP);
-
-        pAd->Mlme.bPsPollTimerRunning = FALSE;
-    	RTMPCancelTimer(&pAd->Mlme.PsPollTimer,	&Cancelled);
-    	RTMPCancelTimer(&pAd->Mlme.RadioOnOffTimer,	&Cancelled);
-    	RTMPSetTimer(&pAd->Mlme.RadioOnOffTimer, 40);
-    }
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
 }
 
 
@@ -2269,68 +1751,6 @@ VOID RT28xxPciMlmeRadioOFF(
 	/* Set Radio off flag*/
 	RTMP_SET_FLAG(pAd, fRTMP_ADAPTER_RADIO_OFF);
 
-#ifdef CONFIG_STA_SUPPORT
-	IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-    {
-    	BOOLEAN		Cancelled;
-    	if (RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_BSS_SCAN_IN_PROGRESS))
-    	{
-			RTMPCancelTimer(&pAd->MlmeAux.ScanTimer, &Cancelled);
-			RTMP_CLEAR_FLAG(pAd, fRTMP_ADAPTER_BSS_SCAN_IN_PROGRESS);
-    	}
-
-#ifdef PCIE_PS_SUPPORT
-		/* If during power safe mode. */
-		if ((pAd->StaCfg.bRadio == TRUE)
-			&& (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE))
-		{
-			DBGPRINT(RT_DEBUG_TRACE,("-->MlmeRadioOff() return on bRadio == TRUE; \n"));
-			return;
-		}
-#endif /* PCIE_PS_SUPPORT */
-
-		/* Always radio on since the NIC needs to set the MCU command (LED_RADIO_OFF).*/
-#ifdef RTMP_PCI_SUPPORT
-		if ((pAd->infType == RTMP_DEV_INF_PCI)  || 
-			(pAd->infType == RTMP_DEV_INF_PCIE))
-		{
-			if (IDLE_ON(pAd) &&
-				(RTMP_TEST_FLAG(pAd, fRTMP_ADAPTER_IDLE_RADIO_OFF)))
-			{
-				RT28xxPciAsicRadioOn(pAd, GUI_IDLE_POWER_SAVE);
-			}
-		}
-#endif /* RTMP_PCI_SUPPORT */
-
-#ifdef PCIE_PS_SUPPORT
-		if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)&&pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-        {
-            BOOLEAN Cancelled;
-            pAd->Mlme.bPsPollTimerRunning = FALSE;
-            RTMPCancelTimer(&pAd->Mlme.PsPollTimer,	&Cancelled);
-	        RTMPCancelTimer(&pAd->Mlme.RadioOnOffTimer,	&Cancelled);
-        }
-#endif /* PCIE_PS_SUPPORT */
-		
-
-        /* Link down first if any association exists	*/
-        if (INFRA_ON(pAd) || ADHOC_ON(pAd))		
-            LinkDown(pAd, FALSE);   
-        RTMPusecDelay(10000);   
-        /*==========================================    */
-        /* Clean up old bss table   */
-        BssTableInit(&pAd->ScanTab);
-		
-        /*
-        if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE))
-        {
-            RTMPSetTimer(&pAd->Mlme.RadioOnOffTimer, 10);
-            return;
-        }
-        */
-    }
-#endif /* CONFIG_STA_SUPPORT */
-
 #ifdef CONFIG_AP_SUPPORT
 #ifdef AP_SCAN_SUPPORT
 	{
@@ -2345,29 +1765,15 @@ VOID RT28xxPciMlmeRadioOFF(
 	RTMPSetLED(pAd, LED_RADIO_OFF);
 #endif /* LED_CONTROL_SUPPORT */
 
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-/*Q:Does all PCIe devices need to use timer to execute radio off function? or only if the device is PCIe and EnableNewPS is true ?*/
-/*A:It is right, because only when the PCIe and EnableNewPs is true, we need to delay the RadioOffTimer*/
-/*to avoid the deadlock with PCIe Power saving function. */
-if (pAd->OpMode == OPMODE_STA&&
-	OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE)&&
-	pAd->StaCfg.PSControl.field.EnableNewPS == TRUE)
-	{
-		RTMPSetTimer(&pAd->Mlme.RadioOnOffTimer, 10); 
-	} 
-else 
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
 #ifdef RTMP_PCI_SUPPORT
 	if (pAd->infType == RTMP_DEV_INF_PCI || pAd->infType == RTMP_DEV_INF_PCIE)
-{
-		brc=RT28xxPciAsicRadioOff(pAd, GUIRADIO_OFF, 0);
-	if (brc==FALSE)
 	{
-		DBGPRINT(RT_DEBUG_ERROR,("%s call RT28xxPciAsicRadioOff fail !!\n", __FUNCTION__)); 
+		brc=RT28xxPciAsicRadioOff(pAd, GUIRADIO_OFF, 0);
+		if (brc==FALSE)
+		{
+			DBGPRINT(RT_DEBUG_ERROR,("%s call RT28xxPciAsicRadioOff fail !!\n", __FUNCTION__)); 
+		}
 	}
-}
 #endif /* RTMP_PCI_SUPPORT */
 
 #ifdef RTMP_RBUS_SUPPORT

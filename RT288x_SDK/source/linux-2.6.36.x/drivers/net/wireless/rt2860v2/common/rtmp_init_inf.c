@@ -28,14 +28,6 @@
 #include	"rt_config.h"
 
 
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PROFILE_STORE
-NDIS_STATUS WriteDatThread(
-	IN  RTMP_ADAPTER *pAd);
-#endif /* PROFILE_STORE */
-#endif /* CONFIG_STA_SUPPORT */
-
 #ifdef LINUX
 #ifdef OS_ABL_FUNC_SUPPORT
 /* Utilities provided from NET module */
@@ -117,26 +109,6 @@ int rt28xx_init(
 
 	if (pAd == NULL)
 		return FALSE;
-
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef PCIE_PS_SUPPORT
-	IF_DEV_CONFIG_OPMODE_ON_STA(pAd)
-	{
-    	/* If dirver doesn't wake up firmware here,*/
-    	/* NICLoadFirmware will hang forever when interface is up again.*/
-    	if (OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_DOZE) &&
-        	OPSTATUS_TEST_FLAG(pAd, fOP_STATUS_ADVANCE_POWER_SAVE_PCIE_DEVICE))
-    	{
-        	AUTO_WAKEUP_STRUC AutoWakeupCfg;
-			AsicForceWakeup(pAd, TRUE);
-        	AutoWakeupCfg.word = 0;
-	    	RTMP_IO_WRITE32(pAd, AUTO_WAKEUP_CFG, AutoWakeupCfg.word);
-        	OPSTATUS_CLEAR_FLAG(pAd, fOP_STATUS_DOZE);
-    	}
-	}
-#endif /* PCIE_PS_SUPPORT */
-#endif /* CONFIG_STA_SUPPORT */
 
 	/* reset Adapter flags*/
 	RTMP_CLEAR_FLAGS(pAd);
@@ -252,11 +224,7 @@ int rt28xx_init(
 	CfgInitHook(pAd);
 
 #ifdef CONFIG_AP_SUPPORT
-	if ((pAd->OpMode == OPMODE_AP)
-#ifdef P2P_SUPPORT
-		|| TRUE
-#endif /* P2P_SUPPORT */
-		)
+	if ((pAd->OpMode == OPMODE_AP))
 		APInitialize(pAd);
 #endif /* CONFIG_AP_SUPPORT */	
 
@@ -279,7 +247,6 @@ int rt28xx_init(
 
 	
 	/* Init the hardware, we need to init asic before read registry, otherwise mac register will be reset*/
-	
 	Status = NICInitializeAdapter(pAd, TRUE);
 	if (Status != NDIS_STATUS_SUCCESS)
 	{
@@ -288,22 +255,10 @@ int rt28xx_init(
 		goto err6;
 	}	
 
-#ifdef CONFIG_AP_SUPPORT
-	IF_DEV_CONFIG_OPMODE_ON_AP(pAd)
-	{
-	}
-#endif /* CONFIG_AP_SUPPORT */
-
 	/* Read parameters from Config File */
 	/* unknown, it will be updated in NICReadEEPROMParameters */
 	pAd->RfIcType = RFIC_UNKNOWN;
 	Status = RTMPReadParametersHook(pAd);
-
-#ifdef CONFIG_STA_SUPPORT
-#ifdef CREDENTIAL_STORE
-	RecoverConnectInfo(pAd);
-#endif /* CREDENTIAL_STORE */
-#endif /* CONFIG_STA_SUPPORT */
 
 	DBGPRINT(RT_DEBUG_OFF, ("1. Phy Mode = %d\n", pAd->CommonCfg.PhyMode));
 	if (Status != NDIS_STATUS_SUCCESS)
@@ -337,8 +292,6 @@ int rt28xx_init(
 
 	/* We should read EEPROM for all cases.  rt2860b*/
 	NICReadEEPROMParameters(pAd, (PSTRING)pDefaultMac);	
-#ifdef CONFIG_STA_SUPPORT
-#endif /* CONFIG_STA_SUPPORT */
 
 	DBGPRINT(RT_DEBUG_OFF, ("3. Phy Mode = %d\n", pAd->CommonCfg.PhyMode));
 

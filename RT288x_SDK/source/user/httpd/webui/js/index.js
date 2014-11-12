@@ -5,14 +5,24 @@ $(document).ready(function() {
 	initEvents();
 });
 
+function fixupInitVals() {
+	$('#ap_standalone').val("0");
+}
+
 function initData() {
 	$.get('conf.cgi', function(d, s, xhr) {
 		oConf = nv2json(d);
 		//赋值
 		jsonTraversal(oConf, jsTravSet);
 
+		//修正初始值
+		fixupInitVals();
+
 		//init status
 		OnLanDhcpChanged();
+
+		//others
+		window.document.title = oConf['os_version']
 	});
 }
 
@@ -60,10 +70,21 @@ function OnSysServices() {
 	});
 }
 
+function OnCloudAccountChg() {
+	var accout = $('#cloud_account').val();
+	if (accout != "") {
+		//setup default cloud addr
+		$("#ac_ipaddr").val($('#ac_ipaddr_def').val());
+	} else {
+		$("#ac_ipaddr").val('');
+	}
+}
+
 function initEvents() {
 	$('#btn_save_conf').on('click', OnConfSave);
 	$('#btn_sys_reset').on('click', OnSysReset);
 	$('#btn_sys_restart').on('click', OnSysRestart);
 	$('#btn_sys_service').on('click', OnSysServices);
 	$('#lan_dhcp').on('change', OnLanDhcpChanged);
+	$('#cloud_account').on('change', OnCloudAccountChg);
 }

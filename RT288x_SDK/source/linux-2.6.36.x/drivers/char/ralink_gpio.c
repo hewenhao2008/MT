@@ -43,6 +43,8 @@
 #include <linux/timer.h>
 #endif
 #include <asm/uaccess.h>
+
+#define KERNEL
 #include "ralink_gpio.h"
 
 #include <asm/rt2880/surfboardint.h>
