@@ -81,6 +81,11 @@ ifneq ($(CONFIG_UGW_VERSION),)
 export UGW_VERSION=$(CONFIG_UGW_VERSION)
 endif
 
+ifeq ($(HW_VERSION),)
+HW_VERSION=UGW
+endif
+export HW_VERSION
+
 # May use a different compiler for the kernel
 #KERNEL_CROSS_COMPILE ?= $(CROSS_COMPILE)
 #KERNEL_CROSS_COMPILE_PATH = /opt/Tenda/mips/bin

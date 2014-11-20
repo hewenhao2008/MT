@@ -4,7 +4,7 @@ EXEC = nvram_daemon ralink_init
 CONF_H	= $(ROOTDIR)/$(LINUXDIR)/include/linux/autoconf.h
 UCONF_H	= $(ROOTDIR)/config/autoconf.h $(ROOTDIR)/autoconf.h
 
-CFLAGS += -I$(NVDIR) -DUGW_VERSION='$(UGW_VERSION)' -I$(ROOTDIR)/$(LINUXDIR)/drivers/char
+CFLAGS += -I$(NVDIR) -DUGW_VERSION='$(UGW_VERSION)' -DHW_VERSION='"$(HW_VERSION)"' -I$(ROOTDIR)/$(LINUXDIR)/drivers/char
 LDFLAGS += -lnvram
 
 

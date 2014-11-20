@@ -32,6 +32,7 @@ function OnConfSave() {
 	var conf = a2str(oConf);
 	$.post('post.cgi', conf, function(d, s, x) {
 		//console.log(d);
+		OnSysServices();
 		window.location.reload();
 	});
 }
@@ -63,6 +64,13 @@ function OnSysRestart() {
 	});
 }
 
+function OnSysUpdate() {
+	$.post('exec.cgi', "online_upgrade.sh", function(d, s, x) {
+		//console.log(d);
+		window.location.reload();
+	});
+}
+
 function OnSysServices() {
 	$.post('exec.cgi', "ugw_services.sh restart", function(d, s, x) {
 		//console.log(d);
@@ -84,7 +92,8 @@ function initEvents() {
 	$('#btn_save_conf').on('click', OnConfSave);
 	$('#btn_sys_reset').on('click', OnSysReset);
 	$('#btn_sys_restart').on('click', OnSysRestart);
-	$('#btn_sys_service').on('click', OnSysServices);
+	// $('#btn_sys_service').on('click', OnSysServices);
+	$('#btn_sys_update').on('click', OnSysUpdate);
 	$('#lan_dhcp').on('change', OnLanDhcpChanged);
 	$('#cloud_account').on('change', OnCloudAccountChg);
 }

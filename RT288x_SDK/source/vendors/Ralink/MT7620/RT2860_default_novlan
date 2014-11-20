@@ -2,8 +2,12 @@
 Default
 WebInit=1
 ugw_timelast=1409811257
+http_username=admin
+http_password=admin
+http_webport=8080
 cloud_account=
 cloud_password=
+UGWAuthEnable=0
 ac_ipaddr=
 ac_current=
 ac_ipaddr_port=8081
@@ -16,9 +20,7 @@ lan_netmask=255.255.255.0
 lan_gateway=192.168.1.1
 nick_name=MT-7620
 HostName=RC-Chain
-os_version=UGW.MT.7.620.57.0904
-Login=admin
-Password=admin
+os_version=U.7.620.57.1114
 OperationMode=0
 Platform=UGW7620
 stpEnabled=0

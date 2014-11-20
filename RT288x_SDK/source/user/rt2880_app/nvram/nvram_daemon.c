@@ -37,7 +37,7 @@ static struct ConstFactorySt cFactorys[] = {
 		cloud_account: "",
 		cloud_password: "cloud@leguang",
 		nick_name: "乐光",
-		disp_version: {"LG-A291", NULL,},
+		disp_version: {"SYAP21", "SYAP23", "SYAP27", "SYAP28",},
 	},{
 		ac_ipaddr_def:	"yun.wangjie.com",
 		ac_ipaddr_port:	"8081",
@@ -51,7 +51,7 @@ static struct ConstFactorySt cFactorys[] = {
 		cloud_account: "",
 		cloud_password: "cloud@i-wiwi",
 		nick_name: "深蓝",
-		disp_version: {"SL-a291", NULL,},
+		disp_version: {"U298", NULL,},
 	},
 };
 
@@ -59,7 +59,7 @@ static struct ConstFactorySt cFactorys[] = {
 
 void FixupFactoryInfo(void)
 {
-	char fidx, vidx;
+	char fidx, vidx = -1;
 	char buff[32], *pstr;
 
 	if(mtdpart_read("Factory", &fidx, 0x110, 1)<0) {
@@ -70,11 +70,11 @@ void FixupFactoryInfo(void)
 
 	if(fidx<0 || fidx>=FC_NUM_FACTORYS) {
 		logerr("read factory init conf overflow %d.\n", fidx);
-		return;
+		fidx = 0;
 	}
 	if(vidx<0 || vidx >= FC_MAX_DISP_VER) {
 		logerr("undefined disp ver idx for fidx: %d\n", fidx);
-		vidx = 0;
+		vidx = -1;
 	}
 
 	logdbg("fixup use factory fidx: %d, vidx: %d\n", fidx, vidx);
@@ -101,8 +101,12 @@ void FixupFactoryInfo(void)
 	}
 
 	//fixup vidx
-	snprintf(buff, sizeof(buff), "%s%s", 
-		cFactorys[fidx].disp_version[vidx], strstr(UGW_VERSION, "-"));
+	if(vidx>=0) {
+		snprintf(buff, sizeof(buff), "%s%s", 
+			cFactorys[fidx].disp_version[vidx], strstr(UGW_VERSION, "-"));
+	}else{
+		snprintf(buff, sizeof(buff), "%s%s", HW_VERSION, strstr(UGW_VERSION, "-"));
+	}
 	nvram_bufset(RT2860_NVRAM, "os_version", buff);
 }
 

@@ -18,6 +18,7 @@ stop()
 	killall authv
 	killall lua
 	killall apclid
+	killall httpd
 
 	#rmmod
 	rmmod auth

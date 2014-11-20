@@ -88,7 +88,7 @@ int main(char argc, char *argv[])
 		} while (esp < 60 && esp > 0);
 
 		//超时, 连不上, 切换dhcp, 并且从广播获取AC地址.
-		if (!nvram_ra_match("ap_standalone", "1") || (time(NULL) - start_ts >= 600)) {
+		if (!nvram_ra_match("ap_standalone", "1") || (time(NULL) - start_ts >= 300)) {
 			//5-10, min, not found ac. 
 			ac_addr_invalid ++; //广播获取AC地址
 			ac_addr_invalid %= 3; //每个N次, 再尝试配置地址, 防止一直连不上.

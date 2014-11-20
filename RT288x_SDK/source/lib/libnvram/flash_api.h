@@ -22,12 +22,12 @@ typedef struct image_header {
 } image_header_t;
 
 /*
-* 返回读取成功的字节数
+* 杩斿洖璇诲彇鎴愬姛鐨勫瓧鑺傛暟
  */
 int flash_read(char *buf, off_t from, size_t len);
 
 /*
-* -1 出错
+* -1 鍑洪敊
  */
 int flash_write(char *buf, off_t to, size_t len);
 unsigned int flush_mtd_size(char *part);

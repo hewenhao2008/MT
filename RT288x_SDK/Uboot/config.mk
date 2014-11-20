@@ -40,10 +40,10 @@ RALINK_SPI_CS1_HIGH_ACTIVE = OFF
 MTK_MSDC = OFF
 
 #Only for built-in 10/100/1000 Embedded Switch
-RALINK_EPHY_TESTER = ON
+RALINK_EPHY_TESTER = OFF
 
 #Only for built-in 10/100 Embedded Switch
-RALINK_SWITCH_DEBUG_FUN = ON
+RALINK_SWITCH_DEBUG_FUN = OFF
 
 ###################################
 # Optimized for Size flag

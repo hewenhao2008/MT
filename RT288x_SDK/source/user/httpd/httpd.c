@@ -52,7 +52,7 @@
 #include "nvram.h"
 
 #define SERVER_NAME "httpd"
-#define SERVER_PORT 12581
+#define SERVER_PORT 8080
 #define PROTOCOL "HTTP/1.0"
 #define RFC1123FMT "%a, %d %b %Y %H:%M:%S GMT"
 #define MAXCONFLINE 255
@@ -598,7 +598,7 @@ int main(int argc, char **argv)
 	if(argc >= 2) {
 		port = atoi(argv[1]);
 	}else{
-		port = atoi(nvram_ra_get("http_webport")?:"12581");
+		port = atoi(nvram_ra_get("http_webport")?:"8080");
 	}
 	if(port <= 0 || port > 65535){
 		port = SERVER_PORT;
