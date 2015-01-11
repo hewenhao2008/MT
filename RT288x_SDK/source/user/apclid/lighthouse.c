@@ -5,6 +5,34 @@
 //gpio, on, off, blinks, rests, times.
 static int lighthouse_led_gpio = 0;
 
+//outdoor
+//powr mask
+static int odr_led_map[4] = {9, 14, 11, 12};
+static void odr_init_led(void)
+{
+	int txpwr = 100, on = 0, off = 100, i;
+	char *tmp = nvram_ra_get("TxPower");
+
+	if(tmp && strlen(tmp)>0) {
+		txpwr = atoi(tmp);
+	}
+	logdbg("txpwr: %d\n", txpwr);
+
+	txpwr = (txpwr * 4) / 100; //0,1,2,3,4,
+	for(i=0; i<4; i++) {
+		if(txpwr >= i) {
+			//led on
+			on = 100; off = 1;
+		}else{
+			//led off
+			on = 0; off = 100;
+		}
+		gpio_set_led(odr_led_map[i], on, off,
+			ra_gpio_led_infinity, 0, 0);
+	}
+
+}
+
 static void signal_handler(int signum)
 {
 	printf("gpio tester: signal ");
@@ -85,7 +113,7 @@ int lighthouse_main(int argc, char *argv[])
 	if(strcmp(argv[1], "led") == 0) {
 		lighthouse_led_gpio = atoi(argv[2]);
 	}else if(strcmp(argv[1], "reset") == 0) {
-
+		odr_init_led();
 	}else{
 		usage();
 	}

@@ -64,6 +64,7 @@ mount_jffs2()
 	mount -o,rbind /jffs2/ugw	/ugw
 	mount -o,rbind /jffs2/etc	/etc
 	mount -o,rbind /jffs2/root 	/root
+	mount -o,rbind /jffs2/root	/var/log
 }
 
 #start base system

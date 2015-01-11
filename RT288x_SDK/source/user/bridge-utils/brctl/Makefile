@@ -1,7 +1,7 @@
 
 #KERNEL_HEADERS=-I/usr/src/linux/include
 
-CC=/opt/MTK/RT288x_SDK/rootfs/host/usr/bin/mipsel-ugw-linux-uclibc-gcc
+CC=/opt/mt/RT288x_SDK/rootfs/host/usr/bin/mipsel-ugw-linux-uclibc-gcc
 CFLAGS= -Wall -g -O2
 LDFLAGS=
 INCLUDE=-I../libbridge $(KERNEL_HEADERS) 

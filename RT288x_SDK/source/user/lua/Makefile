@@ -15,8 +15,8 @@ lua:
 	
 libev: 
 	#cd libev-4.15 && ./configure --host=arm-linux && make  
-	cd libev-4.15 && make
-	#cd libev-4.15 && ./configure --host=mipsel-ugw-linux-uclibc && make
+	#cd libev-4.15 && make
+	cd libev-4.15 && ./configure --host=mipsel-ugw-linux-uclibc && make
 ehcc:
 	cd ehc && make CC=$(CC) GCC=$(GCC)
 basicc:

@@ -4023,7 +4023,7 @@ static VOID RT6352_AsicExtraPowerOverMAC(
 	ExtraPwrOverTxPwrCfg8 |= (ExtraPwrOverMAC & 0x0000FF00) >> 8; /* Get Tx power for HT MCS 15 */
 	RTMP_IO_WRITE32(pAd, TX_PWR_CFG_8, ExtraPwrOverTxPwrCfg8);
 		
-	DBGPRINT(RT_DEBUG_WARN, ("ROY: \n\tOffset = 0x13D4, TxPwr = 0x%08X\n"
+	DBGPRINT(RT_DEBUG_TRACE, ("ROY: \n\tOffset = 0x13D4, TxPwr = 0x%08X\n"
 		"\tOffset = 0x13D8, TxPwr = 0x%08X\n"
 		"\tOffset = 0x13DC, TxPwr = 0x%08X\n",
 		(UINT)ExtraPwrOverTxPwrCfg7,
@@ -4712,7 +4712,7 @@ VOID RT6352_AsicAdjustTxPower(
 			MacValue |= (Diff & 0x3F);
 			RTMP_IO_WRITE32(pAd, TX_ALG_CFG_1, MacValue); 
 
-			DBGPRINT(RT_DEBUG_WARN, ("ROY: TotalDeltaPower=%d, Mac 0x13B4 is 0x%08x\n", TotalDeltaPower, MacValue));
+			DBGPRINT(RT_DEBUG_TRACE, ("ROY: TotalDeltaPower=%d, Mac 0x13B4 is 0x%08x\n", TotalDeltaPower, MacValue));
 		}
 
 		/* Extra set MAC registers to compensate Tx power if any */

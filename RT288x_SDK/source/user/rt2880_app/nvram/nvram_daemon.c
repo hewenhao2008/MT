@@ -27,6 +27,7 @@ struct ConstFactorySt {
 	char cloud_account[64];
 	char cloud_password[64];
 	char nick_name[128];
+	char GpioLed[4];
 	char *disp_version[FC_MAX_DISP_VER];
 };
 
@@ -36,21 +37,24 @@ static struct ConstFactorySt cFactorys[] = {
 		ac_ipaddr_port:	"8081",
 		cloud_account: "",
 		cloud_password: "cloud@leguang",
-		nick_name: "乐光",
-		disp_version: {"SYAP21", "SYAP23", "SYAP27", "SYAP28",},
+		nick_name: "Cloud AP",
+		GpioLed: "0",
+		disp_version: {"SYAP21", "SYAP23", "SYAP27", "SYAP28", "ODAP27", NULL},
 	},{
 		ac_ipaddr_def:	"yun.wangjie.com",
 		ac_ipaddr_port:	"8081",
 		cloud_account: "",
 		cloud_password: "cloud@wangjie",
-		nick_name: "网捷",
+		nick_name: "X3",
+		GpioLed: "9",
 		disp_version: {"X3", NULL,},
 	},{
 		ac_ipaddr_def:	"yun.i-wiwi.com",
 		ac_ipaddr_port:	"8081",
 		cloud_account: "",
 		cloud_password: "cloud@i-wiwi",
-		nick_name: "深蓝",
+		nick_name: "CA",
+		GpioLed: "0",
 		disp_version: {"U298", NULL,},
 	},
 };
@@ -99,6 +103,10 @@ void FixupFactoryInfo(void)
 		nvram_bufset(RT2860_NVRAM, "nick_name", cFactorys[fidx].nick_name);
 		logdbg("fixup nick_name [%s]\n", cFactorys[fidx].nick_name);
 	}
+	if (strlen(cFactorys[fidx].GpioLed) > 0){
+		nvram_bufset(RT2860_NVRAM, "GpioLed", cFactorys[fidx].GpioLed);
+		logdbg("fixup GpioLed [%s]\n", cFactorys[fidx].GpioLed);
+	}
 
 	//fixup vidx
 	if(vidx>=0) {
@@ -108,6 +116,22 @@ void FixupFactoryInfo(void)
 		snprintf(buff, sizeof(buff), "%s%s", HW_VERSION, strstr(UGW_VERSION, "-"));
 	}
 	nvram_bufset(RT2860_NVRAM, "os_version", buff);
+
+	//fixup spec conf
+	switch(fidx) {
+		case 0:
+		switch(vidx) {
+			case 4:
+				//OutDoor-xxx
+				nvram_bufset(RT2860_NVRAM, "GpioLed", "9");
+			break;
+			default:
+			break;
+		}
+		break;
+		default:
+		break;
+	}
 }
 
 void loadDefault(void)

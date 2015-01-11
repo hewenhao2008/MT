@@ -29,6 +29,17 @@ AutoChannelSel()
 	logger "AutoChannelSel $Channel"
 }
 
+AuthLuaReset()
+{
+	killall -9 authv
+	killall -9 lua
+}
+
+SystemRestart()
+{
+	sleep 3 && reboot;
+}
+
 while true; do
 
 	#3hour
@@ -41,10 +52,22 @@ while true; do
 		tcfg.sh && logger "apply tc config."
 	fi
 
-	#5min
+	#120min
 	Random=`expr $Rand10 + $Counter`
-	if [ `expr $Random % 5` -eq 0 ]; then
+	if [ `expr $Random % 120` -eq 0 ]; then
 		AutoChannelSel && logger "auto channel selected $Random."
+	fi
+
+	#15min
+	Random=`expr $Rand10 + $Counter`
+	if [ `expr $Random % 15` -eq 0 ]; then
+		AuthLuaReset && logger "restart auth system... $Random."
+	fi
+
+	#24hours
+	Random=`expr $Rand10 + $Counter`
+	if [ `expr $Random % 1440` -eq 0 ]; then
+		SystemRestart && logger "restart system after 24 hours $Random."
 	fi
 
 	#1min

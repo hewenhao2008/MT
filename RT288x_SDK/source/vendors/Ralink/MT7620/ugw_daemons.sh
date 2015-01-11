@@ -32,6 +32,9 @@ else
 	UGW_DAEMONS="syslogd klogd nvram_daemon apclid dropbear synctime.sh httpd"
 fi
 
+#设置灯塔和指示灯状态
+lighthouse reset;
+
 #放狗
 while true;
 do
@@ -47,7 +50,7 @@ do
 		sleep 1;
 	done
 
-	sleep 5;
+	sleep 1;
 done
 
 

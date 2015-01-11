@@ -1,10 +1,10 @@
 
 #KERNEL_HEADERS=-I/usr/src/linux/include
 
-AR=ar
+AR=/opt/mt/RT288x_SDK/rootfs/host/usr/bin/mipsel-ugw-linux-uclibc-ar
 RANLIB=ranlib
 
-CC=/opt/MTK/RT288x_SDK/rootfs/host/usr/bin/mipsel-ugw-linux-uclibc-gcc
+CC=/opt/mt/RT288x_SDK/rootfs/host/usr/bin/mipsel-ugw-linux-uclibc-gcc
 CFLAGS = -Wall -g $(KERNEL_HEADERS)
 
 prefix=/usr/local
